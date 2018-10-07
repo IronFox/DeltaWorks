@@ -493,6 +493,14 @@
 		y = (C)field[1];
 	}
 
+	template <class C>
+    MF_CONSTRUCTOR1              Vec2<C>::Vec2(const std::initializer_list<C0>&field)
+	{
+		DBG_ASSERT__(field.size() == 2);
+		x = (C)*field.begin();
+		y = (C)*(field.begin()+1);
+	}
+
 
     template <class C>
     MF_CONSTRUCTOR2     Vec2<C>::Vec2(const C0&x_, const C1&y_)

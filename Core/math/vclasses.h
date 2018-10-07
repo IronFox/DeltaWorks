@@ -137,6 +137,7 @@ namespace DeltaWorks
 			MF_CONSTRUCTOR1					Vec2(const TVec2<C0>&other);
 			MF_CONSTRUCTOR2					Vec2(const C0&x, const C1&y);
 			MF_CONSTRUCTOR1					Vec2(const C0 field[2]);
+			MF_CONSTRUCTOR1					Vec2(const std::initializer_list<C0>&list);
 
 			static MF_DECLARE(Self&)		reinterpret(TVec2<C>&vec)	{return reinterpret_cast<Self&>(vec);}
 			static MF_DECLARE(Self&)		Reinterpret(TVec2<C>&vec)	{return reinterpret_cast<Self&>(vec);}
