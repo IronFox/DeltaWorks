@@ -139,6 +139,12 @@
 
 
     template <class C, count_t Len>
+    MF_DECLARE (void) VecN<C,Len>::operator= (const C&scalar)
+	{
+		VecUnroll<Len>::set(v,scalar);
+	}
+
+    template <class C, count_t Len>
     MF_VNT MF_DECLARE (void) VecN<C,Len>::operator= (const TVec<C0,Len0>&other)
     {
 		VecUnroll<Eval<Len,Len0>::Min>::copy(other.v,v);
@@ -416,6 +422,12 @@
     }
 
     template <class C>
+    MF_DECLARE(void)	Vec3<C>::operator=(const C&scalar)
+    {
+		Vec::set(*this,scalar);
+    }
+
+    template <class C>
     template <class C0> MF_DECLARE  (void)        Vec3<C>::operator=(const TVec3<C0>&other)
     {
 		x = (C)other.x;
@@ -613,6 +625,11 @@
         y-=value;
     }
 
+    template <class C>
+    MF_DECLARE(void)	Vec2<C>::operator=(const C&scalar)
+    {
+		Vec::set(*this,scalar);
+    }
 
     template <class C>
     MFUNC1  (void)        Vec2<C>::operator=(const TVec2<C0>&other)
@@ -901,6 +918,12 @@
         return Vec3<C>(   y*other.z - z*other.y,
                             z*other.x - x*other.z,
                             x*other.y - y*other.x);
+    }
+
+    template <class C>
+    MF_DECLARE(void)	Vec4<C>::operator=(const C&scalar)
+    {
+		Vec::set(*this,scalar);
     }
 
     template <class C>

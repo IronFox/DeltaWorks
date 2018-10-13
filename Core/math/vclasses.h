@@ -109,6 +109,7 @@ namespace DeltaWorks
 			MFUNC1 (Vec3<C>)				operator&(const TVec3<C0>&other)		const;
 			MFUNC1 (void)					operator&=(const TVec3<C0>&other);
 			MFUNC1 (void)					operator=(const TVec3<C0>&other);
+			MF_DECLARE(void)				operator=(const C&scalar);
 			MFUNC1 (bool)					operator==(const TVec3<C0>&other)		const;
 			MFUNC1 (bool)					operator!=(const TVec3<C0>&other)		const;
 			MFUNC1 (bool)					operator>(const TVec3<C0>&other)		const;		//!< Lexicographic order using _compare
@@ -183,6 +184,7 @@ namespace DeltaWorks
 			MFUNC1 (Vec2<C>)				operator&(const TVec2<C0>&other)		const;
 			MFUNC1 (void)					operator&=(const TVec2<C0>&other);
 			MFUNC1 (void)					operator=(const TVec2<C0>&other);
+			MF_DECLARE(void)				operator=(const C&scalar);
 			MFUNC1 (bool)					operator==(const TVec2<C0>&other)		const;
 			MFUNC1 (bool)					operator!=(const TVec2<C0>&other)		const;
 			MFUNC1 (bool)					operator>(const TVec2<C0>&other)		const;		//!< Lexicographic order using _compare
@@ -255,6 +257,7 @@ namespace DeltaWorks
 			MFUNC1 (void)					operator-=(const TVec4<C0>&other);
 			MF_DECLARE(void)				operator-=(const C&value);
 			MFUNC1 (Vec3<C>)				operator|(const TVec4<C0>&other)		const;
+			MF_DECLARE(void)				operator=(const C&scalar);
 			MFUNC1 (void)					operator=(const TVec2<C0>&other);
 			MFUNC1 (void)					operator=(const TVec3<C0>&other);
 			MFUNC1 (void)					operator=(const TVec4<C0>&other);
@@ -365,6 +368,7 @@ namespace DeltaWorks
 					MFUNC1 (void)					operator=(const TVec2<C0>&v);
 					MFUNC1 (void)					operator=(const TVec3<C0>&v);
 					MFUNC1 (void)					operator=(const TVec4<C0>&v);
+					MF_DECLARE(void)				operator=(const C&scalar);
 					MFUNCV1_(bool)					operator==(const TVec<C0,Len0>&v)		const;
 					MFUNCV1_(bool)					operator!=(const TVec<C0,Len0>&v)		const;
 					MFUNC1 (bool)					operator>(const TVec<C0,Len>&other)		const;		//!< Lexicographic order using _compare
@@ -387,6 +391,7 @@ namespace DeltaWorks
 				MF_CONSTRUCTOR				VecN(T x, T y):Super(x,y)				{}
 				MF_CONSTRUCTOR1				VecN(const C0 field[2]):Super(field)	{}
 				MFUNC1 (void)				operator=(const TVec2<C0>&v)			{Super::operator=(v);}
+				MF_DECLARE(void)			operator=(const T&scalar)				{Super::operator=(v);}
 			};
 
 		template <typename T>
@@ -401,6 +406,7 @@ namespace DeltaWorks
 				MF_CONSTRUCTOR				VecN(T x, T y, T z):Super(x,y,z)		{}
 				MF_CONSTRUCTOR1				VecN(const C0 field[3]):Super(field)	{}
 				MFUNC1 (void)				operator=(const TVec3<C0>&v)			{Super::operator=(v);}
+				MF_DECLARE(void)			operator=(const T&scalar)				{Super::operator=(v);}
 			};
 
 		template <typename T>
@@ -415,6 +421,7 @@ namespace DeltaWorks
 				MF_CONSTRUCTOR				VecN(T x, T y, T z, T w):Super(x,y,z,w)		{}
 				MF_CONSTRUCTOR1				VecN(const C0 field[4]):Super(field)	{}
 				MFUNC1 (void)				operator=(const TVec4<C0>&v)			{Super::operator=(v);}
+				MF_DECLARE(void)			operator=(const T&scalar)				{Super::operator=(v);}
 			};
 
 
