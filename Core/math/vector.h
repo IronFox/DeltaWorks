@@ -444,6 +444,12 @@ namespace DeltaWorks
 											this->min = M::Min(this->min,value);
 											this->max = M::Max(this->max,value);
 										}
+				template<typename T0, typename T1>
+					MF_DECLARE(void)	Include(const T0&min, const T1&max)	//!< Expands the local range so that it includes the specified range
+										{
+											this->min = M::Min(this->min,min);
+											this->max = M::Max(this->max,max);
+										}
 				template<typename T0>
 					MF_DECLARE(void)	Include(const TFloatRange<T0>&other)	//!< Expands the local range so that it includes the specified other range
 										{
