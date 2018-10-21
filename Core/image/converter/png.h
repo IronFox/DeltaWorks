@@ -32,6 +32,9 @@ namespace DeltaWorks
 		static	void		DecompressArray(Image&image, const Ctr::Array<BYTE>&data);
 		static	void		DecompressData(Image&image, const void*data, size_t data_size);
 		static	void		DecompressStream(Image&out_image, IReadStream&stream);
+
+		void				LoadFromFile16(Image16&, const PathString&filename);
+		void				SaveToFile16(const Image16&, const PathString&filename, int compressionLevel);
 	};
 
 	extern PNG		png;
