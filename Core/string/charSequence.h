@@ -138,13 +138,15 @@ namespace DeltaWorks
 				/**
 				Returns true if the local string begins with the specified string, false otherwise
 				*/
-				bool			BeginsWithIgnoreCase(const T*string)		const	{return BeginsWithIgnoreCase(ConstSelf(string));}
+				template <typename T2>
+					bool		BeginsWithIgnoreCase(const T2*string)		const	{return BeginsWithIgnoreCase(Sequence<const T2>(string));}
 				template <typename T2>
 					bool		BeginsWithIgnoreCase(const ArrayRef<T2>&string)	const;		//!< Returns true if the local string begins with the specified string, false otherwise
 				/**
 				Returns true if the local string ends with the specified string, false otherwise
 				*/
-				bool			EndsWithIgnoreCase(const T*string)			const	{return EndsWithIgnoreCase(ConstSelf(string));}
+				template <typename T2>
+					bool		EndsWithIgnoreCase(const T2*string)				const	{return EndsWithIgnoreCase(Sequence<const T2>(string));}
 				template <typename T2>
 					bool		EndsWithIgnoreCase(const ArrayRef<T2>&string)		const;		//!< Returns true if the local string ends with the specified string, false otherwise
 
