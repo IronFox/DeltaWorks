@@ -179,6 +179,7 @@ namespace DeltaWorks
 		png_destroy_info_struct(png,&info);
 		png_destroy_read_struct(&png,NULL,NULL);
 		target.FlipVertically();
+		fclose(f);
 	}
 
 	void	PNG::SaveToFile16(const Image16&resource, const PathString&filename, int compressionLevel)
