@@ -189,6 +189,15 @@ namespace DeltaWorks
 					return Super::operator[](index);
 				}
 
+				T*						operator+(index_t index)
+				{
+					return &*(Super::begin() + index);
+				}
+				const T*				operator+(index_t index) const
+				{
+					return &*(Super::begin() + index);
+				}
+
 				MutableArrayRef<T>				ToRef();
 			};
 
