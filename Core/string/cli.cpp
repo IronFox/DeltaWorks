@@ -21,6 +21,14 @@ namespace DeltaWorks
 			return (isUmlaut(c) || isalnum(c) || c == '_') && (c != '\n' && c != '\r' && c != ' ');
 		}
 
+		String	Quote(const String&source)
+		{
+			String rs = source;
+			rs.FindAndReplace('\'',"\\'");
+			return '\''+ rs + '\'';
+		}
+
+
 		namespace detail
 		{
 			void	makeValidName(String&name)

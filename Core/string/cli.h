@@ -40,7 +40,7 @@ namespace DeltaWorks
 			void	makeValidName(String&name);
 		}
 
-
+		String	Quote(const String&source);
 
 
 		enum eVariableProtection	//! Variable protection flags
@@ -149,7 +149,7 @@ namespace DeltaWorks
 		{
 		public:
 			/**/				StringVariable(const String&name, const String&content="", unsigned protection=NoProtection):SimpleVariable<String>(name,"String",content,protection){}
-			virtual String		ConvertToString() const override	{return "'"+content+"'";}
+			virtual String		ConvertToString() const override	{return Quote(content);}
 		};
 	
 		class BoolVariable:public SimpleVariable<bool>	//! Standard CLI bool variable
