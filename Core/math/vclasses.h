@@ -155,8 +155,10 @@ namespace DeltaWorks
 			MF_DECLARE(C)					Sqr()							 		const	{return Vec::dot(*this);}
 			MF_DECLARE(C)					summary()								const	{return x+y;}
 			MF_DECLARE(C)					Summary()								const	{return x+y;}
-			MF_DECLARE(Vec2<C>)				normalized()							const;		//returns normalized vector
-			MF_DECLARE(Vec2<C>)				normalized0()							const;
+			MF_DECLARE(Self)				normalized()							const;		//returns normalized vector
+			MF_DECLARE(Self)				Normalized()							const	{ return normalized(); }
+			MF_DECLARE(Self)				normalized0()							const;
+			MF_DECLARE(Self)				Normalized0()							const	{return normalized0();}
 			MF_DECLARE(Self&)				normalize()								{Vec::normalize(*this);return *this;}
 			MF_DECLARE(Self&)				Normalize()								{Vec::normalize(*this);return *this;}
 			MF_DECLARE(Self&)				normalize0()							{Vec::normalize0(*this);return *this;}
