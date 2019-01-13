@@ -42,12 +42,31 @@ namespace DeltaWorks
 		}
 
 		/**
+		@copydoc Get(double,double,double)
+		@param frequencyModulation Factor multiplied to x, y, and z before computation
+		*/
+		double		Get(double x, double y, double z, double frequencyModulation) const
+		{
+			return Get(x * frequencyModulation, y * frequencyModulation, z * frequencyModulation);
+		}
+
+		/**
 		Samples (close to) uniformly distributed volumetric noise in the range [0,1]
 		*/
 		double		GetUniform(double x, double y, double z) const
 		{
 			return ToUniformDistribution(Get(x,y,z));
 		}
+
+		/**
+		@copydoc GetUniform(double,double,double)
+		@param frequencyModulation Factor multiplied to x, y, and z before computation
+		*/
+		double		GetUniform(double x, double y, double z, double frequencyModulation) const
+		{
+			return GetUniform(x * frequencyModulation, y * frequencyModulation, z * frequencyModulation);
+		}
+
 
 		static double	ToUniformDistribution(double x0)
 		{
