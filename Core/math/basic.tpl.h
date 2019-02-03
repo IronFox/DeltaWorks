@@ -785,6 +785,40 @@ namespace Math
 	}
 
 
+	template <typename T, typename U>
+	T            PowU(T base, U exponent)
+	{
+		switch (exponent)
+		{
+			case 0:
+				return (T)1;
+			case 1:
+				return base;
+			case 2:
+				return base * base;
+			case 3:
+				return base * base * base;
+		}
+		const U exp2 = exponent >> 1;
+		const T sub = PowU(base,exp2);
+		if (exponent & 1)
+		{
+			return sub * sub * base;
+		}
+		return sub * sub;
+	}
+
+
+	template <typename T, typename I>
+	T            PowI(T base, I exponent)
+	{
+		if (exponent < 0)
+			return (T)1 / PowU(base,static_cast<typename TypeInfo<I>::UnsignedType::Type>(-exponent));
+		return PowU(base,static_cast<typename TypeInfo<I>::UnsignedType::Type>(exponent));
+	}
+
+
+
 	MFUNC (C)             vlog10(C v)
 	{
 		return log10(v);
@@ -936,7 +970,7 @@ namespace Math
     MFUNCV	(C) resolveNURBSweight(unsigned element, const C&fc)
     {
     //    ShowMessage("final "+IntToStr(factorial<Dimensions-1>()/(factorial(element)*factorial(Dimensions-element-1))));
-        return loop_exp(fc,element)*loop_exp(1-fc,Dimensions-element-1)*(C)factorial<Dimensions-1>()/(C)(factorial(element)*factorial(Dimensions-element-1));
+        return PowU(fc,element)*PowU(1-fc,Dimensions-element-1)*(C)factorial<Dimensions-1>()/(C)(factorial(element)*factorial(Dimensions-element-1));
     }
 
 	MFUNC3 (bool)				sqrEquationHasResults(C0 a, C1 b, C2 c)

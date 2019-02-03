@@ -444,6 +444,17 @@ namespace DeltaWorks
 		MFUNC	(C)			vexp(C e);														//!< Calculates (e)^e
 		//template <typename T>
 			//auto          Pow10(T e);														//!< Calculates 10^e (exists. Commented here due to declaration order)
+
+		/**
+		Recursively computes base^exponent for unsigned integer exponent types
+		*/
+		template <typename T, typename U>
+			T				PowU(T base, U exponent);
+		/**
+		Recursively computes base^exponent for signed integer exponent types
+		*/
+		template <typename T, typename I>
+			T				PowI(T base, I exponent);
 		MFUNC	(C)			vlog10(C v);													//!< Calculates log(10)e
 		MFUNC	(C)			vsin(C v);
 		MFUNC	(C)			vcos(C v);
