@@ -356,6 +356,13 @@ namespace DeltaWorks
 				template <typename F>
 					inline	void					VisitAllEntries(const F&f)	const		/** @copydoc visitAllEntries() */{visitAllEntries(f);}
 				/**
+				Iterates over all entries and aborts as soon as the given function returns true.
+				@param f Scan function. Must be of the form bool(K,C). Once the function returns true, scanning aborts
+				@return Key of the entry where @a f returned true, null if this did not happen
+				*/
+				template <typename F>
+					inline	const KeyType*			ScanEntries(const F&f)	const;
+				/**
 				Visits keys and values entries by invoking filter(key, value) for each contained entry.
 				@param filter Callback function to call. The function must return true if the respective element should be preserved, false if it should be unset
 				*/

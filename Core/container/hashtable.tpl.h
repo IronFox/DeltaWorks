@@ -352,6 +352,18 @@ template <class K, class Hash, class KeyStrategy>
 
 template <class K, class C, class Hash, class KeyStrategy, class DataStrategy>
 	template <typename F>
+		inline	const typename HashTable<K,C,Hash,KeyStrategy,DataStrategy>::KeyType*
+			HashTable<K,C,Hash,KeyStrategy,DataStrategy>::ScanEntries(const F&f)	const
+		{
+			foreach (Base::array,entry)
+				if (entry->occupied)
+					if (f((const K&)entry->key, entry->cast()))
+						return &entry->key;
+			return nullptr;
+		}
+
+template <class K, class C, class Hash, class KeyStrategy, class DataStrategy>
+	template <typename F>
 		inline	void					HashTable<K,C,Hash,KeyStrategy,DataStrategy>::visitAllEntries(const F&f)
 		{
 			for (index_t i = 0; i < Base::array.GetLength(); i++)
