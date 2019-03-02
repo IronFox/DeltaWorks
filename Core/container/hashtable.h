@@ -44,28 +44,39 @@ namespace DeltaWorks
 			{
 				typedef K					Key;
 				typedef KeyStrategy			AppliedKeyStrategy;
+				typedef THashSetCarrier<K,KeyStrategy> Self;
 
 				K							key;		//!< Key of this entry
 				hash_t						hashed;		//!< Hashed key
 				bool						occupied;	//!< Set true if this entry is occupied
 
-											THashSetCarrier():occupied(false)
-											{}
+				/**/						THashSetCarrier():occupied(false)
+				{}
 
 				void						adoptData(THashSetCarrier<K,KeyStrategy>&other)
-											{
-												KeyStrategy::move(other.key,key);
-												hashed = other.hashed;
-												occupied = other.occupied;
-											}
+				{
+					KeyStrategy::move(other.key,key);
+					hashed = other.hashed;
+					occupied = other.occupied;
+				}
 				void						occupy()
-											{
-												occupied = true;
-											}
+				{
+					occupied = true;
+				}
 				void						free()
-											{
-												occupied = false;
-											}
+				{
+					occupied = false;
+				}
+				bool						operator==(const Self&other) const
+				{
+					if (!occupied || !other.occupied)
+						return occupied == other.occupied;
+					return hashed == other.hashed && key == other.key;
+				}
+				bool						operator!=(const Self&other) const
+				{
+					return !operator==(other);
+				}
 			};
 
 		template <class K, class C, class KeyStrategy, class DataStrategy>
@@ -79,11 +90,11 @@ namespace DeltaWorks
 				/*ALIGN16*/ BYTE				entry_data[sizeof(C)];
 				//C							entry;		//!< Local copy of the inserted data
 
-											~THashTableCarrier()
-											{
-												if (Super::occupied)
-													reinterpret_cast<C*>(entry_data)->~C();
-											}
+				/**/						~THashTableCarrier()
+				{
+					if (Super::occupied)
+						reinterpret_cast<C*>(entry_data)->~C();
+				}
 
 				ThisType&					operator=(const ThisType&other)
 				{
@@ -118,38 +129,46 @@ namespace DeltaWorks
 				}
 
 				void						adoptData(ThisType&other)
-											{
-												if (other.occupied)
-												{
-													if (Super::occupied)
-														DataStrategy::move(*reinterpret_cast<C*>(other.entry_data),*reinterpret_cast<C*>(entry_data));
-													else
-														DataStrategy::constructSingleFromFleetingData(reinterpret_cast<C*>(entry_data),*reinterpret_cast<C*>(other.entry_data));
-												}
-												else
-													if (Super::occupied)
-														reinterpret_cast<C*>(entry_data)->~C();
-												Super::adoptData(other);
-											}
+				{
+					if (other.occupied)
+					{
+						if (Super::occupied)
+							DataStrategy::move(*reinterpret_cast<C*>(other.entry_data),*reinterpret_cast<C*>(entry_data));
+						else
+							DataStrategy::constructSingleFromFleetingData(reinterpret_cast<C*>(entry_data),*reinterpret_cast<C*>(other.entry_data));
+					}
+					else
+						if (Super::occupied)
+							reinterpret_cast<C*>(entry_data)->~C();
+					Super::adoptData(other);
+				}
 				C&							cast()
-											{
-												return *reinterpret_cast<C*>(entry_data);
-											}
+				{
+					return *reinterpret_cast<C*>(entry_data);
+				}
 				const C&					cast() const
-											{
-												return *reinterpret_cast<const C*>(entry_data);
-											}
+				{
+					return *reinterpret_cast<const C*>(entry_data);
+				}
 				void						free()
-											{
-												if (Super::occupied)
-													reinterpret_cast<C*>(entry_data)->~C();
-												Super::occupied = false;
-											}
+				{
+					if (Super::occupied)
+						reinterpret_cast<C*>(entry_data)->~C();
+					Super::occupied = false;
+				}
 				void						occupy()
-											{
-												new (entry_data) C;
-												Super::occupied = true;
-											}
+				{
+					new (entry_data) C;
+					Super::occupied = true;
+				}
+				bool						operator==(const ThisType&other) const
+				{
+					return Super::operator==(other) && cast() == other.cast();
+				}
+				bool						operator!=(const ThisType&other) const
+				{
+					return !operator==(other);
+				}
 			};
 
 
@@ -240,6 +259,8 @@ namespace DeltaWorks
 				inline void		swap(Self&other);
 				friend void		swap(Self&a, Self&b)	{a.swap(b);}
 
+				bool			operator==(const Self&other) const;
+				bool			operator!=(const Self&other) const {return !operator==(other);}
 
 				const Store&	GetStore() const {return array;}
 			};

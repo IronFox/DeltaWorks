@@ -15,6 +15,22 @@ template <typename Tfrom, typename Tto>
 	}
 
 
+template <class Carrier>
+	bool			GenericHashBase<Carrier>::operator==(const Self&other) const
+	{
+		if (Count() != other.Count())
+			return false;
+
+		foreach (array,entry)
+			if (entry->occupied)
+			{
+				auto*c = other.find(entry->hashed,entry->key);
+				if (c == nullptr || *c != *entry)
+					return false;
+			}
+		return true;
+	}
+
 
 
 template <class Carrier>
