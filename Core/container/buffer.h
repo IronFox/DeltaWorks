@@ -205,7 +205,7 @@ namespace DeltaWorks
 				#if __BUFFER_RVALUE_REFERENCES__
 					inline T&			append(T&&);						//!< Appends a single element via move, and returns a reference to it in buffer storage
 					inline T&			Append(T&&element)					/**@copydoc Append()*/ {return append(std::move(element));}
-					inline T&			MoveAppend(T&&element)				/**@copydoc moveAppend()*/ { return append(std::remove(element)); }
+					inline T&			MoveAppend(T&&element)				/**@copydoc moveAppend()*/ { return append(std::move(element)); }
 				#endif
 
 				inline T&				Insert(index_t before_element);		//!< Inserts an element into the buffer and returns a reference to it
