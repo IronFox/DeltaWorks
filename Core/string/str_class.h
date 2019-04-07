@@ -1127,7 +1127,14 @@ namespace DeltaWorks
 				count_t					FindAndReplace(const T*needle, const T*replacement)	/** @copydoc FindAndReplace(); */ {return FindAndReplace(ReferenceType(needle),ReferenceType(replacement));}
 				count_t					FindAndReplace(const Template<T>&needle, const Template<T>&replacement)	/** @copydoc FindAndReplace(); */ {return FindAndReplace(needle.ToRef(),replacement.ToRef());}
 				/**
-				Replaces all occurances of \b needle_char in the local string with \b replacement
+				Replaces all occurrences of \b needle in the local string with \b replacement. Ignores case
+				@return Number of replacements
+				*/
+				count_t					FindAndReplaceIgnoreCase(const ReferenceType&needle, const ReferenceType&replacement);
+				count_t					FindAndReplaceIgnoreCase(const T*needle, const T*replacement)	/** @copydoc FindAndReplaceIgnoreCase(); */ {return FindAndReplaceIgnoreCase(ReferenceType(needle),ReferenceType(replacement));}
+				count_t					FindAndReplaceIgnoreCase(const Template<T>&needle, const Template<T>&replacement)	/** @copydoc FindAndReplaceIgnoreCase(); */ {return FindAndReplaceIgnoreCase(needle.ToRef(),replacement.ToRef());}
+				/**
+				Replaces all occurrences of \b needle_char in the local string with \b replacement
 				@return Number of replacements
 				*/
 				count_t					FindAndReplace(T needle, const ReferenceType&replacement);

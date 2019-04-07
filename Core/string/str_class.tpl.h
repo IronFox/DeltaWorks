@@ -1967,6 +1967,20 @@ namespace StringType
 		}
 
 	template <typename T>
+		count_t				Template<T>::FindAndReplaceIgnoreCase(const ReferenceExpression<T>&needle, const ReferenceExpression<T>&replacement)
+		{
+			index_t at = 0;
+			count_t rs = 0;
+			while ((at = FindIgnoreCase(needle,at))!=InvalidIndex)
+			{
+				rs++;
+				ReplaceSubString(at,needle.GetLength(),replacement);
+				at += replacement.GetLength();
+			}
+			return rs;
+		}
+
+	template <typename T>
 		count_t				Template<T>::FindAndReplace(T needle, const ReferenceExpression<T>&replacement)
 		{
 			count_t rs = 0;
