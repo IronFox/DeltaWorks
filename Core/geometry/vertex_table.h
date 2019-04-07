@@ -27,7 +27,7 @@ namespace DeltaWorks
 
 
 	/**
-	@brief Range tolerant vertex map to fuse multiple occurances of similar vertices
+	@brief Range tolerant vertex map to fuse multiple occurrences of similar vertices
 	
 	Vertices are converted to integer coordinates and mapped via a hashtable.
 	*/

@@ -1120,7 +1120,7 @@ namespace DeltaWorks
 				Template<T>&			ReplaceSubString(size_t offset, size_t count, const ReferenceType&replacement);	//!< Replaces a sub string section of the local string with the specified replacement @param offset Index of the first character to replace @param count Number of characters to replace. If this value is zero then the method effectively behaves like Insert() @param replacement String to replace the specified input section with @return Reference to @a this
 				Template<T>&			ReplaceSubString(size_t offset, size_t count, const Template<T>&replacement)	/**@copydoc ReplaceSubString() */ {return ReplaceSubString(offset,count,replacement.ToRef());}
 				/**
-				Replaces all occurances of \b needle in the local string with \b replacement
+				Replaces all occurrences of \b needle in the local string with \b replacement
 				@return Number of replacements
 				*/
 				count_t					FindAndReplace(const ReferenceType&needle, const ReferenceType&replacement);

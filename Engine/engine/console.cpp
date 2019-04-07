@@ -30,7 +30,7 @@ void Console::fetchInput()
 	CONSOLE_LOG("input is '"<<input<<"'");
     if (keyboard.GetInputLen())
     {
-		CONSOLE_LOG("erasing history occurances");
+		CONSOLE_LOG("erasing history occurrences");
         inputs.eraseOccurrences(input);
 		CONSOLE_LOG("appending to input histpry");
         inputs.add(input);
