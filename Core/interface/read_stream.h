@@ -105,11 +105,11 @@ namespace DeltaWorks
 						*end;	//!< Pointer one past the last available byte. Data can be read up to but not past this pointer.
 	public:
 
-		/**/			MemReadStream(const void*data=NULL,serial_size_t size = 0)
+		/**/			MemReadStream(const void*data=NULL,size_t size = 0)
 						{
 							Assign(data,size);
 						}
-		void			Assign(const void*data, serial_size_t size)	//!< Assigns a new field to the local memory stream
+		void			Assign(const void*data, size_t size)	//!< Assigns a new field to the local memory stream
 						{
 							field = (const BYTE*)data;
 							end = field+size;

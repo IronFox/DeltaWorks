@@ -202,7 +202,7 @@ namespace DeltaWorks
 	@param[out] outUsedSize Optional resulting serialized size in memory
 	*/
 	template <typename Serializable>
-	inline void			SerializeToMemory(const Serializable&serializable, void*targetData, serial_size_t availableSpace, serial_size_t*outUsedSize=nullptr)
+	inline void			SerializeToMemory(const Serializable&serializable, void*targetData, size_t availableSpace, size_t*outUsedSize=nullptr)
 	{
 		using Serialization::Serialize;
 		MemWriteStream	writer(targetData,availableSpace);
@@ -219,7 +219,7 @@ namespace DeltaWorks
 	@param availableSpace Space (in bytes) available in the appointed memory section for serialization
 	*/
 	template <typename Serializable>
-	inline void			SerializeToCompactMemory(const Serializable&serializable, void*targetData, serial_size_t availableSpace)
+	inline void			SerializeToCompactMemory(const Serializable&serializable, void*targetData, size_t availableSpace)
 	{
 		using Serialization::Serialize;
 		MemWriteStream	writer(targetData,availableSpace);
@@ -235,7 +235,7 @@ namespace DeltaWorks
 	@param dataSize Size (in bytes) of the memory section that should be deserialized
 	*/
 	template <typename Serializable>
-	inline void			DeserializeFromMemory(Serializable&serializable, const void*data, serial_size_t dataSize)
+	inline void			DeserializeFromMemory(Serializable&serializable, const void*data, size_t dataSize)
 	{
 		using Serialization::Deserialize;
 		MemReadStream	reader(data,dataSize);
@@ -251,7 +251,7 @@ namespace DeltaWorks
 	@param dataSize Size (in bytes) of the memory section that should be deserialized
 	*/
 	template <typename Serializable>
-	inline void			DeserializeFromCompactMemory(Serializable&serializable, const void*data, serial_size_t dataSize)
+	inline void			DeserializeFromCompactMemory(Serializable&serializable, const void*data, size_t dataSize)
 	{
 		using Serialization::Deserialize;
 		MemReadStream	reader(data,dataSize);

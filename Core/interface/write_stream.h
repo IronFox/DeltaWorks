@@ -179,11 +179,11 @@ namespace DeltaWorks
 						*end;	//!< Pointer one past the last available byte of the out-buffer. Data can be written up to but not past this pointer.
 
 	public:
-		/**/			MemWriteStream(void*data=NULL,serial_size_t size = 0)
+		/**/			MemWriteStream(void*data=NULL,size_t size = 0)
 						{
 							Assign(data,size);
 						}
-		void			Assign(void*data, serial_size_t size)	//!< Assigns a new field to the local memory stream
+		void			Assign(void*data, size_t size)	//!< Assigns a new field to the local memory stream
 						{
 							field = (BYTE*)data;
 							end = field+size;
