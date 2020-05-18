@@ -1561,6 +1561,21 @@ namespace DeltaWorks
 		}
 
 			
+	template <typename Serializable>
+		void SerializeToArray(const Serializable&s,Array<BYTE>&target)
+		{
+			using Serialization::Serialize;
+			SerialSizeScanner scanner;
+			Serialize(scanner,s);
+			target.SetSize(scanner.GetTotalSize());
+			if (scanner.GetTotalSize())
+			{
+				MemWriteStream	writer(target.GetPointer(),scanner.GetTotalSize());
+				Serialize(writer,s);
+			}
+		}
+
+
 
 
 
