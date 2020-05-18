@@ -42,6 +42,18 @@ namespace DeltaWorks
 	{
 	protected:
 		virtual						~IReadStream()	{};
+		
+		static void					ParseFlagSet(UINT64 val, bool& a)
+		{
+			a = (val & 1) != 0;
+		}	
+
+		template <typename ... Bools>
+			static void				ParseFlagSet(UINT64 val, bool& a, Bools& ... b)
+			{
+				ParseFlagSet(val>>sizeof...(b),a);
+				ParseFlagSet(val,b...);
+			}
 	public:
 		virtual	void				Read(void*target_data, serial_size_t size)=0;	//!< Loads a chunk of binary data from the stream @param target_data Pointer to the memory section that read data should be written to @param size Number of bytes that should be read @return true if the requested amount of bytes could be read from the stream, false otherwise
 		virtual void				Read(volatile void*data, serial_size_t size)	{Read(const_cast<void*>(data),size);}
@@ -88,6 +100,46 @@ namespace DeltaWorks
 
 			serial_size_t			ReadSize()	{serial_size_t rs; ReadSize(rs); return rs;}
 
+
+			template <typename ... Bools>
+				void				ReadFlagSet8(Bools& ... b)
+				{
+					UINT8 val;
+					ReadPrimitive(val);
+					if (sizeof...(b) > 8)
+						throw Except::Program::ParameterFault(CLOCATION,"This method supports only up to 8 parameters");
+					ParseFlagSet(val,b...);
+				}
+
+			template <typename ... Bools>
+				void				ReadFlagSet16(Bools& ... b)
+				{
+					UINT16 val;
+					ReadPrimitive(val);
+					if (sizeof...(b) > 16)
+						throw Except::Program::ParameterFault(CLOCATION,"This method supports only up to 16 parameters");
+					ParseFlagSet(val,b...);
+				}
+
+			template <typename ... Bools>
+				void				ReadFlagSet32(Bools& ... b)
+				{
+					UINT32 val;
+					ReadPrimitive(val);
+					if (sizeof...(b) > 32)
+						throw Except::Program::ParameterFault(CLOCATION,"This method supports only up to 32 parameters");
+					ParseFlagSet(val,b...);
+				}
+
+			template <typename ... Bools>
+				void				ReadFlagSet64(Bools& ... b)
+				{
+					UINT64 val;
+					ReadPrimitive(val);
+					if (sizeof...(b) > 64)
+						throw Except::Program::ParameterFault(CLOCATION,"This method supports only up to 64 parameters");
+					ParseFlagSet(val,b...);
+				}
 	};
 
 

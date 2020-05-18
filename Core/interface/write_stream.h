@@ -96,6 +96,19 @@ namespace DeltaWorks
 	{
 	protected:
 		virtual			~IWriteStream()	{};
+		
+
+		static UINT64	CompileFlagSet(bool a)
+		{
+			return !!a;
+		}
+
+		template <typename ... Bools>
+			static UINT64	CompileFlagSet(bool a,	Bools ... b)
+			{
+				return (CompileFlagSet(a)<<sizeof...(b))|CompileFlagSet(b...);
+			}
+
 	public:
 		virtual	void	Write(const void*data, serial_size_t size)=0;	//!< Writes a chunk of binary data to the stream @param data Pointer to the memory section that should be written @param size Number of bytes that should be written @return true if the specified amount of bytes could be written to the stream, false otherwise
 		virtual void	Write(const volatile void*data, serial_size_t size)	{Write(const_cast<const void*>(data),size);}
@@ -121,6 +134,42 @@ namespace DeltaWorks
 				WriteSize((serial_size64_t)size);
 			}
 
+
+		template <typename ... Bools>
+			void	WriteFlagSet8(Bools ... a)
+			{
+				UINT64 val = CompileFlagSet(a...);
+				if (sizeof...(a) > 8)
+					throw Except::Program::ParameterFault(CLOCATION,"This method supports only up to 8 parameters");
+				WritePrimitive((BYTE)val);
+			}
+
+		template <typename ... Bools>
+			void	WriteFlagSet16(Bools ... a)
+			{
+				UINT64 val = CompileFlagSet(a...);
+				if (sizeof...(a) > 16)
+					throw Except::Program::ParameterFault(CLOCATION,"This method supports only up to 16 parameters");
+				WritePrimitive((UINT16)val);
+			}
+
+		template <typename ... Bools>
+			void	WriteFlagSet32(Bools ... a)
+			{
+				UINT64 val = CompileFlagSet(a...);
+				if (sizeof...(a) > 32)
+					throw Except::Program::ParameterFault(CLOCATION,"This method supports only up to 32 parameters");
+				WritePrimitive((UINT32)val);
+			}
+
+		template <typename ... Bools>
+			void	WriteFlagSet64(Bools ... a)
+			{
+				UINT64 val = CompileFlagSet(a...);
+				if (sizeof...(a) > 64)
+					throw Except::Program::ParameterFault(CLOCATION,"This method supports only up to 64 parameters");
+				WritePrimitive(val);
+			}
 	};
 
 
