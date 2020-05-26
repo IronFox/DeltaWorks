@@ -449,7 +449,7 @@ namespace DeltaWorks
 			
 					IndexContainerA<Def> 					ipool;			//!< Index data of the local render object
 					VertexContainerA<Def>					vpool;			//!< Vertex data of the local render object
-					Ctr::Array<TParticle<Def> >					particle_field;	//!< Particles of the local render object. See TParticle for details.
+					Ctr::Array<TParticle<Def> >				particle_field;	//!< Particles of the local render object. See TParticle for details.
 					unsigned								particle_config;//!< Particle configuration flags
 
 															RenderObjectA();
@@ -542,7 +542,7 @@ namespace DeltaWorks
 
 		public:
 													
-				Ctr::Array<RenderObjectA<Def>,Adopt>			object_field;				//!< Rendering objects provided by the local material
+				Ctr::Array<RenderObjectA<Def>,Adopt>	object_field;				//!< Rendering objects provided by the local material
 				UINT16									coord_layers;				//!< Global number of 2 component texture coordinates provided by all vertices of this material
 
 														MaterialData()	{}
@@ -1050,9 +1050,9 @@ namespace DeltaWorks
 				Ctr::Array<SubGeometryA<Def>,Adopt>			object_field;		//!< Primary sub geometry field
 				LocalTexResource						local_textures;			//!< Local texture resource
 				TextureResource							*texture_resource;		//!< Actually used texture resource
-				Ctr::Array<AnimatorA<Def>,Adopt>				animator_field;		//!< Global animator field
-				Ctr::Array<TConnector<Def> >					connector_field;	//!< Track connectors
-				Ctr::Array<MaterialA<Def>,Adopt>				material_field;		//!< Material field
+				Ctr::Array<AnimatorA<Def>,Adopt>		animator_field;		//!< Global animator field
+				Ctr::Array<TConnector<Def> >			connector_field;	//!< Track connectors
+				Ctr::Array<MaterialA<Def>,Adopt>		material_field;		//!< Material field
 				String									info,				//!< Abstract info
 														xml;				//!< XML formated information
 				M::TMatrix4<typename Def::SystemType>	*system_link;		//!< Current system link

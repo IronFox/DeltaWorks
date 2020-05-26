@@ -654,6 +654,8 @@ namespace DeltaWorks
 			switch (*start)
 			{
 				case 'f':
+					if (!current_group)
+						throw Except::IO::DriveAccess::FileFormatFault(CLOCATION,"Encountered out-of-group face");
 					if (current_group && end-start>2)
 					{
 						if (!current_material)
@@ -676,6 +678,7 @@ namespace DeltaWorks
 					}
 				break;
 				case 'g':
+				case 'o':
 				{
 					String name = end-start>2?start+2:"";
 					if (!object_name_table.Query(name,current_group))
@@ -780,7 +783,11 @@ namespace DeltaWorks
 				last_error = "File not readable";
 				return false;
 			}
+
+			try
+			{
 		
+
 			sendMessage("Reading data...");
 
 			fseek(f,0,SEEK_END);
@@ -1453,7 +1460,12 @@ namespace DeltaWorks
 			resetImport();
 
 			return true;
-	
+			}
+			catch (const std::exception&ex)
+			{
+				last_error = ex.what();
+				return false;
+			}
 		}
 
 
