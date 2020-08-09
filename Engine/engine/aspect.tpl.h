@@ -1067,7 +1067,7 @@ template <class C>
 MFUNC1 (void) VectorCamera<C>::TranslatePlanar(const M::TVec3<C0>&delta)
 {
 	M::TVec3<C>	temp0,temp1;
-	M::Mat::Mult(vsystem,delta,temp0);
+	M::Mat::Mult(orientation,delta,temp0);
 	M::Mat::rotate(view,temp0,temp1);
 	M::Vec::add(location,temp1);
 	view.w.xyz = location;
@@ -1134,10 +1134,6 @@ template <class C> MF_DECLARE (void) VectorCamera<C>::UpdateView()
 		system.z = direction;
 		M::Vec::cross(upAxis,direction,system.x);
 		M::Vec::cross(direction,system.x,system.y);
-
-		vsystem.y = upAxis;
-		M::Vec::cross(upAxis,direction,vsystem.x);
-		M::Vec::cross(vsystem.x,upAxis,vsystem.z);
 	}
 	else
 	{
@@ -1145,10 +1141,13 @@ template <class C> MF_DECLARE (void) VectorCamera<C>::UpdateView()
 		M::Vec::cross(upAxis,direction,system.x);
 		M::Vec::cross(direction,system.x,system.y);
 
-		vsystem.y = upAxis;
-		M::Vec::cross(upAxis,direction,vsystem.x);
-		M::Vec::cross(vsystem.x,upAxis,vsystem.z);
 	}
+	vsystem.y = upAxis;
+	M::Vec::cross(upAxis,direction,vsystem.x);
+	M::Vec::cross(vsystem.x,upAxis,vsystem.z);
+	M::Vec::normalize(vsystem.x);
+	M::Vec::normalize(vsystem.y);
+	M::Vec::normalize(vsystem.z);
 
 
 	M::Vec::normalize(system.x);

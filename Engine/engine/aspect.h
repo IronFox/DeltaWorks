@@ -214,7 +214,7 @@ public:
 	#endif
 
 		M::TVec3<C>			retraction;			//!< Retraction vector. The retraction causes the camera to move away from its control center. Use negative z-coordinates for a 3rd person like camera.
-		M::TMatrix3<C>			orientation,
+		M::TMatrix3<C>		orientation,
 							system;				//!< 3x3 system matrix. This matrix is not needed in the local camera object but by all derived camera objects.
 		C					vfov;					//!< Vertical field of view (in degrees).
 
@@ -289,7 +289,7 @@ public:
 
 		M::TVec3<C>			direction,				//!< Current viewing direction (points backwards)
 							upAxis;					//!< Vertical orientation vector
-		M::TMatrix3<C>			vsystem;				//!< Vector system matrix
+		M::TMatrix3<C>		vsystem;				//!< Vector system matrix
 
 MF_CONSTRUCTOR				VectorCamera();
 MF_CONSTRUCTOR				VectorCamera(const Camera<C>&);
