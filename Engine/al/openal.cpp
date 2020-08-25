@@ -46,13 +46,13 @@ namespace Engine
 		}
 
 	
-		bool				PlayOnce(float x, float y, float z, const WaveBuffer&buffer, float gain/*=1.f*/, float referenceDistance/*=1.f*/)
+		bool				PlayOnce(float x, float y, float z, const WaveBuffer&buffer, float gain/*=1.f*/, float referenceDistance/*=1.f*/, bool relative/*=false*/)
 		{
 			M::TVec3<>	field = {x,y,z};
-			return PlayOnce(field,buffer,gain,referenceDistance);
+			return PlayOnce(field,buffer,gain,referenceDistance,relative);
 		}
 	
-		bool				PlayOnce(const M::TVec3<>&position, const WaveBuffer&buffer, float gain/*=1.f*/, float referenceDistance/*=1.f*/)
+		bool				PlayOnce(const M::TVec3<>&position, const WaveBuffer&buffer, float gain/*=1.f*/, float referenceDistance/*=1.f*/, bool relative/*=false*/)
 		{
 			for (index_t i = 0; i < ARRAYSIZE(source_field); i++)
 			{
@@ -60,7 +60,7 @@ namespace Engine
 					continue;
 				if (!source_field[i].IsCreated())
 					source_field[i].Create();
-				source_field[i].SetPosition(position);
+				source_field[i].SetPosition(position,relative);
 				source_field[i].SetWaveBuffer(buffer);
 				source_field[i].SetGain(gain);
 				source_field[i].SetReferenceDistance(referenceDistance);

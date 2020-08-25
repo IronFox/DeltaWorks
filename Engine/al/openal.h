@@ -153,8 +153,8 @@ namespace Engine
 		float				GetSpeedOfSound();
 	
 	
-		bool				PlayOnce(float x, float y, float z, const WaveBuffer&buffer, float gain=1.f, float referenceDistance=1.f);
-		bool				PlayOnce(const M::TVec3<>&position, const WaveBuffer&buffer, float gain=1.f, float referenceDistance=1.f);
+		bool				PlayOnce(float x, float y, float z, const WaveBuffer&buffer, float gain=1.f, float referenceDistance=1.f, bool relative=false);
+		bool				PlayOnce(const M::TVec3<>&position, const WaveBuffer&buffer, float gain=1.f, float referenceDistance=1.f, bool relative=false);
 	
 		/**
 		Signals OpenAL that a an existing window focus has been lost.
