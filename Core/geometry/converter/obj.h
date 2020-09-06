@@ -472,7 +472,7 @@ namespace DeltaWorks
 			void				parseObjPoint(Container::Buffer<M::TVec2<Def::FloatType> >&target, char*start, char*end) throw();
 			void				parseObjFaceVertex(char*start, char*end, int&v, int&n, int&t) throw();
 			void				parseObjFace(char*start, char*end) throw();
-			void				parseObjLine(char*start, char*end) throw();
+			void				parseObjLine(char*start, char*end);
 			ObjTexture*			LoadObjTexture(const PathString&color_map, const PathString&alpha_map) throw();
 			ObjTexture*			LoadObjNormalMap(const PathString&normal_map) throw();
 			void				resetImport() throw();

@@ -647,7 +647,7 @@ namespace DeltaWorks
 		
 		}
 
-		void			ObjConverter::parseObjLine(char*start, char*end) throw()
+		void			ObjConverter::parseObjLine(char*start, char*end)
 		{
 			if (end==start || *start == '#')
 				return;
