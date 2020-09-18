@@ -51,7 +51,7 @@ namespace DeltaWorks
 		float					toSecondsf(const Time&ticks)			const;	//!< Converts ticks into seconds (float) \param ticks Time in ticks \return Time equivalent in seconds
 		double					toSecondsd(const Time&ticks)			const;	//!< Converts ticks into seconds (double) \param ticks Time in ticks \return Time equivalent in seconds
 		inline float			ToSeconds(const Time&ticks)				const	{return toSecondsf(ticks);}
-		inline double			ToSecondsD(const Time&ticks)			const	{return toSecondsf(ticks);}
+		inline double			ToSecondsD(const Time&ticks)			const	{return toSecondsd(ticks);}
 		Time					toTicks(double seconds)					const;	//!< Converts seconds into ticks \param seconds Time (in seconds) to convert to ticks \return Time equivalent in ticks
 		inline Time				ToTicks(double seconds)					const	{return toTicks(seconds);}
 		
