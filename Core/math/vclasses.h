@@ -120,6 +120,10 @@ namespace DeltaWorks
 
 			MFUNC1 (C)						operator()(const C0&x)					const;		//!< Evaluates the local vector as a polynomial ax² + bx + c
 
+			friend hash_t					Hash(const Self&v)
+			{
+				return HashValue().AddGeneric(v.x).AddGeneric(v.y).AddGeneric(v.z);
+			}
 		};
 
 
@@ -196,6 +200,11 @@ namespace DeltaWorks
 			MF_DECLARE(const Type&)			operator[](index_t component)			const;
 			MFUNC1 (C)						operator()(const C0&x)					const;		//!< Evaluates the local vector as a polynomial ax + b
 
+
+			friend hash_t					Hash(const Self&v)
+			{
+				return HashValue().AddGeneric(v.x).AddGeneric(v.y);
+			}
 		};
 
 
@@ -270,6 +279,13 @@ namespace DeltaWorks
 			MFUNC1 (int)					CompareTo(const TVec4<C0>&other)		const	{return Vec::compare(*this,other);}
 			MF_DECLARE(Type&)				operator[](index_t component);						//return component of the vector
 			MF_DECLARE(const Type&)			operator[](index_t component)			const;
+
+
+			friend hash_t					Hash(const Self&v)
+			{
+				return HashValue().AddGeneric(v.x).AddGeneric(v.y).AddGeneric(v.z).AddGeneric(v.w);
+			}
+
 		};
 
 
