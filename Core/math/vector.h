@@ -395,6 +395,15 @@ namespace DeltaWorks
 										{
 											min = max = (T)value;
 										}
+				MF_DECLARE(Self)		Scaled(const T&by)	const //! Scales the range from its central extent
+										{
+											T	c = center();
+											T	ext  = (max - c);
+											Self rs;
+											rs.SetCenter(c,ext*by);
+											return rs;
+										}
+
 				MF_DECLARE(void)		Scale(const T&by)	//! Scales the range from its central extent
 										{
 											T	c = center();
@@ -894,6 +903,7 @@ namespace DeltaWorks
 											return *this;
 										}
 
+				T						GetVolume() const {return x.GetExtent() * y.GetExtent();}
 
 				void					AssertIsNotNaN() const
 				{
@@ -1038,6 +1048,11 @@ namespace DeltaWorks
 										{
 											x.Scale(by);
 											y.Scale(by);
+										}
+
+				MF_DECLARE(Self)		Scaled(const T&by)	const //! Scales the rectangle from its central location
+										{
+											return Self(x.Scaled(by), y.Scaled(by));
 										}
 				MF_DECLARE(void)		Scale(const TVec2<T>&scaleCenter, const T&by)	//! Scales the rectangle from its central location
 										{
@@ -1409,6 +1424,8 @@ namespace DeltaWorks
 					TFloatRange<T>		axis[3];
 				};
 
+
+
 				/**/					Box(){}
 				/**/					Box(const T&min_x, const T& min_y, const T& min_z, const T&max_x, const T& max_y, const T& max_z)
 										{
@@ -1423,12 +1440,14 @@ namespace DeltaWorks
 										{
 											SetMinAndMax(min_and_max);
 										}
-				/**/					Box(const TFloatRange<T>&x, const TFloatRange<T>&y, const TFloatRange<T>&z)
+				constexpr				Box(const TFloatRange<T>&x, const TFloatRange<T>&y, const TFloatRange<T>&z)
 										{
 											this->x = x;
 											this->y = y;
 											this->z = z;
 										}
+
+				static const Self	Invalid;
 
 				template<typename T1>
 					/**/				Box(const Box<T1>&other)
@@ -1462,7 +1481,7 @@ namespace DeltaWorks
 					return !operator==(other);
 				}
 																		
-				static Box<T>			Invalid()	{return Box(MaxInvalidRange<T>(),MaxInvalidRange<T>(),MaxInvalidRange<T>());}
+
 				bool					IsValid() const { return x.IsValid() && y.IsValid() && z.IsValid(); }
 				/**
 				@brief Updates all values of the local box
@@ -1901,6 +1920,10 @@ namespace DeltaWorks
 				}
 			};
 
+
+
+		template <typename T>
+			const Box<T>	Box<T>::Invalid = Box<T>(MaxInvalidRange<T>(),MaxInvalidRange<T>(),MaxInvalidRange<T>());
 
 	
 
