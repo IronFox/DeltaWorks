@@ -16,7 +16,9 @@ namespace DeltaWorks
 		class BoxBVH
 		{
 		public:
-			typedef M::Box<Float>	Bounds;
+			static const constexpr count_t NumAxes = 3;
+
+			typedef M::Box<Float>	Bounds, BoxBounds;
 			static void ProgressiveInclude(Bounds&box, Bounds&, const Bounds&bounds)
 			{
 				box.Include(bounds);
@@ -39,7 +41,11 @@ namespace DeltaWorks
 		class SphereBVHNature
 		{
 		public:
+			static const constexpr count_t NumAxes = 3;
+
 			typedef M::Sphere<Float>	Bounds;
+			typedef M::Box<Float>		BoxBounds;
+
 			static void ProgressiveInclude(M::Box<Float>&box, Bounds&outBounds, const Bounds&bounds)
 			{
 				static M::Box<Float>	b;
@@ -69,17 +75,17 @@ namespace DeltaWorks
 	template <typename Object, typename Bounds>
 		struct BVHEntry
 		{
-			Object*			element;
+			Object			element;
 			Bounds			bounds;
 
 			/**/			BVHEntry() :element(NULL)	{}
-			/**/			BVHEntry(Object*element, const Bounds&box) : element(element), bounds(box)	{}
+			/**/			BVHEntry(const Object&element, const Bounds&box) : element(element), bounds(box)	{}
 		};
 
 	template <typename Object, typename Bounds, count_t MaxObjectsPerLeaf>
 		struct BVHStorage
 		{
-			Ctr::Array<Object*>	objects;
+			Ctr::Array<Object>	objects;
 
 			void			Store(const BVHEntry<Object, Bounds>*elements, count_t numElements)
 			{
@@ -88,15 +94,14 @@ namespace DeltaWorks
 					objects[i] = elements[i].element;
 			}
 
-			Object*			Get(index_t object) const
+			const Object&			Get(index_t object) const
 			{
 				return objects[object];
 			}
 
-			void			GetAll(Container::BasicBuffer<Object*>&out) const
+			void			GetAll(Container::BasicBuffer<Object>&out) const
 			{
-				Object**row = out.AppendRow(objects.Count());
-				memcpy(row, objects.pointer(), objects.GetContentSize());
+				out.AppendAll(objects);
 			}
 
 			count_t			CountObjects() const { return objects.Count(); }
@@ -105,7 +110,7 @@ namespace DeltaWorks
 	template <typename Object, typename Bounds>
 		struct BVHStorage<Object,Bounds,1>
 		{
-			Object*			object;
+			Object			object;
 
 			void			Store(const BVHEntry<Object, Bounds>*elements, count_t numElements)
 			{
@@ -113,12 +118,12 @@ namespace DeltaWorks
 				object = elements[0].element;
 			}
 
-			Object*			Get(index_t objectIndex) const
+			const Object&	Get(index_t objectIndex) const
 			{
 				DBG_ASSERT__(objectIndex == 0);
 				return object;
 			}
-			void			GetAll(Container::BasicBuffer<Object*>&out) const
+			void			GetAll(Container::BasicBuffer<Object>&out) const
 			{
 				out << object;
 			}
@@ -132,6 +137,7 @@ namespace DeltaWorks
 		{
 		public:
 			typedef typename Nature::Bounds		Bounds;
+			typedef typename Nature::BoxBounds	BoxBounds;
 	
 	
 
@@ -142,7 +148,7 @@ namespace DeltaWorks
 			{
 				union
 				{
-					Object		*object;		//!< occupied if this IS a leaf-node
+					Object		object;		//!< occupied if this IS a leaf-node
 					TCompactNode*secondChild;	//!< occupied if this is not a leaf-node
 				};
 				Bounds			bounds;
@@ -210,7 +216,7 @@ namespace DeltaWorks
 				const Node*		_GetNode()	const {return reinterpret_cast<const Node*>(this);}
 			public:
 				count_t			CountObjects()	const	{const Node*n = _GetNode(); return n->isLeaf ? ((LeafNode*)n)->storage.CountObjects() : 0;}
-				void			GetObject(Object*&, index_t index=0)	const;
+				void			GetObject(Object&, index_t index=0)	const;
 				bool			IsLeaf() const	{return _GetNode()->isLeaf;}
 				Accessor*		GetFirstChild() const {const Node*n = _GetNode(); return n->isLeaf ? NULL : reinterpret_cast<Accessor*>(((InnerNode*)n)->child0);}
 				Accessor*		GetSecondChild() const {const Node*n = _GetNode(); return n->isLeaf ? NULL : reinterpret_cast<Accessor*>(((InnerNode*)n)->child1);}
@@ -227,7 +233,7 @@ namespace DeltaWorks
 			void				DisallowAutomaticReconstruction()	{_locked = true;}
 			void				AllowAutomaticReconstruction()	{_locked = false;_RebuildIfNeeded();}
 
-			void				Insert(Object*element, const Bounds&space)
+			void				Insert(const Object&element, const Bounds&space)
 			{
 				Insert(Entry(element, space));
 			}
@@ -263,7 +269,13 @@ namespace DeltaWorks
 				}
 			}
 			void				Insert(const Ctr::ArrayData<Entry>&entries)	{Insert(entries.pointer(),entries.Count());}
-			void				Remove(Object*element)
+
+			count_t				Count() const
+			{
+				return _allItems.Count();
+			}
+
+			void				Remove(const Object&element)
 			{
 				//lock(_allItems)
 					for (index_t i = 0; i < _allItems.Count(); i++)
@@ -295,7 +307,7 @@ namespace DeltaWorks
 
 				void				Reset()
 				{
-					bounds = Bounds::Invalid();
+					bounds = Bounds::Invalid;
 					volumeUntilThis = 0;
 					volumeFromThis = 0;
 					numElements = 0;
@@ -323,8 +335,8 @@ namespace DeltaWorks
 
 			static Node*		_BuildNode(Entry*const elements, const count_t numElements, Ctr::ArrayData<Bucket>&buckets)
 			{
-				M::Box<Float> boundingBox = M::Box<Float>::Invalid();
-				Bounds	effectiveBounds = Bounds::Invalid();
+				BoxBounds boundingBox = BoxBounds::Invalid;
+				Bounds	effectiveBounds = Bounds::Invalid;
 
 				for (index_t i = 0; i < numElements; i++)
 					Nature::ProgressiveInclude(boundingBox,effectiveBounds, elements[i].bounds);
@@ -339,13 +351,13 @@ namespace DeltaWorks
 				}
 
 
-				M::Box<Float> centerVolume = M::Box<Float>::Invalid();
+				BoxBounds centerVolume = BoxBounds::Invalid;
 				for (index_t i = 0; i < numElements; i++)
 					Nature::IncludeCenterIntoBox(centerVolume,elements[i].bounds);
 
 				int useAxis = 0;
 				Float dist = centerVolume.axis[0].GetExtent();
-				for (int i = 1; i < 3; i++)
+				for (int i = 1; i < Nature::NumAxes; i++)
 				{
 					Float e = centerVolume.axis[i].GetExtent();
 					if (e > dist)
@@ -357,6 +369,13 @@ namespace DeltaWorks
 				const M::TFloatRange<Float> axisRange2 = centerVolume.axis[useAxis];
 				const Float extend2 = axisRange2.GetExtent();
 
+				if (extend2 == 0)
+				{
+					LeafNode*leaf = new LeafNode(effectiveBounds);
+					leaf->storage.Store(elements, numElements);
+					return leaf;
+				}
+
 
 				for (index_t i = 0; i < numElements; i++)
 				{
@@ -364,10 +383,11 @@ namespace DeltaWorks
 					index_t bucketIndex = std::min(buckets.Count() - 1, (index_t)(float(Nature::CenterOf(e.bounds,useAxis) - axisRange2.min) / extend2 * buckets.Count()));
 					Bucket&bucket = buckets[bucketIndex];
 					bucket.numElements ++;
-					DBG_ASSERT_GREATER__(e.bounds.GetVolume(),0);
+					//DBG_ASSERT_GREATER__(e.bounds.GetVolume(),0);
 					bucket.bounds.Include(e.bounds);
-					DBG_ASSERT_GREATER__(bucket.bounds.GetVolume(),0);
+					//DBG_ASSERT_GREATER__(bucket.bounds.GetVolume(),0);
 				}
+
 				index_t from = 0, to = buckets.Count()-1;
 				while (buckets[from].numElements == 0)
 					from++;
@@ -461,7 +481,7 @@ namespace DeltaWorks
 			}
 
 
-			static void _WalkNode(Node*node, const Bounds&space, Container::BasicBuffer<Object*>&found)
+			static void _WalkNode(Node*node, const Bounds&space, Container::BasicBuffer<Object>&found)
 			{
 				if (node->isLeaf)
 				{
@@ -502,7 +522,7 @@ namespace DeltaWorks
 				}
 				return 0;
 			}
-			static void _RecursivelyWalkNode(Node*node, const M::TVec3<Float>&point, Container::BasicBuffer<Object*>&found)
+			static void _RecursivelyWalkNode(Node*node, const M::TVec<Float,Nature::NumAxes>&point, Container::BasicBuffer<Object>&found)
 			{
 				if (node->isLeaf)
 				{
@@ -521,11 +541,11 @@ namespace DeltaWorks
 				}
 			}
 
-			static void _RecursivelyFindClosest(Node*node, const M::TVec3<Float>&point, Object*&closest, Float&distance)
+			static void _RecursivelyFindClosest(Node*node, const M::TVec<Float,Nature::NumAxes>&point, Object&closest, Float&distance)
 			{
 				if (node->isLeaf)
 				{
-					M::TVec3<Float>	c;
+					M::TVec<Float,Nature::NumAxes>	c;
 					LeafNode*leaf = (LeafNode*)node;
 					if (leaf->bounds.Contains(point))
 						//foreach (leaf->elements,e)
@@ -577,7 +597,7 @@ namespace DeltaWorks
 			bool	IsEmpty() const	{return _allItems.IsEmpty();}
 			bool	IsNotEmpty() const {return _allItems.IsNotEmpty();}
 
-			void Lookup(const Bounds&space, Container::BasicBuffer<Object*>&found)	const
+			void Lookup(const Bounds&space, Container::BasicBuffer<Object>&found)	const
 			{
 				Node*root = _root;
 				if (!root)
@@ -591,22 +611,21 @@ namespace DeltaWorks
 					return 0;
 				return _WalkNode(root, space);
 			}
-			void Lookup(const M::TVec3<Float>&position, Container::BasicBuffer<Object*>&found)	const
+			void Lookup(const M::TVec<Float,Nature::NumAxes>&position, Container::BasicBuffer<Object>&found)	const
 			{
 				Node*root = _root;
 				if (!root)
 					return;
 				_RecursivelyWalkNode(root, position, found);
 			}
-			Object* LookupClosest(const M::TVec3<Float>&position)	const
+			bool LookupClosest(const M::TVec<Float,Nature::NumAxes>&position, Object&outResult)	const
 			{
 				Node*root = _root;
 				if (!root)
-					return NULL;
+					return false;
 				Float distance = std::numeric_limits<Float>::max();
-				Object*out;
-				_RecursivelyFindClosest(root, position, out, distance);
-				return distance < std::numeric_limits<Float>::max() ? out : NULL;
+				_RecursivelyFindClosest(root, position, outResult, distance);
+				return distance < std::numeric_limits<Float>::max();
 			}
 			void Clear()
 			{
@@ -637,7 +656,7 @@ namespace DeltaWorks
 
 
 	template <typename Object, count_t MaxObjectsPerLeaf, typename Float, typename Attachment, typename Nature>
-		void			BVH<Object,MaxObjectsPerLeaf,Float,Attachment,Nature>::Accessor::GetObject(Object*&rs, index_t index /*=0*/)	const
+		void			BVH<Object,MaxObjectsPerLeaf,Float,Attachment,Nature>::Accessor::GetObject(Object&rs, index_t index /*=0*/)	const
 		{
 			const Node*n = _GetNode();
 			if (!n->isLeaf)
