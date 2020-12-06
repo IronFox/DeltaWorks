@@ -456,6 +456,42 @@ namespace DeltaWorks
 							return true;
 					}
 				}
+
+				Chunk*			FindFirstNamedListMatch(const void*namePtr, size_t nameSize)
+				{
+					
+					Chunk*outNameChunk, *outDataChunk;
+					if (FindFirstNamedList(outNameChunk,outDataChunk))
+						do
+						{
+							if (outNameChunk->size() == nameSize && memcmp(outNameChunk->pointer(),namePtr,nameSize)==0)
+								return outDataChunk;
+						}
+						while (FindNextNamedList(outNameChunk,outDataChunk));
+					return nullptr;
+				}
+				Chunk*			FindNextNamedListMatch(const void*namePtr, size_t nameSize)
+				{
+					Chunk*outNameChunk, *outDataChunk;
+					while (FindNextNamedList(outNameChunk,outDataChunk));
+					{
+						if (outNameChunk->size() == nameSize && memcmp(outNameChunk->pointer(),namePtr,nameSize)==0)
+							return outDataChunk;
+					}
+					return nullptr;
+				}
+			template <typename T>
+				Chunk*			FindFirstNamedListMatch(const T&podName)
+				{
+					return FindFirstNamedListMatch(&podName,sizeof(podName));
+				}
+			template <typename T>
+				Chunk*			FindNextNamedListMatch(const T&podName)
+				{
+					return FindNextNamedListMatch(&podName,sizeof(podName));
+				}
+
+
 				Chunk*			FindFirst(TID ID);			//select riff-chunk via ID
 				Chunk*			FindNext(TID ID);			//find next riff-block with this type-ID
 				Chunk*			Select(unsigned index);		//select riff-chunk via context-index
