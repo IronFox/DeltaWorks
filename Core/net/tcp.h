@@ -887,7 +887,8 @@ namespace DeltaWorks
 					return;
 				done = false;
 				//Semaphore			sem;	//perhaps better not to have this in stack
-				thread.swap(std::thread(_Start,this,&sem));
+				auto s = std::thread(_Start, this, &sem);
+				thread.swap(s);
 				sem.leave();
 			}
 
@@ -926,7 +927,8 @@ namespace DeltaWorks
 				{
 					if (thread.joinable())
 						thread.join();
-					thread.swap(std::thread());
+					auto s = std::thread();
+					thread.swap(s);
 				}
 				TCP_CATCH
 				joinLock.unlock();
@@ -957,9 +959,9 @@ namespace DeltaWorks
 			{
 				if (connectionLost)
 					throw Except::IO::Network::ConnectionLost(CLOCATION,"Cannot write data on channel "+String(channel));
-				using Serialization::SerialSync;
+				using Serialization::Serialize;
 				SerialSizeScanner scanner;
-				SerialSync(scanner,s);
+				Serialize(scanner,s);
 
 				const serial_size_t size = scanner.GetTotalSize();
 				Array<BYTE>	data(8 + size);

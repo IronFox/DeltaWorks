@@ -329,7 +329,7 @@ namespace DeltaWorks
 				typedef typename Super::Type		Type;	//union-compatible
 				typedef typename TypeInfo<C>::UnionCompatibleBase Base;
 				using Super::v;
-		//		using Super::xyz;
+				using Super::xyz;
 
 					MF_CONSTRUCTOR					VecN(const TVec2<C> &other)
 													{
@@ -403,6 +403,8 @@ namespace DeltaWorks
 			typedef Vec2<T>	Super;
 			typedef typename Super::Super TVec;
 			public:
+				using Super::v;
+
 				MF_CONSTRUCTOR1				VecN(const TVec2<C0> &other) : Super(other) {}
 				MF_CONSTRUCTOR				VecN()									{}
 				MF_CONSTRUCTOR				VecN(T value):Super(value)				{}
@@ -418,6 +420,8 @@ namespace DeltaWorks
 			typedef Vec3<T>	Super;
 			typedef typename Super::Super TVec;
 			public:
+				using Super::v;
+
 				MF_CONSTRUCTOR1				VecN(const TVec3<C0> &other) : Super(other)	{}
 				MF_CONSTRUCTOR				VecN()									{}
 				MF_CONSTRUCTOR				VecN(T value):Super(value)				{}
@@ -433,6 +437,8 @@ namespace DeltaWorks
 			typedef Vec4<T>	Super;
 			typedef typename Super::Super TVec;
 			public:
+				using Super::v;
+
 				MF_CONSTRUCTOR1				VecN(const TVec4<C0> &other) : Super(other) {}
 				MF_CONSTRUCTOR				VecN()									{}
 				MF_CONSTRUCTOR				VecN(T value):Super(value)				{}

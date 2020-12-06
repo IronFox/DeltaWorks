@@ -520,42 +520,43 @@ namespace DeltaWorks
 			template <typename T2>
 				inline	int		CompareSegment(const T2*string, size_t cmpLen)	const	//! Nested compare method
 								{
-									int rs = exp0.CompareSegment(string,Super::elements);
+									int rs = exp0.CompareSegment(string, cmpLen);
 									if (rs)
 										return rs;
-									size_t	len0 = exp0.GetLength(),
-											len1 = exp1.GetLength();
-									if (Super::elements == len0)
-										return !!len1;			//return isgreater if the second expression is longer 0, isequal otherwise
-									return exp1.CompareSegment(string+len0,Super::elements-len0);
+									size_t	len0 = exp0.GetLength();
+									if (cmpLen <= len0)
+										return 0;
+									size_t 	 len1 = exp1.GetLength();
+									return exp1.CompareSegment(string+len0,cmpLen-len0);
 							
 								}
 			template <typename T2>
 				inline	int		CompareTo(const T2*string, size_t cmpLen)	const	//! Expression comparison. Allows to orthographically compare the local string to the specified character segment @param string String to compare to @param Super::elements Number of characters that the specified string is in length @return -1 if the local expression is orthographically smaller than the specified string, 0 if it is equal, +1 if it is orthographically larger
 								{
-									int result = CompareSegment(string,Super::elements);
-									if (!result && Super::elements > GetLength())
+									int result = CompareSegment(string, cmpLen);
+									if (!result && cmpLen > GetLength())
 										result = -1;
 									return result;
 								}						
 			template <typename T2>
 				inline	int		CompareSegmentIgnoreCase(const T2*string, size_t cmpLen)	const	//! Nested compare method
 								{
-									int rs = exp0.CompareSegmentIgnoreCase(string,Super::elements);
+									int rs = exp0.CompareSegmentIgnoreCase(string, cmpLen);
 									if (rs)
 										return rs;
-									size_t	len0 = exp0.GetLength(),
-											len1 = exp1.GetLength();
-									if (Super::elements == len0)
-										return !!len1;			//return isgreater if the second expression is longer 0, isequal otherwise
-									return exp1.CompareSegmentIgnoreCase(string+len0,Super::elements-len0);
+									size_t	len0 = exp0.GetLength();
+									if (cmpLen == len0)
+										return 0;
+
+									size_t	len1 = exp1.GetLength();
+									return exp1.CompareSegmentIgnoreCase(string+len0,cmpLen-len0);
 							
 								}
 			template <typename T2>
 				inline	int		CompareToIgnoreCase(const T2*string, size_t cmpLen)	const	//! Expression comparison. Allows to orthographically compare the local string to the specified character segment @param string String to compare to @param Super::elements Number of characters that the specified string is in length @return -1 if the local expression is orthographically smaller than the specified string, 0 if it is equal, +1 if it is orthographically larger
 								{
-									int result = CompareSegmentIgnoreCase(string,Super::elements);
-									if (!result && Super::elements > GetLength())
+									int result = CompareSegmentIgnoreCase(string, cmpLen);
+									if (!result && cmpLen > GetLength())
 										result = -1;
 									return result;
 								}						
@@ -664,6 +665,10 @@ namespace DeltaWorks
 				typedef T		char_t;
 				static const count_t MaxLengthConst = std::numeric_limits<count_t>::max();
 				typedef ReferenceExpression<T>	ReferenceType;
+
+				using Super::Find;
+				using Super::FindIgnoreCase;
+
 			protected:
 	
 	

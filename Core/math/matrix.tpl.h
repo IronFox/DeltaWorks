@@ -416,7 +416,7 @@ Collection of template matrix-math-functions.
 
 		MFUNCM(void)		Mult(const TMatrix<T0,MWidth,MHeight>&m, const TMatrix<T1,NWidth,MWidth>&n, TMatrix<T2,NWidth,MHeight>&outResult)
 		{
-			Raw::Mult<T0,T1,T2,MHeight,MWidth,NWidth>(m0.v,m1.v,result.v);
+			Raw::Mult<T0,T1,T2,MHeight,MWidth,NWidth>(m.v,n.v, outResult.v);
 		}
 
 		template <typename T0, typename T1, typename T2, count_t Rows, count_t Cols>
@@ -584,7 +584,7 @@ Collection of template matrix-math-functions.
 			C1   bow = angle*M_PI/180;
 			C1	cs = cos(bow),
 				sn = sin(bow);
-			out.x.x = çs;
+			out.x.x = cs;
 			out.x.y = -sn;
 			out.y.x = sn;
 			out.y.y = cs;

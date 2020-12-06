@@ -122,11 +122,7 @@ namespace DeltaWorks
 			}
 
 		template <typename T>
-			inline void SerializeArray(IWriteStream&stream, const T*ar, count_t length)
-			{
-				for (index_t i = 0; i < length; i++)
-					Serialize(stream,ar[i]);
-			}
+			inline void SerializeArray(IWriteStream&stream, const T*ar, count_t length);
 
 		template <typename T>
 			inline void SerializePODArray(IWriteStream&stream, const T*ar, count_t length)
@@ -135,11 +131,7 @@ namespace DeltaWorks
 			}
 
 		template <typename T>
-			inline void DeserializeArray(IReadStream&stream, T*ar, count_t length)
-			{
-				for (index_t i = 0; i < length; i++)
-					Deserialize(stream,ar[i]);
-			}
+			inline void DeserializeArray(IReadStream&stream, T*ar, count_t length);
 
 		template <typename T>
 			inline void DeserializePODArray(IReadStream&stream, T*ar, count_t length)
@@ -191,6 +183,22 @@ namespace DeltaWorks
 				Serialize(stream,p.first);
 				Serialize(stream,p.second);
 			}
+
+
+		template <typename T>
+			inline void DeserializeArray(IReadStream&stream, T*ar, count_t length)
+			{
+				for (index_t i = 0; i < length; i++)
+					Deserialize(stream,ar[i]);
+			}
+
+		template <typename T>
+			inline void SerializeArray(IWriteStream&stream, const T*ar, count_t length)
+			{
+				for (index_t i = 0; i < length; i++)
+					Serialize(stream,ar[i]);
+			}
+
 
 	};
 

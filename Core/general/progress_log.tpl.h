@@ -11,7 +11,7 @@ progress logger unit.
 template <class C>
 void Progress::Log::Execute(const String&name, Visualizer&visualizer, void (*func_)(C&), C& param)
 {
-    begin(name,visualizer);
+    Begin(name,visualizer);
     func_(param);
 }
 

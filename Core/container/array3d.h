@@ -17,12 +17,16 @@ namespace DeltaWorks
 		template <typename T, class MyStrategy=typename Strategy::StrategySelector<T>::Default>
 			class Array3D:public Ctr::Array<T,MyStrategy>
 			{
+				typedef Ctr::Array<T, MyStrategy>	Super;
+			protected:
+				using Super::data;
 			public:
 				typedef Array3D<T,MyStrategy>	Self;
-				typedef Ctr::Array<T,MyStrategy>	Super;
 				typedef Size3D<count_t>	Size;
 				typedef Index3D<index_t> Index;
 
+				using Super::Count;
+				using Super::Fill;
 
 				template <int AxisIndex>
 					class Axis;

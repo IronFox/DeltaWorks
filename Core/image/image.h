@@ -17,6 +17,7 @@ Image-class used to store and process textures
 #include "../general/parallel_for.h"
 #include <random>
 #include "../general/undef.h"
+#include "../container/array2d.h"
 
 
 

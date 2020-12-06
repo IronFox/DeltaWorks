@@ -800,7 +800,7 @@
 									$out[] = ':float '.implode("[".($bUseDimensionConstant?"Dimensions":$d)."], ",$parameters)."[".($bUseDimensionConstant?"Dimensions":$d)."]";
 								break;
 								case AssemblyMode::DynamicPointers:
-									$out[] = "CArray<:float> ".implode("(dimensions), ",$parameters)."(dimensions)";
+									$out[] = "Array<:float> ".implode("(dimensions), ",$parameters)."(dimensions)";
 								break;
 							}
 							global $hmbDeclaredVectorVariables;

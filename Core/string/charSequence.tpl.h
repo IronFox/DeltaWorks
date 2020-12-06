@@ -366,7 +366,7 @@ template <typename T>
 		{
 			if (characters.IsEmpty())
 				return 0;
-			return GenericCountCharacters(Marker::CaseInsensitiveFieldMarker<T2>(characters.field,characters.string_length),count_matches);
+			return GenericCountCharacters(Marker::CaseInsensitiveFieldMarker<T2>(characters.field,characters.string_length), countMatches);
 		}
 
 template <typename T>

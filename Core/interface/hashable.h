@@ -6,6 +6,8 @@
 
 namespace DeltaWorks
 {
+	namespace GlobalHashFunctions
+	{}
 
 	/**
 	Combines two hash values into a new one
@@ -121,29 +123,11 @@ namespace DeltaWorks
 						};
 
 		template <typename T>
-			HashValue&	AddGeneric(const T&value)
-			{
-				using namespace GlobalHashFunctions;
-				Add(Hash(value));
-				return *this;
-			}
-
+			HashValue&	AddGeneric(const T&value);
 		template <typename T>
-			HashValue&	operator<<(const T&value)
-			{
-				using namespace GlobalHashFunctions;
-				Add(Hash(value));
-				return *this;
-			}
-
+			HashValue&	operator<<(const T&value);
 		template <typename T, count_t ArrayLength>
-			HashValue&	operator<<(const T(&value)[ArrayLength])
-			{
-				using namespace GlobalHashFunctions;
-				for (index_t i = 0; i < ArrayLength; i++)
-					Add(Hash(value[i]));
-				return *this;
-			}
+			HashValue&	operator<<(const T(&value)[ArrayLength]);
 
 		operator hash_t() const
 		{

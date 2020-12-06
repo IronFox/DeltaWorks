@@ -174,17 +174,17 @@ template <class C=float>
 class	OrthographicAspect:public Aspect<C>	//! Orthographic aspect for non central projecting viewports
 {
 public:
-	#ifdef __GNUC__
-		using	Aspect<C>::view;
-		using	Aspect<C>::viewInvert;
-		using	Aspect<C>::projection;
-		using	Aspect<C>::projectionInvert;
-		using	Aspect<C>::region;
-		using	Aspect<C>::location;
-		using	Aspect<C>::depthTest;
-	#endif
+	typedef Aspect<C> Super;
 
-		M::TMatrix3<C>			orientation;
+	using	Super::view;
+	using	Super::viewInvert;
+	using	Super::projection;
+	using	Super::projectionInvert;
+	using	Super::region;
+	using	Super::location;
+	using	Super::depthTest;
+
+	M::TMatrix3<C>			orientation;
 		
 	MF_CONSTRUCTOR			OrthographicAspect(VisualEnum::eDepthTest depthTest = VisualEnum::NoDepthTest);
 
@@ -203,15 +203,15 @@ template <class C=float>
 class	Camera:public Aspect<C>	//! Generalized camera object
 {
 public:
-	#ifdef __GNUC__
-		using	Aspect<C>::view;
-		using	Aspect<C>::viewInvert;
-		using	Aspect<C>::projection;
-		using	Aspect<C>::projectionInvert;
-		using	Aspect<C>::region;
-		using	Aspect<C>::location;
-		using	Aspect<C>::depthTest;
-	#endif
+	typedef Aspect<C> Super;
+
+		using	Super::view;
+		using	Super::viewInvert;
+		using	Super::projection;
+		using	Super::projectionInvert;
+		using	Super::region;
+		using	Super::location;
+		using	Super::depthTest;
 
 		M::TVec3<C>			retraction;			//!< Retraction vector. The retraction causes the camera to move away from its control center. Use negative z-coordinates for a 3rd person like camera.
 		M::TMatrix3<C>		orientation,
@@ -236,22 +236,22 @@ template <class C=float>
 class	AngularCamera:public Camera<C>	//! Camera object using angles to determine the viewing direction
 {
 public:
-	#ifdef __GNUC__
-		using	Aspect<C>::view;
-		using	Aspect<C>::viewInvert;
-		using	Aspect<C>::projection;
-		using	Aspect<C>::projectionInvert;
-		using	Aspect<C>::region;
-		using	Aspect<C>::location;
-		using	Aspect<C>::depthTest;
-		
-		using	Camera<C>::retraction;
-		using	Camera<C>::vfov;
-		using	Camera<C>::orientation;
-		using	Camera<C>::system;
-	#endif
+	typedef Camera<C> Super;
 
-		M::TVec3<C>			angle;			//!< Current angles about the x, y, and z axes (in that order).
+	using	Super::view;
+	using	Super::viewInvert;
+	using	Super::projection;
+	using	Super::projectionInvert;
+	using	Super::region;
+	using	Super::location;
+	using	Super::depthTest;
+		
+	using	Super::retraction;
+	using	Super::vfov;
+	using	Super::orientation;
+	using	Super::system;
+
+	M::TVec3<C>			angle;			//!< Current angles about the x, y, and z axes (in that order).
 
 MF_CONSTRUCTOR				AngularCamera();
 MF_DECLARE(void)			UpdateView();													//!< (Re)assembles the view matrix using the local angles. Also updates the view invert.
@@ -268,24 +268,23 @@ MF_DECLARE(VectorCamera<C>)	ToVectorCamera();											//!< Converts the local 
 template <class C=float>
 class	VectorCamera:public Camera<C>	//! Camera object using vectors to determine the viewing direction
 {
+	typedef Camera<C> Super;
 private:
-		MF_DECLARE(void)	AdjustUpAxis();
+	MF_DECLARE(void)	AdjustUpAxis();
 
 public:
-	#ifdef __GNUC__
-		using	Aspect<C>::view;
-		using	Aspect<C>::viewInvert;
-		using	Aspect<C>::projection;
-		using	Aspect<C>::projectionInvert;
-		using	Aspect<C>::region;
-		using	Aspect<C>::location;
-		using	Aspect<C>::depthTest;
+	using	Super::view;
+	using	Super::viewInvert;
+	using	Super::projection;
+	using	Super::projectionInvert;
+	using	Super::region;
+	using	Super::location;
+	using	Super::depthTest;
 		
-		using	Camera<C>::retraction;
-		using	Camera<C>::vfov;
-		using	Camera<C>::orientation;
-		using	Camera<C>::system;
-	#endif
+	using	Super::retraction;
+	using	Super::vfov;
+	using	Super::orientation;
+	using	Super::system;
 
 		M::TVec3<C>			direction,				//!< Current viewing direction (points backwards)
 							upAxis;					//!< Vertical orientation vector

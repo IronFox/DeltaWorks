@@ -5326,7 +5326,8 @@ template <class Def>
 template <class Def>
 	void AnimatableSubInstanceA<Def>::resetAnimationStatus()
 	{
-		_clear6(animation_status);
+		Vec::clear(animation_status.translation);
+		Vec::clear(animation_status.rotation);
 		wheel_status.Fill(0);
 		accelerator_status.Fill(0);
 	

@@ -303,7 +303,7 @@ template <class Entry, class MyStrategy>
 		//DBG_ASSERT__(Super::Owns(section_end));
 		//DBG_ASSERT__(Super::Owns(section_begin));
 		size_t old_usage = GetLength();
-		Array	new_field(new_size);
+		Array<Element>	new_field(new_size);
 		Element*out = new_field.pointer();
 		while (section_begin != section_end)
 		{
@@ -873,7 +873,7 @@ template <class Entry, class Priority, class MyStrategy>
 		bool			PriorityQueue<Entry,Priority,MyStrategy>::ContainsF(const EntryToBoolFunction&f,Priority&outPriority)	const
 		{
 			foreach (*this,el)
-				if (f(*el) == data)
+				if (f(*el))// == data)
 				{
 					outPriority = priority_field[el.GetAddr()];
 					return true;

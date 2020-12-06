@@ -103,53 +103,53 @@ namespace DeltaWorks
 		template <typename T>
 			inline void Serialize(IWriteStream&s, const TMatrix2<T>&v)
 			{
-				using Serialization::SerialSync;
-				SerialSync(s,v.x);
-				SerialSync(s,v.y);
+				using Serialization::Serialize;
+				Serialize(s,v.x);
+				Serialize(s,v.y);
 			}
 		template <typename T>
 			inline void Deserialize(IReadStream&s, TMatrix2<T>&v)
 			{
-				using Serialization::SerialSync;
-				SerialSync(s,v.x);
-				SerialSync(s,v.y);
+				using Serialization::Deserialize;
+				Deserialize(s,v.x);
+				Deserialize(s,v.y);
 			}
 
 
 		template <typename T>
 			inline void Serialize(IWriteStream&s, const TMatrix3<T>&v)
 			{
-				using Serialization::SerialSync;
-				SerialSync(s,v.x);
-				SerialSync(s,v.y);
-				SerialSync(s,v.z);
+				using Serialization::Serialize;
+				Serialize(s,v.x);
+				Serialize(s,v.y);
+				Serialize(s,v.z);
 			}
 		template <typename T>
 			inline void Deserialize(IReadStream&s, TMatrix3<T>&v)
 			{
-				using Serialization::SerialSync;
-				SerialSync(s,v.x);
-				SerialSync(s,v.y);
-				SerialSync(s,v.z);
+				using Serialization::Deserialize;
+				Deserialize(s,v.x);
+				Deserialize(s,v.y);
+				Deserialize(s,v.z);
 			}
 
 		template <typename T>
 			inline void Serialize(IWriteStream&s, const TMatrix4<T>&v)
 			{
-				using Serialization::SerialSync;
-				SerialSync(s,v.x);
-				SerialSync(s,v.y);
-				SerialSync(s,v.z);
-				SerialSync(s,v.w);
+				using Serialization::Serialize;
+				Serialize(s,v.x);
+				Serialize(s,v.y);
+				Serialize(s,v.z);
+				Serialize(s,v.w);
 			}
 		template <typename T>
 			inline void Deserialize(IReadStream&s, TMatrix4<T>&v)
 			{
-				using Serialization::SerialSync;
-				SerialSync(s,v.x);
-				SerialSync(s,v.y);
-				SerialSync(s,v.z);
-				SerialSync(s,v.w);
+				using Serialization::Deserialize;
+				Deserialize(s,v.x);
+				Deserialize(s,v.y);
+				Deserialize(s,v.z);
+				Deserialize(s,v.w);
 			}
 
 		#define MFUNCM(_return_type_)	template <class T0, class T1, class T2, count_t MHeight, count_t MWidth, count_t NWidth> MF_DECLARE(_return_type_)

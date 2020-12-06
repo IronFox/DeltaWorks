@@ -212,18 +212,18 @@ namespace Engine
 
 	template <class Font> void Textout<Font>::PrintLn(const char*str)
 	{
-		print(str);
+		Print(str);
 		BeginNewLine();
 	}
 
 	template <class Font> void Textout<Font>::PrintLn(const String&str)
 	{
-		print(str);
+		Print(str);
 		BeginNewLine();
 	}
 	template <class Font> void Textout<Font>::PrintLn(const StringRef&str)
 	{
-		print(str);
+		Print(str);
 		BeginNewLine();
 	}
 

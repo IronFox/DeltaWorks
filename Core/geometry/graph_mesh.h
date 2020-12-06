@@ -174,10 +174,14 @@ namespace DeltaWorks
 		template <typename Adoptable>
 			class GenericContainer : public Container::IndexTable<Adoptable,AdoptStrategy>
 			{
+				typedef Container::IndexTable<Adoptable, AdoptStrategy>	Super;
+
 			private:
 				index_t				counter;
 			public:
-				typedef Container::IndexTable<Adoptable,AdoptStrategy>	Super;
+				using Super::setNew;
+				using Super::queryPointer;
+
 
 				typedef typename Super::DataType	DataType;
 

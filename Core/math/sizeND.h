@@ -229,8 +229,8 @@ namespace DeltaWorks
 
 			Index		ToVectorIndexNoCheck(index_t linear) const
 			{
-				const count_t slice = w*h;
-				return Index(linear % w, (linear%slice) / w, linear / slice);
+				const count_t slice = width*height;
+				return Index(linear % width, (linear%slice) / width, linear / slice);
 			}
 
 			friend Self max(const Self&a, const Self&b)

@@ -15,7 +15,7 @@ namespace DeltaWorks
 
 		virtual	void	Write(const void*data, serial_size_t size)	override {if (!size) return; memcpy(this->data.AppendRow(size),data,size);}
 
-		ArrayRef<const BYTE>	GetWrittenData() const {return data.ToRef();}
+		ArrayRef<const BYTE>	GetWrittenData() const {return data.ToRef().Const();}
 		void			Clear()	{data.Clear();}
 
 		template <typename T>
@@ -70,7 +70,7 @@ namespace DeltaWorks
 		template <class C>
 			bool		Stream(C*array, count_t count)	{ return _GetData(array, sizeof(C)*count); }
 		template <class C>
-			ByteReadStream&	operator>>(C&object)	{ if (!Stream(object)) throw IO::GeneralFault("Unable to stream required object"); return *this; }
+			ByteReadStream&	operator>>(C&object)	{ if (!Stream(object)) throw Except::IO::GeneralFault("Unable to stream required object"); return *this; }
 
 		virtual	void	Read(void*target_data, serial_size_t size)	override { _GetData(target_data, size); }
 		virtual serial_size_t		GetRemainingBytes() const override { return end - current; }

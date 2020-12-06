@@ -138,6 +138,7 @@ namespace DeltaWorks
 
 			public:
 				typedef BasicBuffer<T,MyStrategy>		Self;
+				using Super::iterator;
 
 				explicit				BasicBuffer(count_t len);			//!< Constructor \param len Initial buffer size in elements.
 				/**/					BasicBuffer(const Self&other);
@@ -238,6 +239,25 @@ namespace DeltaWorks
 					inline bool			FindAndErase(const T2&element)		/**@copydoc findAndErase()*/	{return findAndErase(element);}
 
 				void					adoptData(BasicBuffer<T,MyStrategy>&other);	//!< Adopts all attributes of the specified other buffer leaving it empty. Any existing local data is deleted.
+
+				using Super::Count;
+				using Super::GetLength;
+				using Super::IsEmpty;
+				using Super::begin;
+				using Super::end;
+
+
+			protected:
+				using Super::storageEnd;
+				using Super::storageBegin;
+				using Super::usageEnd;
+				#if defined(_DEBUG) && __BUFFER_DBG_COUNT__
+					using Super::fillLevel;
+				#endif
+
+				using Super::Allocate;
+				using Super::AllocateNotEmpty;
+
 			};
 
 
@@ -356,7 +376,7 @@ namespace DeltaWorks
 
 				virtual	bool		write(const void*data, serial_size_t size)
 									{
-										Super::append((const BYTE*)data,static_cast<size_t>(size));
+										Super::Append((const BYTE*)data,static_cast<size_t>(size));
 										return true;
 									}		
 			};

@@ -45,6 +45,13 @@ Collection of basic template functions.
 
 namespace DeltaWorks
 {
+	namespace Math
+	{
+		template <typename T>
+			auto			Pow10(T e);														//!< Calculates 10^e (exists. Commented here due to declaration order)
+	}
+
+
 	//taken from here:
 	//http://sourceforge.net/p/csharp-half/code/HEAD/tree/
 	ALIGN2
@@ -442,8 +449,6 @@ namespace DeltaWorks
 		MFUNC	(C)			vlog(C v);														//!< Calculates log(v)
 		MFUNC2	(C0)		vpow(C0 b,C1 e);												//!< Calculates b^e
 		MFUNC	(C)			vexp(C e);														//!< Calculates (e)^e
-		//template <typename T>
-			//auto          Pow10(T e);														//!< Calculates 10^e (exists. Commented here due to declaration order)
 
 		/**
 		Recursively computes base^exponent for unsigned integer exponent types

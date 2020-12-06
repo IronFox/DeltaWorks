@@ -574,9 +574,9 @@ namespace DeltaWorks
 				Use GetError() to retrieve an error description in this case
 			*/
 			template <typename T, count_t Components>
-				PVariable				SetVector(const StringRef&path, const M::TVec<T,Components>&value, unsigned Protection)
+				PVariable				SetVector(const StringRef&path, const M::TVec<T,Components>&value, unsigned protection)
 				{
-					if (!_EntryLookup(name,false))
+					if (!_EntryLookup(path,false))
 						return nullptr;
 					ASSERT_IS_NULL__(lookup.variable);
 					ASSERT_IS_NULL__(lookup.command);

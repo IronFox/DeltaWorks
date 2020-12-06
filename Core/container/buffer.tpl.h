@@ -247,7 +247,7 @@ template <typename T>
 		#endif
 
 
-		std::initializer_list<T>::const_iterator it = items.begin();
+		typename std::initializer_list<T>::const_iterator it = items.begin();
 		for (index_t i = 0; i < Fill; i++, ++it)
 		{
 			new ((storageBegin+i)) T(*it);

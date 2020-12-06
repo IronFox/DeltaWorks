@@ -979,9 +979,9 @@ template <typename T>
 			x1 = std::min(x0+1,image_width-1);
 			y1 = std::min(y0+1,image_height-1);
 		}
-		float	xf = cubicFactor(x - floor(x)),
+		float	xf = M::cubicFactor(x - floor(x)),
 					//fmod(x,1.f),
-				yf = cubicFactor(y - floor(y));
+				yf = M::cubicFactor(y - floor(y));
 				//fmod(y,1.f);
 		float	s00 = (float)get(x0,y0)[channel],
 				s10 = (float)get(x1,y0)[channel],
@@ -1154,8 +1154,8 @@ template <class Nature>
 				for (dimension_t x = 0; x < image_width/2; x++)
 				{
 					M::Vec::copyD(GetPixel(x,y),buffer,image_channels);
-					Set(x,y,GetPixel(image_width-x-1,y));
-					Set(image_width-x-1,y,buffer);
+					setf(x,y,GetPixel(image_width-x-1,y));
+					setf(image_width-x-1,y,buffer);
 				}
 			});
 		}
@@ -1206,8 +1206,8 @@ template <class Nature>
 				for (dimension_t y = 0; y < image_height/2; y++)
 				{
 					M::Vec::copyD(GetPixel(x,y),buffer,image_channels);
-					Set(x,y,GetPixel(x,image_height-y-1));
-					Set(x,image_height-y-1,buffer);
+					setf(x,y,GetPixel(x,image_height-y-1));
+					setf(x,image_height-y-1,buffer);
 				}
 			});
 		}
@@ -1302,7 +1302,7 @@ template <class Nature>
 template <class Nature>
 	bool GenericImage<Nature>::ScaleHalf(const Self&source)
 	{
-		SetSize(source.GetWidth()/2,source.GetHeight()/2,source.GetChannels());
+		Super::SetSize(source.GetWidth()/2,source.GetHeight()/2,source.GetChannels());
 		if (image_channels == 4)
 		{
 			Concurrency::parallel_for(dimension_t(0),image_width,[this,&source](dimension_t x)
@@ -1315,10 +1315,10 @@ template <class Nature>
 						source.GetNormal(x*2+1,y*2,norm1);
 						source.GetNormal(x*2+1,y*2+1,norm2);
 						source.GetNormal(x*2,y*2+1,norm3);
-						F a0 = toFloat(source.GetPixel(x*2,y*2)[3]);
-						F a1 = toFloat(source.GetPixel(x*2+1,y*2)[3]);
-						F a2 = toFloat(source.GetPixel(x*2+1,y*2+1)[3]);
-						F a3 = toFloat(source.GetPixel(x*2,y*2+1)[3]);
+						F a0 = Nature::toFloat(source.GetPixel(x*2,y*2)[3]);
+						F a1 = Nature::toFloat(source.GetPixel(x*2+1,y*2)[3]);
+						F a2 = Nature::toFloat(source.GetPixel(x*2+1,y*2+1)[3]);
+						F a3 = Nature::toFloat(source.GetPixel(x*2,y*2+1)[3]);
 						F aSum = a0 + a1 + a2 + a3;
 						if (aSum > 0)
 						{
@@ -1329,7 +1329,7 @@ template <class Nature>
 							M::Vec::div(norm0,aSum);
 							M::Vec::normalize0(norm0);
 							this->setNormal(x,y,norm0);
-							this->GetPixel(x,y)[3] = floatToChannel(aSum/(F)4);
+							this->GetPixel(x,y)[3] = Nature::floatToChannel(aSum/(F)4);
 						}
 						else
 						{
@@ -1347,10 +1347,10 @@ template <class Nature>
 								*p1 = source.GetPixel(x*2+1,y*2),
 								*p2 = source.GetPixel(x*2+1,y*2+1),
 								*p3 = source.GetPixel(x*2,y*2+1);
-						F a0 = toFloat(p0[3]);
-						F a1 = toFloat(p1[3]);
-						F a2 = toFloat(p2[3]);
-						F a3 = toFloat(p3[3]);
+						F a0 = Nature::toFloat(p0[3]);
+						F a1 = Nature::toFloat(p1[3]);
+						F a2 = Nature::toFloat(p2[3]);
+						F a3 = Nature::toFloat(p3[3]);
 						F aSum = a0 + a1 + a2 + a3;
 						T*outPixel = this->get(x,y);
 						if (aSum > 0)
@@ -1361,7 +1361,7 @@ template <class Nature>
 							outPixel[0] = (T)avg0;
 							outPixel[1] = (T)avg1;
 							outPixel[2] = (T)avg2;
-							outPixel[3] = floatToChannel(aSum / (F)4);
+							outPixel[3] = Nature::floatToChannel(aSum / (F)4);
 						}
 						else
 						{

@@ -59,10 +59,10 @@ namespace DeltaWorks
 				bool			OutboundConnectedTo(const PEdge&) const;
 				bool			InboundConnectedTo(const PEdge&) const;
 				bool			ConnectedTo(const PNode&n) const {return OutboundConnectedTo(n) || InboundConnectedTo(n);}
-				ArrayRef<const WNode>	GetOutNeighbors() const {return out.ToRef();}
-				ArrayRef<const WEdge>	GetOutEdges() const {return outEdges.ToRef();}
-				ArrayRef<const WNode>	GetInNeighbors() const {return in.ToRef();}
-				ArrayRef<const WEdge>	GetInEdges() const {return inEdges.ToRef();}
+				ArrayRef<const WNode>	GetOutNeighbors() const {return out.ToRef().Const();}
+				ArrayRef<const WEdge>	GetOutEdges() const {return outEdges.ToRef().Const();}
+				ArrayRef<const WNode>	GetInNeighbors() const {return in.ToRef().Const();}
+				ArrayRef<const WEdge>	GetInEdges() const {return inEdges.ToRef().Const();}
 				template <typename Visitor>
 					void		VisitAllNeighbors(const Visitor&f)	const
 					{

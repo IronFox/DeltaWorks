@@ -346,7 +346,7 @@ namespace DeltaWorks
 				
 			inline	void	resizeAdoptFrom(const C*origin, count_t length)	//!< Resizes the local field and adopts the specified number of elements
 			{
-				Resize(length);
+				SetSize(length);
 				for (register count_t i = 0; i < length; i++)
 					data[i].adoptData(origin[i]);
 			}
@@ -357,7 +357,7 @@ namespace DeltaWorks
 				{
 					if (max > origin.elements)
 						max = origin.elements;
-					Resize(max);
+					SetSize(max);
 					for (register count_t i = 0; i < max; i++)
 						data[i] = origin.data[i];
 				}
@@ -707,19 +707,10 @@ namespace DeltaWorks
 				return elements && !data[elements-1];
 			}
 				
-				
-			virtual	serial_size_t			GetSerialSize() const	override
-			{
-				serial_size_t result = export_size?GetSerialSizeOfSize((serial_size_t)elements):0;
-				for (index_t i = 0; i < elements; i++)
-					result += GetSerialSizeOf((const C*)data+i,sizeof(C),true);//must pass true here because the individual object size cannot be restored from the global data size
-				return result;
-			}
 		
 			virtual	void			Serialize(IWriteStream&outStream) const	override
 			{
-				if (export_size)
-					outStream.WriteSize(elements);
+				outStream.WriteSize(elements);
 
 				if (!IsISerializable(data))
 				{
@@ -734,16 +725,9 @@ namespace DeltaWorks
 			virtual	void			Deserialize(IReadStream&inStream)	override
 			{
 				count_t size;
-				if (fixed_size == EmbeddedSize)
-				{
-					inStream.ReadSize(size);
-				}
-				else
-					if (!IsISerializable(data))
-						size = (count_t)(fixed_size/sizeof(C));
-					else
-						throw Except::Memory::SerializationFault(CLOCATION,"Trying to deserialize an array containing serializable objects from a fixed size stream data section not including any element count");
+				inStream.ReadSize(size);
 
+				
 				SetSize(size);
 				if (!IsISerializable(data))
 				{

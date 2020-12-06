@@ -220,7 +220,7 @@ namespace DeltaWorks
 
 		struct TAnimationStatus
 		{
-				M::TVec3<double>							translation,	//!< Translation vector
+				M::TVec3<double>						translation,	//!< Translation vector
 														rotation;		//!< Rotation momentum vector
 		};
 	
@@ -1411,6 +1411,10 @@ namespace DeltaWorks
 			public:
 					typedef	SubGeometryInstance<Def>		Super;
 
+					using Super::target;
+					using Super::path;
+					using Super::system;
+
 					Ctr::Array<AnimatorInstanceA<Def>,Adopt>		wheel_rotation_animators,
 															wheel_suspension_animators;
 															//construct_rotation_animators;
@@ -1423,7 +1427,7 @@ namespace DeltaWorks
 					Ctr::Array<AnimatableSubInstanceA<Def>,Adopt>	child_field;	//!< Sub children
 					TAnimationStatus						animation_status;	//!< Animation status vector
 					M::TMatrix4<typename Def::SystemType>	animated_system;	//!< Mutated local system
-					Ctr::Array<double>							wheel_status,		//!< Contains two floats - one for acceleration, one for braking - per wheel
+					Ctr::Array<double>						wheel_status,		//!< Contains two floats - one for acceleration, one for braking - per wheel
 															accelerator_status;	//!< Contains one float per accelerator
 				
 															AnimatableSubInstanceA();

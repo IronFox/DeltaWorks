@@ -9,7 +9,7 @@ namespace DeltaWorks
 		template class Buffer<int>;
 		template class Buffer0<int>;
 		template class CommonBufferStorage<int>;
-
+		template class WriteBuffer<>;
 	}
 }
 

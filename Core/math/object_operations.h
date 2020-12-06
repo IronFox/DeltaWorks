@@ -75,7 +75,7 @@ namespace Obj
 		{
 			if (((Obj::Operator0_sumD(center, e0, dimensions)/*Math::sqr(center:i - e0:i)*/) <= M::sqr(radius)) || ((Obj::Operator0_sumD(center, e1, dimensions)/*Math::sqr(center:i - e1:i)*/) <= M::sqr(radius)))
 				return true;
-			CArray<T0> d(dimensions);
+			Array<T0> d(dimensions);
 			
 			//block inlining void subtract|sub (2..4) (<const [*] v>, <const [*] w>, <[*] result>) direct=1 for dimensions=3, assembly_mode='DynamicPointers', parameters={e1, e0, d}...
 			{
@@ -84,7 +84,7 @@ namespace Obj
 					d[iterator__] = e1[iterator__] - e0[iterator__];
 				}
 			};
-			CArray<T0> delta(dimensions);
+			Array<T0> delta(dimensions);
 			
 			//block inlining void subtract|sub (2..4) (<const [*] v>, <const [*] w>, <[*] result>) direct=1 for dimensions=3, assembly_mode='DynamicPointers', parameters={e0, center, delta}...
 			{
@@ -122,7 +122,7 @@ namespace Obj
 		{
 			if (((Obj::Operator0_sumD(center, e0, dimensions)/*Math::sqr(center:i - e0:i)*/) <= M::sqr(radius)) || ((Obj::Operator0_sumD(center, e1, dimensions)/*Math::sqr(center:i - e1:i)*/) <= M::sqr(radius)))
 				return true;
-			CArray<T0> d(dimensions);
+			Array<T0> d(dimensions);
 			
 			//block inlining void subtract|sub (2..4) (<const [*] v>, <const [*] w>, <[*] result>) direct=1 for dimensions=3, assembly_mode='DynamicPointers', parameters={e1, e0, d}...
 			{
@@ -131,7 +131,7 @@ namespace Obj
 					d[iterator__] = e1[iterator__] - e0[iterator__];
 				}
 			};
-			CArray<T0> delta(dimensions);
+			Array<T0> delta(dimensions);
 			
 			//block inlining void subtract|sub (2..4) (<const [*] v>, <const [*] w>, <[*] result>) direct=1 for dimensions=3, assembly_mode='DynamicPointers', parameters={e0, center, delta}...
 			{
@@ -169,7 +169,7 @@ namespace Obj
 	template <typename T0, typename T1, typename T2, typename T3, typename T4>
 		inline	bool	__fastcall	detectSphereEdgeIntersectionD(const T0 *center, T1 radius, const T2 *e0, const T3 *e1, T4 distances[2], count_t dimensions)throw()
 		{
-			CArray<T4> d(dimensions);
+			Array<T4> d(dimensions);
 			
 			//block inlining void subtract|sub (2..4) (<const [*] v>, <const [*] w>, <[*] result>) direct=1 for dimensions=3, assembly_mode='DynamicPointers', parameters={e1, e0, d}...
 			{
@@ -178,7 +178,7 @@ namespace Obj
 					d[iterator__] = e1[iterator__] - e0[iterator__];
 				}
 			};
-			CArray<T4> delta(dimensions);
+			Array<T4> delta(dimensions);
 			
 			//block inlining void subtract|sub (2..4) (<const [*] v>, <const [*] w>, <[*] result>) direct=1 for dimensions=3, assembly_mode='DynamicPointers', parameters={e0, center, delta}...
 			{
@@ -221,7 +221,7 @@ namespace Obj
 	template <typename T0, typename T1, typename T2, typename T3, typename T4>
 		inline	bool	__fastcall	DetectSphereEdgeIntersectionD(const T0 *center, T1 radius, const T2 *e0, const T3 *e1, T4 distances[2], count_t dimensions)throw()
 		{
-			CArray<T4> d(dimensions);
+			Array<T4> d(dimensions);
 			
 			//block inlining void subtract|sub (2..4) (<const [*] v>, <const [*] w>, <[*] result>) direct=1 for dimensions=3, assembly_mode='DynamicPointers', parameters={e1, e0, d}...
 			{
@@ -230,7 +230,7 @@ namespace Obj
 					d[iterator__] = e1[iterator__] - e0[iterator__];
 				}
 			};
-			CArray<T4> delta(dimensions);
+			Array<T4> delta(dimensions);
 			
 			//block inlining void subtract|sub (2..4) (<const [*] v>, <const [*] w>, <[*] result>) direct=1 for dimensions=3, assembly_mode='DynamicPointers', parameters={e0, center, delta}...
 			{

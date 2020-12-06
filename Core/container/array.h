@@ -102,7 +102,7 @@ namespace DeltaWorks
 				*/
 				void					swap(Self&other)
 				{
-					for (auto i0 = begin(), i1 = other.begin(); i0 != end(); ++i0, ++i1)
+					for (auto i0 = Super::begin(), i1 = other.begin(); i0 != Super::end(); ++i0, ++i1)
 						MyStrategy::swap(*i0,*i1);
 				}
 
@@ -133,7 +133,7 @@ namespace DeltaWorks
 				*/
 				void					adoptData(Self&other)
 				{
-					for (Super::iterator i0 = Super::begin(), i1 = other.begin(); i0 != Super::end(); ++i0, ++i1)
+					for (typename Super::iterator i0 = Super::begin(), i1 = other.begin(); i0 != Super::end(); ++i0, ++i1)
 						MyStrategy::move(*i1,*i0);
 				}
 
@@ -145,13 +145,13 @@ namespace DeltaWorks
 				friend void			Serialize(IWriteStream&s, const Self&v)
 				{
 					using Serialization::Serialize;
-					for (Super::const_iterator i = v.begin(); i != v.end(); ++i)
+					for (typename Super::const_iterator i = v.begin(); i != v.end(); ++i)
 						Serialize(s,*i);
 				}
 				friend void			Deserialize(IReadStream&s, Self&v)
 				{
 					using Serialization::Deserialize;
-					for (Super::iterator i = v.begin(); i != v.end(); ++i)
+					for (typename Super::iterator i = v.begin(); i != v.end(); ++i)
 						Deserialize(s,*i);
 				}
 
@@ -171,7 +171,7 @@ namespace DeltaWorks
 
 				bool					operator==(const Self&other) const
 				{
-					return std::equal(begin(),end(),other.begin());
+					return std::equal(Super::begin(), Super::end(),other.begin());
 				}
 
 				bool					operator!=(const Self&other) const
@@ -255,6 +255,12 @@ namespace DeltaWorks
 				/**/				ArrayRef(T&element):data(&element),elements(1)	{}
 				/**/				ArrayRef(const ArrayRef<typename std::remove_const<T>::type>&nonConst):data(nonConst.data),elements(nonConst.elements)	{}
 				virtual				~ArrayRef()	{}
+
+				ArrayRef<const T>	Const() const
+				{
+					return ArrayRef<const T>(*this);
+				}
+
 
 				operator ArrayRef<const T>() const {return ArrayRef<const T>(data,elements);}
 
@@ -626,8 +632,9 @@ namespace DeltaWorks
 				MutableArrayRef(T*data, count_t elements):Super(data,elements)	{}
 				MutableArrayRef(T&element):Super(element)	{}
 
+				using Super::IsEmpty;
 
-				operator MutableArrayRef<const T>() const {return MutableArrayRef<const T>(data,elements);}
+				operator MutableArrayRef<const T>() const {return MutableArrayRef<const T>(Super::data,elements);}
 
 				template <typename I>
 					inline	T*		operator+(I rel)	//! Retrieves a pointer to the nth element @param rel Relative index. 0 points to the first element in the array. 	@return Pointer to the requested element for sub array access
@@ -796,6 +803,10 @@ namespace DeltaWorks
 					return Self(data+start,count);
 				}
 
+			protected:
+				using Super::data;
+				using Super::elements;
+
 			};
 
 
@@ -810,7 +821,7 @@ namespace DeltaWorks
 		template <typename T, size_t Length, class MyStrategy>
 			MutableArrayRef<T>				FixedArray<T,Length,MyStrategy>::ToRef()
 			{
-				return MutableArrayRef<T>(data(),Length);
+				return MutableArrayRef<T>(Super::data(),Length);
 			}
 
 
@@ -1136,7 +1147,7 @@ namespace DeltaWorks
 
 						inline	Array(const std::initializer_list<C>&other):Data(other.size())
 						{
-							std::initializer_list<C>::const_iterator it = other.begin();
+							typename std::initializer_list<C>::const_iterator it = other.begin();
 							index_t at = 0;
 							for (;it != other.end(); ++it)
 							{
@@ -1491,7 +1502,9 @@ namespace DeltaWorks
 								data = new_field;
 								elements = newSize;
 							}
-
+			protected:
+				using Super::data;
+				using Super::elements;
 			};
 
 

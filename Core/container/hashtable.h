@@ -269,7 +269,9 @@ namespace DeltaWorks
 			class ExtendedHashBase:public GenericHashBase<Carrier>
 			{
 			protected:
-					typedef GenericHashBase<Carrier>	Base;
+				typedef GenericHashBase<Carrier>	Base,Super;
+				using Super::entries;
+				using Super::array;
 			public:
 				typedef typename Carrier::Key	K;
 
@@ -299,9 +301,10 @@ namespace DeltaWorks
 			class HashSet:public ExtendedHashBase<THashSetCarrier<K,KeyStrategy>,Hash>
 			{
 			protected:
-					typedef THashSetCarrier<K,KeyStrategy>		Carrier;
+				typedef THashSetCarrier<K,KeyStrategy>		Carrier;
 		
-					typedef ExtendedHashBase<THashSetCarrier<K,KeyStrategy>,Hash>	Base;
+				typedef ExtendedHashBase<THashSetCarrier<K,KeyStrategy>,Hash>	Base, Super;
+
 			public:
 					typedef K						KeyType;	//!< Key type
 
@@ -332,7 +335,10 @@ namespace DeltaWorks
 		
 					typedef THashTableCarrier<K,C,KeyStrategy,DataStrategy>	Carrier;
 
-					typedef ExtendedHashBase<THashTableCarrier<K,C, KeyStrategy,DataStrategy>,Hash>	Base;
+					typedef ExtendedHashBase<THashTableCarrier<K,C, KeyStrategy,DataStrategy>,Hash>	Base,Super;
+
+					using Super::entries;
+					using Super::array;
 
 			public:
 					typedef K						KeyType;	//!< Key type

@@ -16,6 +16,9 @@ namespace DeltaWorks
 		typedef StringType::ReferenceExpression<T>	StringRef;
 		typedef StringType::Template<T>	String;
 
+		using Super::GetPointer;
+		using Super::GetLength;
+
 		/**/				GenericStringBuffer(size_t len=1024);
 		/**/				GenericStringBuffer(const T*string, size_t extra=100);
 		/**/				GenericStringBuffer(const String&string, size_t extra=100);
@@ -92,7 +95,7 @@ namespace DeltaWorks
 	template <typename T>
 	bool				GenericStringBuffer<T>::operator==(const StringRef&other) const
 	{
-		return this->GetLength() == other.GetLength() && !memcmp(pointer(),other.GetPointer(),GetLength());
+		return this->GetLength() == other.GetLength() && !memcmp(GetPointer(),other.GetPointer(),GetLength());
 	}
 
 

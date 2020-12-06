@@ -34,7 +34,7 @@ template <typename F>
 	{
 		Command::Name name;
 		if (!name.Parse(def))
-			return false;
+			return nullptr;
 		PCommand result = state->GetGlobalCommand(name.coreName);
 		if (result)
 			return result;

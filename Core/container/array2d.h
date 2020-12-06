@@ -16,12 +16,15 @@ namespace DeltaWorks
 		template <class C, class MyStrategy=typename Strategy::StrategySelector<C>::Default>
 			class Array2D:public Ctr::Array<C,MyStrategy>
 			{
+				typedef Ctr::Array<C, MyStrategy>	Super;
+
 			public:
 				typedef Array2D<C,MyStrategy>	Self;
-				typedef Ctr::Array<C,MyStrategy>	Super;
 
 				typedef Size2D<count_t>		Size;
 				typedef Index2D<index_t>	Index;
+
+				using Super::Fill;
 
 				template <bool IsHorizontal>
 					class Axis;
@@ -389,6 +392,9 @@ namespace DeltaWorks
 				using Super::ResizePreserveContent;
 				using Super::erase;
 				using Super::Append;
+				using Super::Count;
+
+				using Super::data;
 			};
 	}
 }

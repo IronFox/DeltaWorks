@@ -2081,29 +2081,6 @@ namespace DeltaWorks
 
 
 
-
-		template <typename T>
-			inline String ToString(const TVec2<T>&v)
-			{
-				return Vec::toString(v);
-			}
-		template <typename T>
-			inline String ToString(const TVec3<T>&v)
-			{
-				return Vec::toString(v);
-			}
-		template <typename T>
-			inline String ToString(const TVec4<T>&v)
-			{
-				return Vec::toString(v);
-			}
-
-		template <typename T, count_t D>
-			inline String ToString(const TVec<T,D>&v)
-			{
-				return Vec::toString(v);
-			}
-
 	
 		template <typename T=float>
 			class Sphere/*: public IToString*/	//! General purpose sphere - better not implement IToString due to possible IO-problems
@@ -2112,71 +2089,38 @@ namespace DeltaWorks
 				TVec3<T>				center;		//!< Sphere center (point)
 				T						radius;		//!< Sphere radius (scalar)
 			
-				MF_CONSTRUCTOR			Sphere(const T&radius=1):radius(radius) {Vec::clear(center);} 
-				MF_CONSTRUCTOR			Sphere(const TVec3<T>&center, const T&radius=1):center(center),radius(radius){}
+				MF_CONSTRUCTOR			Sphere(const T& radius = 1);
+				MF_CONSTRUCTOR			Sphere(const TVec3<T>& center, const T& radius = 1);
 
 				static Sphere<T>		Invalid()	{return Sphere((T)-1);}
 
-				MF_DECLARE(bool)		Intersects(const Sphere<T>&remote)		const	{return Vec::quadraticDistance(center,remote.center) < sqr(radius + remote.radius);}
+				MF_DECLARE(bool)		Intersects(const Sphere<T>& remote)		const;
 				/**
 					@brief Extends radius so that the local sphere includes the specified point. The calculated distance from the local sphere center to the specified point is left squared thus increasing performance
 				*/
-				MFUNC(void)				IncludeSquare(const TVec3<C>&point)	{radius = vmax(radius,Vec::quadraticDistance(center,point));}
+				MFUNC(void)				IncludeSquare(const TVec3<C>& point);
 				/**
 				@brief Expands the local radius to include the specified sphere, if necessary. Does not modify the local sphere's center
 				*/
-				MFUNC(void)				Include(const TVec3<C>&sphereCenter, const T&sphereRadius)
-				{
-					T dist2 = Vec::quadraticDistance(center, sphereCenter);
-
-					if (radius >= sphereRadius && dist2 <= sqr(radius - sphereRadius))
-						return;
-					radius = vsqrt(dist2) + sphereRadius;
-				}
+				MFUNC(void)				Include(const TVec3<C>& sphereCenter, const T& sphereRadius);
 				/**
 				@brief Expands the local radius to include the specified sphere, if necessary. Does not modify the local sphere's center
 				*/
 				MFUNC(void)				Include(const Sphere<C>&sphere)	{ Include(sphere.center, sphere.radius); }
-				MFUNC(void)				Include(const TVec3<C>& point)	/** @brief Extends radius so that the local sphere includes the specified point */ { if (radius < 0) Vec::copy(point, center); radius = vmax(radius, Vec::distance(center, point)); }
-				MFUNC(void)				Merge(const TVec3<C>& point, const T&radius)
-				{
-					if (this->radius < 0)
-					{
-						Vec::copy(point,center); 
-						this->radius = radius;
-					}
-					else
-					{
-						TVec3<T>	d;
-						Vec::sub(point,center,d);
-						Vec::normalize0(d);
-						TVec3<T>	a,b;
-						Vec::mad(center,d,-this->radius,a);
-						Vec::mad(point,d,radius,b);
-						Vec::center(a,b,center);
-						this->radius = Vec::distance(a,b)/(T)2;
-					}
-				}
+				/**
+				@brief Extends radius so that the local sphere includes the specified point 
+				*/
+				MFUNC(void)				Include(const TVec3<C>& point);
+				MFUNC(void)				Merge(const TVec3<C>& point, const T& radius);
 				MFUNC(void)				Merge(const Sphere<C>&sphere)	{Merge(sphere.center,sphere.radius);}
-				MFUNC(bool)				Contains(const TVec3<C>&point)	const	{return Vec::quadraticDistance(center,point) <= sqr(radius);}
-				MFUNC(bool)				Contains(const Sphere<C>&sphere)	const	{ return radius >= sphere.radius && Vec::quadraticDistance(center, sphere.center) <= sqr(radius-sphere.radius); }
-				MF_DECLARE(T)			volume()	const
-										{
-											return (T)4/(T)3 * (T)M_PI * radius * radius * radius;
-										}
-				MF_DECLARE(T)			GetVolume()		const	/** @copydoc volume() */ {return volume();}
+				MFUNC(bool)				Contains(const TVec3<C>& point)	const;
+				MFUNC(bool)				Contains(const Sphere<C>& sphere)	const;
+				MF_DECLARE(T)			volume()	const;
+				MF_DECLARE(T)			GetVolume()		const;
 				template <typename T0>
-					MF_DECLARE(void)	GetVolume(T0&result)	const
-										{
-											result = (T0)((T)4/(T)3 * (T)M_PI * radius * radius * radius);
-										}
+				MF_DECLARE(void)	GetVolume(T0& result)	const;
 				template <typename T0>
-					void				GetCenter(TVec3<T0>&out)	const
-										{
-											out.x = (T0)center.x;
-											out.y = (T0)center.y;
-											out.z = (T0)center.z;
-										}
+				void				GetCenter(TVec3<T0>& out)	const;
 
 				friend String			ToString(const Sphere<T>&s)
 										{
@@ -2303,7 +2247,7 @@ namespace DeltaWorks
 					//ASSERT_EQUAL__(t3.v,t3.rgb);
 					ASSERT_EQUAL__((const void*)t4.v,(const void*)&t4.rgb);
 					ASSERT_EQUAL__((const void*)(t4.v+2),(const void*)&t4.zw);
-					ASSERT_EQUAL__(t4.v,t4.rgba);
+					ASSERT_EQUAL__((const void*)t4.v, (const void*)&t4.rgba);
 
 					ASSERT_EQUAL__(&t3.z,&t3.blue);
 					ASSERT_EQUAL__(&t3.y,&t3.green);
@@ -2379,6 +2323,32 @@ namespace DeltaWorks
 			}
 		}
 		#include "vector_operations.h"
+
+
+
+
+		template <typename T>
+			inline String ToString(const TVec2<T>&v)
+			{
+				return Vec::toString(v);
+			}
+		template <typename T>
+			inline String ToString(const TVec3<T>&v)
+			{
+				return Vec::toString(v);
+			}
+		template <typename T>
+			inline String ToString(const TVec4<T>&v)
+			{
+				return Vec::toString(v);
+			}
+
+		template <typename T, count_t D>
+			inline String ToString(const TVec<T,D>&v)
+			{
+				return Vec::toString(v);
+			}
+
 	}
 
 	namespace Vec = Math::Vec;
@@ -2386,5 +2356,5 @@ namespace DeltaWorks
 }
 
 
-//#Include "vector.tpl.h"
+#include "vector.tpl.h"
 #endif

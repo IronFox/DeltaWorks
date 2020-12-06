@@ -101,6 +101,10 @@ namespace DeltaWorks
 				typedef Sequence<const typename std::remove_const<T>::type> ConstSelf;
 				typedef ArrayRef<T>	Super;
 
+				using Super::GetLength;
+				using Super::begin;
+				using Super::end;
+
 				/**/			Sequence(T*str):Super(str,CharFunctions::strlen(str)) {}
 
 				friend hash_t	Hash(const Self&ref)

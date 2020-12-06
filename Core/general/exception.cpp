@@ -89,7 +89,7 @@ namespace DeltaWorks
 
 
 
-	void		FatalDescriptor::Copy(const char*message, size_t length)
+	void		FatalDescriptor::Copy(const char*message, size_t length)	throw()
 	{
 		if (length > sizeof(this->message)-1)
 			length = sizeof(this->message)-1;
@@ -99,7 +99,7 @@ namespace DeltaWorks
 	}
 
 	
-	void			TCodeLocation::Format(TCodeLocation::TOutString&rs)	const
+	void			TCodeLocation::Format(TCodeLocation::TOutString&rs)	const	throw()
 	{
 		//std::cout << "determining code location for "<<file<<"/"<<method<<" ["<<line<<"]"<<std::endl;
 		const char	*in = file,
@@ -120,7 +120,7 @@ namespace DeltaWorks
 	}
 
 
-	void			TCodeLocation::FormatFilename(TOutString&rs)	const
+	void			TCodeLocation::FormatFilename(TOutString&rs)	const	throw()
 	{
 		const char	*in = file,
 					*last = file;
