@@ -249,8 +249,8 @@ namespace Engine
 		{
 		    float len = absolute_text.GetWidth();
 		    char buffer[0x100];
-		    memcpy(buffer,origin.c_str(),vmin(origin.GetLength(),sizeof(buffer)));
-		    BYTE at = vmin(origin.GetLength()+1,sizeof(buffer))-1;
+		    memcpy(buffer,origin.c_str(),M::Min(origin.GetLength(),sizeof(buffer)));
+		    BYTE at = M::Min(origin.GetLength()+1,sizeof(buffer))-1;
 		    buffer[at] = 0;
 
 		    while (at && textout.GetUnscaledWidth(buffer)*font_x > len)
@@ -288,7 +288,7 @@ namespace Engine
 							if (textout.GetUnscaledWidth(el.c_str(),i)*font_x > len)
 							{
 								lines.add(el.subString(0,i));
-								el.erase(0,i);
+								el.Erase(0,i);
 								printed = true;
 								break;
 							}
@@ -316,7 +316,7 @@ namespace Engine
 		                lines.add(Truncate(local.subString(0,nl-1)));
 		            else
 		                printLine(local.subString(0,nl-1));
-		            local.erase(0,nl);
+		            local.Erase(0,nl);
 		        }
 		        else
 		        {
@@ -370,8 +370,8 @@ namespace Engine
 		        body.render(renderer);
 
 		            unsigned    //block = status*height/line_height,
-		                        frame_size = clamped((int)((absolute_text.GetHeight())/font_y)-1,0,1000),
-		                        offset = lines - clamped(history_state*frame_size+frame_size,0,lines),
+		                        frame_size = M::Clamp((int)((absolute_text.GetHeight())/font_y)-1,0,1000),
+		                        offset = lines - M::Clamp(history_state*frame_size+frame_size,0,lines),
 		                        count = lines - offset;
 		            textout.MoveTo(absolute_text.x.min,absolute_text.y.min+font_y*(count+1));
 		            for (unsigned i = 0; i < count; i++)

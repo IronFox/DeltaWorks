@@ -293,7 +293,7 @@ namespace Engine
 										{
 											if (image.GetWidth() != texture_width || image.GetHeight() != texture_height || image.contentType() != texture_type || texture_channels != image.channels())
 											{
-												throw Renderer::TextureTransfer::ParameterFault(globalString("Image properties are incompatible to the local texture properties"));
+												throw Except::Renderer::TextureTransfer::ParameterFault(Except::globalString("Image properties are incompatible to the local texture properties"));
 												return;
 											}
 											update(image.GetData(),filter,anisotropy);
@@ -519,7 +519,7 @@ namespace Engine
 				typedef		GeometryBuffer<T>	Self;
 			protected:
 				using Buffer::loadData;
-				using Buffer::resize;
+				using Buffer::Resize;
 
 			public:
 				inline	bool	load(const T*field, size_t num_units);	//!< Loads the specified data into the local buffer. @a field must be at least @a num_units units long but may be NULL if @a num_units is 0

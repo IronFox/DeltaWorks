@@ -480,7 +480,7 @@ namespace DeltaWorks
 		MFUNC2	(C0)		Max(C0 value0, C1 value1)	{return vmax(value0,value1);}						 				//!< Calculate max \return Greater of both values (parsed to C0)
 		MFUNC3	(C0)		Min(C0 value0, C1 value1, C2 value2)	{return vmin(value0,value1,value2);}
 		MFUNC3	(C0)		Max(C0 value0, C1 value1, C2 value2)	{return vmax(value0,value1,value2);}
-		MFUNC1	(C0)		Clamp01(C0 value)	{return clamp01(value);}
+		MFUNC1	(C0)		Clamp01(C0 value)	{return clamp(value,0,1);}
 		MFUNC3	(C0)		Clamp(C0 v, C1 min, C2 max) {return clamp(v,min,max);}
 		MFUNC3	(C0)		CubicStep(C0 v, C1 lower, C2 upper)	/**@copydoc cubicStep()*/ {return cubicStep(v,lower,upper);}
 		MFUNC	(C)			Sqr(C f)	{return f*f;}

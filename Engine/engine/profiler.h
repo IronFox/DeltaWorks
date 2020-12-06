@@ -386,19 +386,17 @@ namespace Engine
 			{
 			public:
 					typedef RenderGraph<GL,OrthographicGraph>	Base;
-					#ifdef __GNUC__
-						using Base::h_field;
-						using Base::h_block;
-						using Base::view;
-						using Base::name;
-						using Base::data;
-						using Base::channel;
-						using Base::group;
-						using Base::print_channel_names;
-						using Base::position;
-						using Base::frame;
-						using Base::show_weighted;
-					#endif
+					using Base::h_field;
+					using Base::h_block;
+					using Base::view;
+					using Base::name;
+					using Base::data;
+					using Base::channel;
+					using Base::group;
+					using Base::print_channel_names;
+					using Base::position;
+					using Base::frame;
+					using Base::show_weighted;
 			
 			protected:
 					float								highest;
@@ -420,19 +418,18 @@ namespace Engine
 			{
 			public:
 					typedef RenderGraph<GL,OrthographicGraph>	Base;
-					#ifdef __GNUC__
-						using Base::h_field;
-						using Base::h_block;
-						using Base::view;
-						using Base::name;
-						using Base::data;
-						using Base::print_channel_names;
-						using Base::position;
-						using Base::frame;
-						//using Base::show_weighted;
-						using Base::channel;
-						using Base::group;
-					#endif
+
+					using Base::h_field;
+					using Base::h_block;
+					using Base::view;
+					using Base::name;
+					using Base::data;
+					using Base::print_channel_names;
+					using Base::position;
+					using Base::frame;
+					//using Base::show_weighted;
+					using Base::channel;
+					using Base::group;
 			
 			protected:
 					float								scale,
@@ -457,21 +454,20 @@ namespace Engine
 			{
 			public:
 					typedef RenderGraph<GL,C3dGraph>	Base;
-					#ifdef __GNUC__
-						using Base::h_field;
-						using Base::h_block;
-						using Base::view;
-						using Base::name;
-						using Base::data;
-						using Base::width;
-						using Base::height;
-						using Base::depth;
-						using Base::frame;
-						using Base::print_channel_names;
-						//using Base::show_weighted;
-						using Base::channel;
-						using Base::group;
-					#endif
+
+					using Base::h_field;
+					using Base::h_block;
+					using Base::view;
+					using Base::name;
+					using Base::data;
+					using Base::width;
+					using Base::height;
+					using Base::depth;
+					using Base::frame;
+					using Base::print_channel_names;
+					//using Base::show_weighted;
+					using Base::channel;
+					using Base::group;
 			protected:
 					
 					float								highest;
@@ -491,19 +487,18 @@ namespace Engine
 			{
 			public:
 					typedef RenderGraph<GL,C3dGraph>	Base;
-					#ifdef __GNUC__
-						using Base::view;
-						using Base::name;
-						using Base::data;
-						using Base::width;
-						using Base::height;
-						using Base::depth;
-						using Base::frame;
-						using Base::print_channel_names;
-						//using Base::show_weighted;
-						using Base::channel;
-						using Base::group;
-					#endif
+
+					using Base::view;
+					using Base::name;
+					using Base::data;
+					using Base::width;
+					using Base::height;
+					using Base::depth;
+					using Base::frame;
+					using Base::print_channel_names;
+					//using Base::show_weighted;
+					using Base::channel;
+					using Base::group;
 			protected:
 					float								highest;
 					String								str_current;

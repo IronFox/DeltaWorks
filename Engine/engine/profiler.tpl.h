@@ -126,7 +126,7 @@ namespace Engine
 					M::Vec::add(normals[indices[i*4+2]],n0);
 					M::Vec::add(normals[indices[i*4+3]],n0);
 				}
-				if (vabs(M::Vec::dot(C3dGraph::light)-1.0f)>GetError<float>())
+				if (fabs(M::Vec::dot(C3dGraph::light)-1.0f)>M::GetError<float>())
 					M::Vec::normalize0(C3dGraph::light);
 
 				for (unsigned i = 0; i < vcnt; i++)
@@ -190,9 +190,9 @@ namespace Engine
 			GL*renderer = Base::getRenderer();
 			if (!renderer)
 				return;
-			float matrix[16];
-			__eye4(matrix);
-			_c2(Base::position.v0,matrix+12);
+			M::TMatrix4<float> matrix;
+			Mat::Eye(matrix);
+			Base::position.GetMin(matrix.w.xy);
 			matrix[0] = Base::position.GetWidth();
 			matrix[5] = Base::position.GetHeight();
 			renderer->enterSubSystem(matrix);
@@ -830,11 +830,11 @@ namespace Engine
 			
 			renderer->render(Base::outlines);
 			{
-				float scaled[16];
-				__eye4(scaled);
-				scaled[0] = width*1.01;
-				scaled[5] = height*1.01;
-				scaled[10] = depth*1.01;
+				M::TMatrix4<> scaled;
+				Mat::Eye(scaled);
+				scaled.x.x = width*1.01;
+				scaled.y.y = height*1.01;
+				scaled.z.z = depth*1.01;
 				renderer->enterSubSystem(scaled);
 				renderer->render(frame);
 				renderer->exitSubSystem();
@@ -1202,11 +1202,11 @@ namespace Engine
 			
 			renderer->render(Base::outlines);
 			{
-				float scaled[16];
-				__eye4(scaled);
-				scaled[0] = width*1.01;
-				scaled[5] = height*1.01;
-				scaled[10] = depth*1.01;
+				M::TMatrix4<> scaled;
+				Mat::Eye(scaled);
+				scaled.x.x = width*1.01;
+				scaled.y.y = height*1.01;
+				scaled.z.z = depth*1.01;
 				renderer->enterSubSystem(scaled);
 				renderer->render(frame);
 				renderer->exitSubSystem();

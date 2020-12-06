@@ -328,7 +328,7 @@ namespace Engine
 					label->offset.left = x_offset;
 					label->offset.top = y_offset-h/2+label->height/2;
 					this->Add(label);
-					x_offset = vmax(caption_width,label->width);
+					x_offset = M::Max(caption_width,label->width);
 					
 					component->anchored.Set(true,false,true,true);
 					component->offset.left = x_offset;
