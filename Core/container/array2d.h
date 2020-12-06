@@ -385,6 +385,9 @@ namespace DeltaWorks
 					s.ReadSize(v.w);
 					Deserialize(s,(Super&)v);
 				}
+
+				using Super::Count;
+
 			protected:
 				index_t	w;
 				
@@ -392,7 +395,6 @@ namespace DeltaWorks
 				using Super::ResizePreserveContent;
 				using Super::erase;
 				using Super::Append;
-				using Super::Count;
 
 				using Super::data;
 			};

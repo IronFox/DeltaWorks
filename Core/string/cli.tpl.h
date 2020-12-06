@@ -19,7 +19,7 @@ template <typename F>
 			return nullptr;
 		Command::Name name;
 		if (!name.Parse(lookup.pathSegments.Last()))
-			return false;
+			return nullptr;
 
 		PCommand result = parent->commands.Query(name.coreName);
 		if (result)

@@ -11,6 +11,98 @@ Collection of basic template functions.
 namespace Math
 {
 
+	template <typename T, bool IsFloat /*=false*/, bool IsSigned /*=false*/>
+	class TPow10
+	{
+		typedef TPow10<T, IsFloat, IsSigned>	Self;
+	public:
+		typedef typename TypeInfo<T>::GreaterType::Type	ReturnType;
+		static ReturnType Execute(T val)
+		{
+			if (val == 0)
+				return (ReturnType)1;
+			if (val == 1)
+				return (ReturnType)10;
+			ReturnType rs = Self::Execute(val >> 1);
+			rs *= rs;
+			if (val % 2)
+				rs *= 10;
+			return rs;
+		}
+
+	};
+
+	template <typename T, bool IsFloat /*=false*/>
+	class TPow10<T, IsFloat, true>	//signed integer
+	{
+		typedef TPow10<T, IsFloat, true>	Self;
+		typedef TPow10<typename TypeInfo<T>::UnsignedType::Type, IsFloat, false> Calculator;
+	public:
+		typedef double	ReturnType;
+
+		static ReturnType Execute(T val)
+		{
+			if (val < 0)
+				return 1.0 / (double)Calculator::Execute(-val);
+			return (double)Calculator::Execute(val);
+		}
+
+	};
+
+	template <typename T, bool IsSigned>
+	class TPow10<T, true, IsSigned>
+	{
+		typedef TPow10<T, true, IsSigned>	Self;
+	public:
+		typedef T	ReturnType;
+
+		static ReturnType Execute(T val)
+		{
+			return ::pow((T)10, val);
+		}
+
+	};
+
+	template <typename T>
+	auto            Pow10(T e) -> typename TPow10<T, TypeInfo<T>::is_float, TypeInfo<T>::is_signed>::ReturnType
+	{
+		return TPow10<T, TypeInfo<T>::is_float, TypeInfo<T>::is_signed>::Execute(e);
+	}
+
+
+	template <typename T, typename U>
+	T            PowU(T base, U exponent)
+	{
+		switch (exponent)
+		{
+		case 0:
+			return (T)1;
+		case 1:
+			return base;
+		case 2:
+			return base * base;
+		case 3:
+			return base * base * base;
+		}
+		const U exp2 = exponent >> 1;
+		const T sub = PowU(base, exp2);
+		if (exponent & 1)
+		{
+			return sub * sub * base;
+		}
+		return sub * sub;
+	}
+
+
+	template <typename T, typename I>
+	T            PowI(T base, I exponent)
+	{
+		if (exponent < 0)
+			return (T)1 / PowU(base, static_cast<typename TypeInfo<I>::UnsignedType::Type>(-exponent));
+		return PowU(base, static_cast<typename TypeInfo<I>::UnsignedType::Type>(exponent));
+	}
+
+
 
 
 	namespace ByReference
@@ -451,6 +543,13 @@ namespace Math
 		return a;
 	}
 
+	template <typename T>
+		inline T	Round(T x, unsigned digits)
+		{
+			T factor = Pow10(digits);
+			return Round(x * factor) / factor;
+		}
+
 
 
 	#ifdef _MSC_VER
@@ -723,98 +822,6 @@ namespace Math
     MF_SPECIALIZED	(long double)   vexp<long double>(long double e)
 	{
 		return expl(e);
-	}
-
-
-	template <typename T, bool IsFloat /*=false*/, bool IsSigned /*=false*/>
-		class TPow10
-		{
-			typedef TPow10<T,IsFloat,IsSigned>	Self;
-		public:
-			typedef typename TypeInfo<T>::GreaterType::Type	ReturnType;			
-			static ReturnType Execute(T val)
-			{
-				if (val == 0)
-					return (ReturnType)1;
-				if (val == 1)
-					return (ReturnType)10;
-				ReturnType rs = Self::Execute(val>>1);
-				rs *= rs;
-				if (val%2)
-					rs *= 10;
-				return rs;
-			}
-
-		};
-
-	template <typename T, bool IsFloat /*=false*/>
-		class TPow10<T, IsFloat,true>	//signed integer
-		{
-			typedef TPow10<T,IsFloat,true>	Self;
-			typedef TPow10<typename TypeInfo<T>::UnsignedType::Type,IsFloat,false> Calculator;
-		public:
-			typedef double	ReturnType;
-
-			static ReturnType Execute(T val)
-			{
-				if (val < 0)
-					return 1.0 / (double)Calculator::Execute(-val);
-				return (double)Calculator::Execute(val);
-			}
-
-		};
-
-	template <typename T, bool IsSigned>
-		class TPow10<T, true,IsSigned>
-		{
-			typedef TPow10<T,true,IsSigned>	Self;
-		public:
-			typedef T	ReturnType;
-
-			static ReturnType Execute(T val)
-			{
-				return ::pow((T)10,val);
-			}
-
-		};
-
-	template <typename T>
-	auto            Pow10(T e) -> typename TPow10<T, TypeInfo<T>::is_float, TypeInfo<T>::is_signed>::ReturnType
-	{
-		return TPow10<T, TypeInfo<T>::is_float, TypeInfo<T>::is_signed>::Execute(e);
-	}
-
-
-	template <typename T, typename U>
-	T            PowU(T base, U exponent)
-	{
-		switch (exponent)
-		{
-			case 0:
-				return (T)1;
-			case 1:
-				return base;
-			case 2:
-				return base * base;
-			case 3:
-				return base * base * base;
-		}
-		const U exp2 = exponent >> 1;
-		const T sub = PowU(base,exp2);
-		if (exponent & 1)
-		{
-			return sub * sub * base;
-		}
-		return sub * sub;
-	}
-
-
-	template <typename T, typename I>
-	T            PowI(T base, I exponent)
-	{
-		if (exponent < 0)
-			return (T)1 / PowU(base,static_cast<typename TypeInfo<I>::UnsignedType::Type>(-exponent));
-		return PowU(base,static_cast<typename TypeInfo<I>::UnsignedType::Type>(exponent));
 	}
 
 

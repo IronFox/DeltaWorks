@@ -351,11 +351,7 @@ namespace DeltaWorks
 			}
 
 		template <typename T>
-			inline T	Round(T x, unsigned digits)
-			{
-				T factor = Pow10(digits);
-				return Round(x * factor) / factor;
-			}
+			inline T	Round(T x, unsigned digits);
 
 		template <typename T>
 			inline int	RoundToInt(T x)

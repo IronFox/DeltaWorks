@@ -245,6 +245,7 @@ namespace DeltaWorks
 				using Super::IsEmpty;
 				using Super::begin;
 				using Super::end;
+				using Super::swap;
 
 
 			protected:
