@@ -1,4 +1,4 @@
-<project type="StaticLibrary">
+<project type="StaticLibrary" extraProjectOptions="/std:c++latest /Zc:__cplusplus">
 	<referenceProject name="DeltaWorksCore" />
 	<source path="." include="true">
 		<exclude find="mvc"/>
@@ -9,4 +9,5 @@
 	</source>
 	<macro name="_CRT_SECURE_NO_WARNINGS" />
 	<macro name="_SCL_SECURE_NO_WARNINGS" />
+	<disableWarning>26439 <!-- noexcept --></disableWarning>
 </project>
