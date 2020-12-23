@@ -1,5 +1,13 @@
 #include "../../global_root.h"
+
 #include "jpeg.h"
+
+extern "C"
+{
+	#undef boolean
+	#include "../../third_party/jpeg/jpeglib.h"
+}
+
 
 /******************************************************************
 
@@ -152,95 +160,63 @@ namespace DeltaWorks
 	}
 
 
-	void	JPEG::SaveToFilePointer(const Image&result, FILE*f)
+	void	JPEG::SaveToFilePointer(const Image&img, FILE*f)
 	{
-		throw Except::Program::FunctionalityNotImplemented();
+		if (img.GetChannels() > 3)
+		{
+			Image copy = img;
+			copy.SetChannels(3);
+			SaveToFilePointer(copy,f);
+			return;
+		}
+
+
+		ASSERT__(img.GetChannels() == 1 || img.GetChannels() == 3);
+
+
 
 		struct jpeg_compress_struct cinfo;
-		struct my_error_mgr jerr;
-		//JSAMPARRAY buffer;		/* Output row buffer */
-		int row_stride;		/* physical row width in output buffer */
-	
-	
-		#if 0
-
-		FILE*f = fopen(filename,"wb");
-		if (!f)
-		{
-			jpeg_error = JPEG_FILE_IO_ERROR;
-			return false;
-		}
-		cinfo.err = jpeg_std_error(&jerr.pub);
-		jerr.pub.error_exit = my_error_exit;
-	/*	if (setjmp(jerr.setjmp_buffer))
-		{
-			jpeg_error = JPEG_DATA_ERROR;
-			jpeg_destroy_decompress(&cinfo);
-			fclose(f);
-			return NULL;
-		}*/
-		jpeg_create_compress(&cinfo);
-		jpeg_stdio_dest(&cinfo, f);
-	
-		cout << "compress created\n";
-		jpeg_set_defaults(&cinfo);
-		cout << "defaults set\n";
-		jpeg_set_colorspace(&cinfo,JCS_RGB);
-		cout << "colorspace set\n";
-		jpeg_set_quality(&cinfo,75,TRUE);
-		cout << "quality set\n";
+		struct jpeg_error_mgr jerr;
 	
 		JSAMPROW row_pointer[1];
-	
-	
-	
-	// 	jpeg_read_header(&cinfo, TRUE);
-	
-	//  	buffer = (*cinfo.mem->alloc_sarray)((j_common_ptr) &cinfo, JPOOL_IMAGE, resource->GetWidth()*resource->GetChannels()*100, 1);
-	
-		cinfo.image_width = resource->GetWidth();
-		cinfo.image_height = resource->GetHeight();
-		cinfo.input_components = resource->GetChannels();
-		cinfo.in_color_space = JCS_RGB;
-	
-	
-		cout << cinfo.image_width<<"*"<<cinfo.image_height<<"*"<<cinfo.input_components<<endl;
-		cinfo.raw_data_in = TRUE;
-	
-		jpeg_start_compress(&cinfo, TRUE);
-		cout << "compress started\n";
-		cout << cinfo.image_width<<"*"<<cinfo.image_height<<"*"<<cinfo.input_components<<endl;
+		cinfo.err = jpeg_std_error( &jerr );
+		jpeg_create_compress(&cinfo);
+		jpeg_stdio_dest(&cinfo, f);
 
-		//cinfo.next_scanline = 0;
-		cout << "starting with line "<<cinfo.next_scanline<<endl;
-	
-		row_stride = cinfo.image_width*cinfo.input_components;
-		Ctr::Array<JSAMPLE>	sample(row_stride);
 
-		while (cinfo.next_scanline < cinfo.image_height)
+		cinfo.image_width = img.GetWidth();	
+		cinfo.image_height = img.GetHeight();
+		cinfo.input_components = img.GetChannels();
+		cinfo.in_color_space = img.GetChannels() == 3 ? JCS_RGB : JCS_GRAYSCALE;
+
+		jpeg_set_defaults( &cinfo );
+
+		jpeg_set_quality( &cinfo, 90, FALSE);
+
+		jpeg_start_compress( &cinfo, TRUE );
+
+		Array<BYTE> lineCopy(img.GetWidth() * img.GetChannels());
+
+		while( cinfo.next_scanline < cinfo.image_height )
 		{
-			int source_row_index = (resource->GetHeight()-cinfo.next_scanline-1);
-			const BYTE*source_row = resource->GetData()+source_row_index*resource->GetWidth()*resource->GetChannels();
-			for (unsigned i = 0; i < (unsigned)row_stride; i++)
-			{
-				sample[i] = JSAMPLE(((float)source_row[i]/255.0f)*MAXJSAMPLE);
-				cout << (int)sample[i]<<" ";
-			}
-			cout << "writing "<<cinfo.next_scanline<<" ("<<source_row_index<<"/"<<resource->GetHeight()<<")... ";
-			flush(cout);
-			row_pointer[0] = sample;
-			jpeg_write_scanlines(&cinfo, row_pointer, 1);
-			cout << "done\n";
-			flush(cout);
+			lineCopy.copyFrom(img.GetPixel(0,img.GetHeight() - cinfo.next_scanline - 1),lineCopy.Count());
+			row_pointer[0] = lineCopy.GetPointer();
+				//&raw_image[ cinfo.next_scanline * cinfo.image_width *  cinfo.input_components];
+			jpeg_write_scanlines( &cinfo, row_pointer, 1 );
 		}
-		cout << "done writing scanlines...\n";
-		jpeg_finish_compress(&cinfo);
-		cout << "compression finished\n";
-		jpeg_destroy_compress(&cinfo);
-		cout << "and destroyed\n";
-		fclose(f);
-		return true;
-		#endif
+
+		jpeg_finish_compress( &cinfo );
+		jpeg_destroy_compress( &cinfo );
+
+
+
+
+
+
+
+
+
+
 	}
 }
 

@@ -10,6 +10,8 @@ JPEG-Format handler.
 //typedef unsigned char    boolean;
 //typedef int boolean;
 #undef main
+
+/*
 #if defined(__BORLANDC__) || defined(_MSC_VER)
 	#define boolean int
 	#undef FAR
@@ -22,7 +24,8 @@ JPEG-Format handler.
 		typedef int	boolean;
 	#endif
 #endif
-#include "../../third_party/jpeg/jpeglib.h"
+*/
+
 #include "img_format.h"
 
 #include "../../general/root.h"	//redefine "main"

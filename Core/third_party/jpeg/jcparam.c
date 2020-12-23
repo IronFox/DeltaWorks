@@ -274,7 +274,7 @@ jpeg_set_defaults (j_compress_ptr cinfo)
     ERREXIT1(cinfo, JERR_BAD_STATE, cinfo->global_state);
 
   /* Allocate comp_info array large enough for maximum component count.
-   * Ctr::Array is made permanent in case application wants to compress
+   * Array is made permanent in case application wants to compress
    * multiple images at same param settings.
    */
   if (cinfo->comp_info == NULL)
