@@ -16,8 +16,8 @@ template class Engine::Display < Engine::DummyGL > ;
 #define NEAR
 #endif
 
-#include <ole2.h> 
-#include <shlobj.h>
+//#include <ole2.h> 
+//#include <shlobj.h>
 
 bool operator==(const RECT&a, const RECT&b)
 {
@@ -87,7 +87,7 @@ private:
 
 protected: 
 	// IUnknown methods 
-	STDMETHOD(QueryInterface)(REFIID riid, void FAR* FAR* ppvObj); 
+	STDMETHOD(QueryInterface)(REFIID riid, void * * ppvObj); 
 	STDMETHOD_(ULONG, AddRef)(); 
 	STDMETHOD_(ULONG, Release)();
 
@@ -127,7 +127,7 @@ CtxDropTarget::~CtxDropTarget()
 // IUnknown Interface has three member functions: 
 // QueryInterface, AddRef, and Release.
 
-STDMETHODIMP CtxDropTarget::QueryInterface(REFIID iid, void FAR* FAR* ppv) 
+STDMETHODIMP CtxDropTarget::QueryInterface(REFIID iid, void * * ppv) 
 { 
    // tell other objects about our capabilities 
    if (iid == IID_IUnknown || iid == IID_IDropTarget) 

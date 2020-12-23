@@ -7,7 +7,7 @@ Engine Display
 
 ******************************************************************/
 
-
+#include <global_root.h>
 #include "renderer/renderer.h"
 #include "interface/keyboard.h"
 #include "interface/mouse.h"

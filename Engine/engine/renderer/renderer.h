@@ -8,6 +8,7 @@ Universal visual language-interface and rendering related definitions
 
 ********************************************************************/
 
+#include <global_root.h>
 #include <math/matrix.h>
 #include <image/image.h>
 #include "../../geometry/simple_geometry.h"
