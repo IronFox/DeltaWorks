@@ -567,6 +567,7 @@ namespace DeltaWorks
 			using Super::GetPixel;
 			using Super::adoptData;
 			using Super::sample;
+			using Super::Set;
 			//#ifdef __GNUC__
 				using Parent::image_channels;
 				using Parent::image_width;

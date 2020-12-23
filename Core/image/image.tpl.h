@@ -1154,8 +1154,8 @@ template <class Nature>
 				for (dimension_t x = 0; x < image_width/2; x++)
 				{
 					M::Vec::copyD(GetPixel(x,y),buffer,image_channels);
-					setf(x,y,GetPixel(image_width-x-1,y));
-					setf(image_width-x-1,y,buffer);
+					Set(x,y,GetPixel(image_width-x-1,y));
+					Set(image_width-x-1,y,buffer);
 				}
 			});
 		}
@@ -1206,8 +1206,8 @@ template <class Nature>
 				for (dimension_t y = 0; y < image_height/2; y++)
 				{
 					M::Vec::copyD(GetPixel(x,y),buffer,image_channels);
-					setf(x,y,GetPixel(x,image_height-y-1));
-					setf(x,image_height-y-1,buffer);
+					Set(x,y,GetPixel(x,image_height-y-1));
+					Set(x,image_height-y-1,buffer);
 				}
 			});
 		}
