@@ -8,4 +8,6 @@
 	</source>
 	<macro name="_CRT_SECURE_NO_WARNINGS" />
 	<macro name="_SCL_SECURE_NO_WARNINGS" />
+	<macro name="_CRT_NONSTDC_NO_WARNINGS" />
+	<disableWarning>26439 <!-- noexcept --></disableWarning>
 </project>
