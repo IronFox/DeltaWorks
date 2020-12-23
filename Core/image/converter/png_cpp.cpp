@@ -2,15 +2,20 @@
 #include "png.h"
 #include "../../container/buffer.h"
 
+extern "C"
+{
+	#include "../../third_party/png/png.h"
+}
+
 namespace DeltaWorks
 {
 
 	PNG	png;
 
-	namespace 
+	namespace Detail
 	{
 
-		png_byte	_GetColorType(BYTE numChannels)
+		int	GetColorType(BYTE numChannels)
 		{
 			switch (numChannels)
 			{
@@ -32,61 +37,245 @@ namespace DeltaWorks
 			}
 		}
 
-		void pngError()
+		void OnError()
 		{}
 
-		void PNGAPI readError(png_structp strct, png_const_charp err_str)
+		void PNGAPI OnReadError(png_structp png, png_const_charp err_str)
 		{
 			throw Except::IO::DriveAccess::DataReadFault(err_str);
 		}
 
-		void PNGAPI writeError(png_structp strct, png_const_charp err_str)
+		void PNGAPI OnWriteError(png_structp png, png_const_charp err_str)
 		{
 			throw Except::IO::DriveAccess::DataWriteFault(err_str);
 		}
 
-
-		Container::Buffer<BYTE>	out_buffer;
-		IWriteStream	*outStream = NULL;
-		IReadStream		*inStream = NULL;
-		const	BYTE	*global_source = NULL;
-		index_t			global_at = 0;
-		size_t			global_size = 0;
-
-		void writeSection(png_structp png, png_bytep data, png_size_t size)
-		{
-			out_buffer.Append(data,(unsigned)size);
-		}
-
-		void writeSectionToStream(png_structp png, png_bytep data, png_size_t size)
-		{
-			outStream->Write(data,(serial_size_t)size);
-		}
-
-		void	flushSection(png_structp png)
+		void PNGAPI OnWarning(png_structp, png_const_charp)
 		{}
 
-		void readSection(png_structp png, png_bytep data, png_size_t size)
+
+		class WriteIO
 		{
-			if (global_at + size > global_size)
-				throw Except::IO::DriveAccess::DataReadFault("Unexpected end of file encountered");
-			else
-				for (png_size_t i = 0; i < size; i++)
+		public:
+			virtual void Write(const png_byte* data, png_size_t size) = 0;
+			virtual void Flush() = 0;
+		};
+
+		class ReadIO
+		{
+		public:
+			virtual void Read(png_bytep outData, png_size_t size) = 0;
+		};
+
+
+		class BufferOut : public WriteIO, public Ctr::Buffer<png_byte>
+		{
+		public:
+
+			virtual void Write(const png_byte* data, png_size_t size) override
+			{
+				Ctr::Buffer<BYTE>::Append(data,size);
+			}
+
+			virtual void Flush() override {};
+		};
+
+		class BufferRefOut : public WriteIO
+		{
+		public:
+			BufferRefOut(Ctr::BasicBuffer<BYTE>	*buffer):buffer(buffer)
+			{}
+
+			virtual void Write(const png_byte* data, png_size_t size) override
+			{
+				buffer->Append(data,size);
+			}
+
+			virtual void Flush() override {};
+		private:
+			Ctr::BasicBuffer<BYTE>	*const buffer;
+		};
+
+		class StreamOut : public WriteIO
+		{
+		public:
+			/**/			StreamOut(IWriteStream*stream):stream(stream)
+			{}
+
+			virtual void Write(const png_byte* data, png_size_t size) override
+			{
+				stream->Write(data,(serial_size_t)size);
+			}
+
+			virtual void Flush() override {};
+
+		private:
+			IWriteStream	*const stream;
+		};
+
+		class StreamIn : public ReadIO
+		{
+		public:
+			/**/			StreamIn(IReadStream*stream):stream(stream)
+			{}
+
+			virtual void Read(png_bytep outData, png_size_t size) override
+			{
+				stream->Read(outData,(serial_size_t)size);
+			}
+
+		private:
+			IReadStream	*const stream;
+		};
+		
+
+
+		void WriteFunc(png_structp png, png_bytep data, png_size_t size)
+		{
+			((WriteIO*)png_get_io_ptr(png))->Write(data,size);
+		}
+		
+		void ReadFunc(png_structp png, png_bytep data, png_size_t size)
+		{
+			((ReadIO*)png_get_io_ptr(png))->Read(data,size);
+		}
+
+		void FlushFunc(png_structp png)
+		{
+			((WriteIO*)png_get_io_ptr(png))->Flush();
+		}
+
+
+		png_structp NewReadStruct()
+		{
+			return png_create_read_struct(PNG_LIBPNG_VER_STRING,(void*)OnError,OnReadError,OnWarning);
+		}
+
+		png_structp NewWriteStruct()
+		{
+			return png_create_write_struct(PNG_LIBPNG_VER_STRING,(void*)OnError,OnWriteError,OnWarning);
+		}
+
+
+		void ReadPng(Image&target, png_structp png)
+		{
+
+			png_infop info= png_create_info_struct(png);
+			if (!info)
+				throw Except::IO::GeneralFault(CLOCATION,"PNG API failed to create info structure");
+
+			try
+			{
+				png_read_info(png, info);
+
+				png_uint_32 width,height;
+				int bitDepth,colorType;
+				png_get_IHDR(png, info, &width, &height, &bitDepth,
+						&colorType, NULL, NULL, NULL);
+
+				if (colorType == PNG_COLOR_TYPE_PALETTE)
+					png_set_expand(png);
+				if (colorType == PNG_COLOR_TYPE_GRAY && bitDepth < 8)
+					png_set_expand(png);
+				if (png_get_valid(png, info, PNG_INFO_tRNS))
+					png_set_expand(png);
+				if (bitDepth == 16)
+					png_set_strip_16(png);
+
+				auto numChannels = png_get_channels(png, info);
+
+				target.SetContentType(PixelType::Color);
+
+				target.SetSize(width,height,numChannels);
+
+
+				const size_t  rowbytes = png_get_rowbytes(png, info);
+				Array<BYTE>		rawData(rowbytes * height);
+				Array<png_bytep>	rowPointers(height);
+
+  
+				for (png_uint_32 i = 0;  i < height;  ++i)
+					rowPointers[i] = rawData + i*rowbytes;
+				png_read_image(png, rowPointers.GetPointer());
+				png_read_end(png, NULL);
+
+				target.read(rawData.GetPointer());
+				png_destroy_info_struct(png,&info);
+				target.FlipVertically();
+			}
+			catch (...)
+			{
+				png_destroy_info_struct(png,&info);
+				throw;
+			}
+		}
+
+
+		void ProcessExport(BYTE*data, count_t cnt)
+		{}
+
+		void ProcessExport(UINT16*data, count_t cnt)
+		{
+			for (index_t i = 0; i < cnt; i++)
+				data[i] = htons(data[i]);
+		}
+
+		void ProcessImport(BYTE*data, count_t cnt)
+		{}
+
+		void ProcessImport(UINT16*data, count_t cnt)
+		{
+			for (index_t i = 0; i < cnt; i++)
+				data[i] = ntohs(data[i]);
+		}
+			
+		template <typename T>
+		void WritePng(const GenericImage<TIntImageNature<T> >&resource, png_structp png, int level = 9)
+		{
+			png_infop info = png_create_info_struct(png);
+			if (!info)
+				throw Except::IO::GeneralFault(CLOCATION,"PNG API failed to create info structure");
+			try
+			{
+				png_set_compression_level(png,level);
+				//png_set_write_fn(png,NULL,writeSection,flushSection);
+				png_set_IHDR(png,info,resource.GetWidth(),resource.GetHeight(),sizeof(T)*8,Detail::GetColorType(resource.GetChannels()),PNG_INTERLACE_NONE,PNG_COMPRESSION_TYPE_DEFAULT,PNG_FILTER_TYPE_DEFAULT);
+				png_set_sig_bytes(png,0);
+				//log_file << "configuring info...\r\n";
+				//memcpy(info->signature,"PNG     ",8);
+
+				//log_file << "creating map...\r\n";
+				const BYTE numChannels = resource.GetChannels();
+				Array<png_bytep> rows(resource.GetHeight());
+				Array<png_byte> dataCopy  = ArrayRef<const png_byte>((const png_byte*)resource.GetData(), resource.size());
+		
+				ProcessExport((T*)dataCopy.GetPointer(), resource.CountPixels() * resource.GetChannels());
+				
+				const count_t rowStride = resource.GetWidth() * resource.GetChannels() * sizeof(T);
+
+				for (unsigned i = 0; i < resource.GetHeight(); i++)
 				{
-					BYTE v = global_source[global_at++];
-					data[i] = v;
+					rows[i] = dataCopy + (resource.GetHeight() - i - 1) * rowStride;
 				}
+
+				//log_file << "sending map...\r\n";
+
+				png_set_rows(png,info,rows.GetPointer());
+				//log_file << "writing png...\r\n";
+
+				png_write_png(png,info,PNG_TRANSFORM_IDENTITY,NULL);
+				//log_file << "cleaning up...\r\n";
+				png_destroy_info_struct(png,&info);
+				//log_file << "cleaning up...\r\n";
+			}
+			catch (...)
+			{
+				png_destroy_info_struct(png,&info);
+				throw;
+			}
 		}
 
-		void readSectionFromStream(png_structp png, png_bytep data, png_size_t size)
-		{
-			inStream->Read(data,(serial_size_t)size);
-		}
 	}
-
-
-	void PNGAPI handleWarning(png_structp, png_const_charp)
-	{}
 
 	static 	inline void  _c3(const BYTE v[3], BYTE w[3])
 		{
@@ -115,75 +304,107 @@ namespace DeltaWorks
 		if (!f)
 			throw Except::IO::DriveAccess::FileOpenFault("File not found or inaccessible for reading: '"+filename+"'");
 
-
-		png_structp png = png_create_read_struct(PNG_LIBPNG_VER_STRING,(void*)pngError,readError,handleWarning);
-		if (!png)
-			FATAL__("PNG read struct creation failed");
-
-		png_infop info= png_create_info_struct(png);
-		if (!info)
+		png_structp png = Detail::NewReadStruct();
+		png_infop info = nullptr;
+		try
 		{
-			FATAL__("PNG info struct creation failed");
-			png_destroy_struct(png);
-			return;
-		}
+			if (!png)
+				FATAL__("PNG read struct creation failed");
+
+			info= png_create_info_struct(png);
+			if (!info)
+			{
+				FATAL__("PNG info struct creation failed");
+				png_destroy_read_struct(&png, NULL, NULL);
+				return;
+			}
 	
-		//target.SetSize(10,10,3);
-		png_init_io(png,f);
-		png_read_png(png,info,PNG_TRANSFORM_IDENTITY,NULL);
-		const BYTE bits_per_channel = info->bit_depth;
-		const png_bytepp image = png_get_rows(png,info);
-		bool palette = info->color_type&PNG_COLOR_MASK_PALETTE;
-		target.SetContentType(PixelType::Color);
-		target.SetSize(info->width,info->height,palette?3:info->channels);
+			png_init_io(png,f);
+			png_set_sig_bytes(png, 0);
+			png_read_info(png, info);
+
+			png_uint_32 width,height;
+			int bitDepth,colorType;
+			png_get_IHDR(png, info, &width, &height, &bitDepth,
+					&colorType, NULL, NULL, NULL);
+
+			 if (colorType == PNG_COLOR_TYPE_PALETTE)
+				png_set_expand(png);
+			if (colorType == PNG_COLOR_TYPE_GRAY && bitDepth < 8)
+				png_set_expand(png);
+			if (png_get_valid(png, info, PNG_INFO_tRNS))
+				png_set_expand(png);
+
+			auto numChannels = png_get_channels(png, info);
+
+			target.SetContentType(PixelType::Color);
+
+			target.SetSize(width,height,numChannels);
 
 
-		//uint16_t*pixelBuffer = new uint16_t[info->channels];
-		switch (bits_per_channel)
-		{
-			case 16:
-				for (unsigned x = 0; x < info->width; x++)
-					for (unsigned y = 0; y < info->height; y++)
-					{
-						uint16_t*pixel = target.Get(x,y);
-						const uint16_t*source;
-						if (palette)
-							source = (const uint16_t*)&info->palette[image[y][x]*info->channels*2].red;//might be wrong
-						else
-							source = ((const uint16_t*)(image[y]))+x*info->channels;
-						for (unsigned c = 0; c < target.GetChannels(); c++)
-							pixel[c] = ntohs(source[c]);
-					}
-			break;
-			case 8:
-				for (unsigned x = 0; x < info->width; x++)
-					for (unsigned y = 0; y < info->height; y++)
-					{
-						uint16_t*pixel = target.Get(x,y);
-						if (palette)
-							_c3(&info->palette[image[y][x]*info->channels].red,pixel);
-						else
+			const size_t  rowbytes = png_get_rowbytes(png, info);
+			Array<BYTE>		rawData(rowbytes * height);
+			Array<png_bytep>	rowPointers(height);
+
+  
+			for (png_uint_32 i = 0;  i < height;  ++i)
+				rowPointers[i] = rawData + i*rowbytes;
+			png_read_image(png, rowPointers.GetPointer());
+			png_read_end(png, NULL);
+			png_destroy_read_struct(&png, &info, NULL);
+
+			//uint16_t*pixelBuffer = new uint16_t[info->channels];
+			switch (bitDepth)
+			{
+				case 16:
+					target.read((const UINT16*)rawData.GetPointer());
+					Detail::ProcessImport(target.GetData(), target.CountPixels() * target.GetChannels());
+				break;
+				case 8:
+					for (unsigned x = 0; x < width; x++)
+						for (unsigned y = 0; y < height; y++)
 						{
-							for (BYTE k = 0; k < info->channels; k++)
-								pixel[k] = uint16_t((image[y]+(x*info->channels))[k])<<8;
+							uint16_t*pixel = target.Get(x,y);
+							for (BYTE k = 0; k < numChannels; k++)
+								pixel[k] = uint16_t( Math::Clamp(double(rowPointers[y][x * numChannels + k]) / 255.0 * 65535.0,0,65535));
 						}
-					}
-			break;
+				break;
+			}
+			png_destroy_read_struct(&png,&info,NULL);
+			target.FlipVertically();
+			fclose(f);
 		}
-				/*
-		unsigned pass = png_set_interlace_handling(png);
-		for (unsigned i = 0; i < pass; i++)
-			for (unsigned j = 0; j < info->height; j++)
-				png_read_row(png,target.GetChar(0,j),NULL);
-	*/
-		png_destroy_info_struct(png,&info);
-		png_destroy_read_struct(&png,NULL,NULL);
-		target.FlipVertically();
-		fclose(f);
+		catch (...)
+		{
+			png_destroy_read_struct(&png,&info,NULL);
+			fclose(f);
+			throw;
+		}
 	}
 
 	void	PNG::SaveToFile16(const Image16&resource, const PathString&filename, int compressionLevel)
 	{
+		FILE*f = FOPEN(filename.c_str(),"wb");
+		if (!f)
+			throw Except::IO::DriveAccess::FileOpenFault("File is inaccessible for writing: '"+filename+"'");
+
+
+		png_structp png = Detail::NewWriteStruct();
+		try
+		{
+			png_init_io(png,f);
+			Detail::WritePng<UINT16>(resource,png, compressionLevel);
+			png_destroy_write_struct(&png,NULL);
+			fclose(f);
+		}
+		catch (...)
+		{
+			png_destroy_write_struct(&png,NULL);
+			fclose(f);
+			throw;
+		}
+
+		/*
 		FILE*f = FOPEN(filename.c_str(),"wb");
 		if (!f)
 			throw Except::IO::DriveAccess::FileOpenFault("File not found or inaccessible for writing: '"+filename+"'");
@@ -246,6 +467,7 @@ namespace DeltaWorks
 		}
 		delete[] image;
 		fclose(f);
+		*/
 	}
 
 
@@ -253,194 +475,65 @@ namespace DeltaWorks
 	{
 		FILE*f = FOPEN(filename.c_str(),"wb");
 		if (!f)
-			throw Except::IO::DriveAccess::FileOpenFault("File not found or inaccessible for writing: '"+filename+"'");
+			throw Except::IO::DriveAccess::FileOpenFault("File is inaccessible for writing: '"+filename+"'");
 
-		png_structp png = png_create_write_struct(PNG_LIBPNG_VER_STRING,(void*)pngError,writeError,handleWarning);
-		png_init_io(png,f);
-		png_infop info= png_create_info_struct(png);
-		png_set_compression_level(png,2);	//fast compression
-		//png_set_write_fn(png,NULL,writeSection,flushSection);
 
-		//log_file << "configuring info...\r\n";
-		info->width = resource.GetWidth();
-		info->height = resource.GetHeight();
-		info->valid = 0;
-		info->rowbytes = resource.GetWidth()*resource.GetChannels();
-		info->palette = NULL;
-		info->num_palette = 0;
-		info->num_trans = 0;
-		info->bit_depth = 8;
-		info->color_type = _GetColorType(resource.GetChannels());
-		info->compression_type = PNG_COMPRESSION_TYPE_BASE;
-		info->filter_type = PNG_FILTER_TYPE_BASE;
-		info->interlace_type = PNG_INTERLACE_NONE;
-		info->channels = resource.GetChannels();
-		info->pixel_depth = resource.GetChannels()*8;
-		info->spare_byte = 0;
-		memcpy(info->signature,"PNG     ",8);
-
-		//log_file << "creating map...\r\n";
-
-		png_bytepp image = new png_bytep[resource.GetHeight()];
-		for (unsigned i = 0; i < resource.GetHeight(); i++)
+		png_structp png = Detail::NewWriteStruct();
+		try
 		{
-			image[i] = new png_byte[resource.GetWidth()*resource.GetChannels()];
-			for (unsigned j = 0; j < resource.GetWidth(); j++)
-			{
-				const BYTE*pixel = resource.Get(j,resource.GetHeight()-1-i);
-				for (BYTE k = 0; k < info->channels; k++)
-					image[i][j*info->channels+k] = pixel[k];
-			}
+			png_init_io(png,f);
+			Detail::WritePng<BYTE>(resource,png,2);	//fast compression
+			png_destroy_write_struct(&png,NULL);
+			fclose(f);
 		}
-
-		//log_file << "sending map...\r\n";
-
-		png_set_rows(png,info,image);
-		//log_file << "writing png...\r\n";
-
-		png_write_png(png,info,PNG_TRANSFORM_IDENTITY,NULL);
-		//log_file << "cleaning up...\r\n";
-		png_destroy_info_struct(png,&info);
-		//log_file << "cleaning up...\r\n";
-		png_destroy_write_struct(&png,NULL);
-
-
-		for (unsigned i = 0; i < resource.GetHeight(); i++)
+		catch (...)
 		{
-			delete[] image[i];
+			png_destroy_write_struct(&png,NULL);
+			fclose(f);
+			throw;
 		}
-		delete[] image;
-		fclose(f);
-
 	}
+
+
+
+
+
 
 
 	void PNG::SaveToFilePointer(const Image&resource, FILE*f)
 	{
-
-		png_structp png = png_create_write_struct(PNG_LIBPNG_VER_STRING,(void*)pngError,writeError,handleWarning);
-		png_init_io(png,f);
-		png_infop info= png_create_info_struct(png);
-		png_set_compression_level(png,9);	//maximum compression
-		//png_set_write_fn(png,NULL,writeSection,flushSection);
-
-		//log_file << "configuring info...\r\n";
-		info->width = resource.GetWidth();
-		info->height = resource.GetHeight();
-		info->valid = 0;
-		info->rowbytes = resource.GetWidth()*resource.GetChannels();
-		info->palette = NULL;
-		info->num_palette = 0;
-		info->num_trans = 0;
-		info->bit_depth = 8;
-		info->color_type = _GetColorType(resource.GetChannels());
-		info->compression_type = PNG_COMPRESSION_TYPE_BASE;
-		info->filter_type = PNG_FILTER_TYPE_BASE;
-		info->interlace_type = PNG_INTERLACE_NONE;
-		info->channels = resource.GetChannels();
-		info->pixel_depth = resource.GetChannels()*8;
-		info->spare_byte = 0;
-		memcpy(info->signature,"PNG     ",8);
-
-		//log_file << "creating map...\r\n";
-
-		png_bytepp image = new png_bytep[resource.GetHeight()];
-		for (unsigned i = 0; i < resource.GetHeight(); i++)
+		png_structp png = Detail::NewWriteStruct();
+		try
 		{
-			image[i] = new png_byte[resource.GetWidth()*resource.GetChannels()];
-			for (unsigned j = 0; j < resource.GetWidth(); j++)
-			{
-				const BYTE*pixel = resource.Get(j,resource.GetHeight()-1-i);
-				for (BYTE k = 0; k < info->channels; k++)
-					image[i][j*info->channels+k] = pixel[k];
-			}
+			png_init_io(png,f);
+			Detail::WritePng<BYTE>(resource,png);
+			png_destroy_write_struct(&png,NULL);
 		}
-
-		//log_file << "sending map...\r\n";
-
-		png_set_rows(png,info,image);
-		//log_file << "writing png...\r\n";
-
-		png_write_png(png,info,PNG_TRANSFORM_IDENTITY,NULL);
-		//log_file << "cleaning up...\r\n";
-		png_destroy_info_struct(png,&info);
-		//log_file << "cleaning up...\r\n";
-		png_destroy_write_struct(&png,NULL);
-
-
-		for (unsigned i = 0; i < resource.GetHeight(); i++)
+		catch (...)
 		{
-			delete[] image[i];
+			png_destroy_write_struct(&png,NULL);
+			throw;
 		}
-		delete[] image;
 	}
 
 
 	void PNG::LoadFromFilePointer(Image&target, FILE*f)
 	{
-		png_structp png = png_create_read_struct(PNG_LIBPNG_VER_STRING,(void*)pngError,readError,handleWarning);
+		png_structp png = Detail::NewReadStruct();
 		if (!png)
 			FATAL__("PNG read struct creation failed");
-
-		png_infop info= png_create_info_struct(png);
-		if (!info)
+		try
 		{
-			FATAL__("PNG info struct creation failed");
-			png_destroy_struct(png);
-			return;
+			png_init_io(png,f);
+			png_set_sig_bytes(png, 0);
+			Detail::ReadPng(target,png);
+			png_destroy_read_struct(&png,nullptr,nullptr);
 		}
-	
-		//target.SetSize(10,10,3);
-		png_init_io(png,f);
-		png_read_png(png,info,PNG_TRANSFORM_IDENTITY,NULL);
-		BYTE bits_per_channel = info->bit_depth;
-	  //  png_start_read_image(png);
-		png_bytepp image = png_get_rows(png,info);
-		bool palette = info->color_type&PNG_COLOR_MASK_PALETTE;
-		target.SetContentType(PixelType::Color);
-		target.SetSize(info->width,info->height,palette?3:info->channels);
-		//ShowMessage(info->channels);
-
-	
-		switch (bits_per_channel)
+		catch (...)
 		{
-			case 8:
-				for (unsigned x = 0; x < info->width; x++)
-					for (unsigned y = 0; y < info->height; y++)
-						if (palette)
-							target.Set(x,y,&info->palette[image[y][x]*info->channels].red);
-						else
-							target.Set(x,y,&image[y][x*info->channels]);
-			break;
-			case 16:
-				for (unsigned x = 0; x < info->width; x++)
-					for (unsigned y = 0; y < info->height; y++)
-					{
-						BYTE*pixel = target.Get(x,y);
-						if (palette)
-							_c3(&info->palette[image[y][x]*info->channels].red,pixel);
-						else
-						{
-							for (BYTE k = 0; k < info->channels; k++)
-							{
-								pixel[k] = ((const USHORT*)(image[y]+(x*info->channels*2)))[k]/256;
-								//ShowMessage(IntToStr(k)+": "+String(((const USHORT*)(image[y]+(x*info->channels*2)))[k]));
-							}
-						}
-					}
-			break;
+			png_destroy_read_struct(&png,nullptr,nullptr);
+			throw;
 		}
-				/*
-		unsigned pass = png_set_interlace_handling(png);
-		for (unsigned i = 0; i < pass; i++)
-			for (unsigned j = 0; j < info->height; j++)
-				png_read_row(png,target.GetChar(0,j),NULL);
-	*/
-		png_destroy_info_struct(png,&info);
-		png_destroy_read_struct(&png,NULL,NULL);
-		target.FlipVertically();
-	//    target.Resize(128,128);
-
 	}
 
 
@@ -448,145 +541,57 @@ namespace DeltaWorks
 
 	/*static*/	void		PNG::CompressToStream(const Image&source_image, IWriteStream&stream)
 	{
-		outStream = &stream;
-		png_structp png = png_create_write_struct(PNG_LIBPNG_VER_STRING,(void*)pngError,writeError,handleWarning);
-		png_infop info= png_create_info_struct(png);
-		png_set_compression_level(png,9);	//maximum compression
-		png_set_write_fn(png,NULL,writeSectionToStream,flushSection);
+		Detail::StreamOut str(&stream);
 
-		png_bytepp image = NULL;
+		png_structp png = Detail::NewWriteStruct();
 		try
 		{
-			info->width = source_image.GetWidth();
-			info->height = source_image.GetHeight();
-			info->valid = 0;
-			info->rowbytes = source_image.GetWidth()*source_image.GetChannels();
-			info->palette = NULL;
-			info->num_palette = 0;
-			info->num_trans = 0;
-			info->bit_depth = 8;
-			info->color_type = _GetColorType(source_image.GetChannels());
-			info->compression_type = PNG_COMPRESSION_TYPE_BASE;
-			info->filter_type = PNG_FILTER_TYPE_BASE;
-			info->interlace_type = PNG_INTERLACE_NONE;
-			info->channels = source_image.GetChannels();
-			info->pixel_depth = source_image.GetChannels()*8;
-			info->spare_byte = 0;
-			memcpy(info->signature,"PNG     ",8);
-		
-			image = new png_bytep[source_image.GetHeight()];
-			for (UINT32 i = 0; i < source_image.GetHeight(); i++)
-			{
-				image[i] = new png_byte[source_image.GetWidth()*source_image.GetChannels()];
-				for (UINT32 j = 0; j < source_image.GetWidth(); j++)
-				{
-					const BYTE*pixel = source_image.Get(j,i);
-					for (BYTE k = 0; k < info->channels; k++)
-						image[i][j*info->channels+k] = pixel[k];
-				}
-			}
-			
-			png_set_rows(png,info,image);
-			png_write_png(png,info,PNG_TRANSFORM_IDENTITY,NULL);
-			png_destroy_info_struct(png,&info);
+			png_set_write_fn(png,&str,Detail::WriteFunc,Detail::FlushFunc);
+			Detail::WritePng(source_image, png);
 			png_destroy_write_struct(&png,NULL);
-			
-			
-			for (UINT32 i = 0; i < source_image.GetHeight(); i++)
-			{
-				delete[] image[i];
-			}
-			delete[] image;
 		}
-		catch (const std::exception&)
+		catch (...)
 		{
-			png_destroy_info_struct(png,&info);
 			png_destroy_write_struct(&png,NULL);
-			
-			
-			if (image)
-			{
-				for (UINT32 i = 0; i < source_image.GetHeight(); i++)
-				{
-					delete[] image[i];
-				}
-				delete[] image;
-			}
 			throw;
 		}
+	}
+
 	
-		//log_file << "copying compressed image ("<<out_buffer.Count()<<" byte(s))...\r\n";
+	/*static*/	void		PNG::CompressToBuffer(const Image&image, Ctr::BasicBuffer<BYTE>&data)
+	{
+		Detail::BufferRefOut buf(&data);
+		
+		png_structp png = Detail::NewWriteStruct();
+		try
+		{
+			png_set_write_fn(png,&buf,Detail::WriteFunc,Detail::FlushFunc);
+			Detail::WritePng(image, png);
+			png_destroy_write_struct(&png,NULL);
+		}
+		catch (...)
+		{
+			png_destroy_write_struct(&png,NULL);
+			throw;
+		}
 	}
 
 
 	/*static*/	void		PNG::CompressToArray(const Image&source_image, Ctr::Array<BYTE>&data)
 	{
-		out_buffer.reset();
-		png_structp png = png_create_write_struct(PNG_LIBPNG_VER_STRING,(void*)pngError,writeError,handleWarning);
-		png_infop info= png_create_info_struct(png);
-		png_set_compression_level(png,9);	//maximum compression
-		png_set_write_fn(png,NULL,writeSection,flushSection);
-		png_bytepp image = NULL;
+		Detail::BufferOut buf;
+		
+		png_structp png = Detail::NewWriteStruct();
 		try
 		{
-			info->width = source_image.GetWidth();
-			info->height = source_image.GetHeight();
-			info->valid = 0;
-			info->rowbytes = source_image.GetWidth()*source_image.GetChannels();
-			info->palette = NULL;
-			info->num_palette = 0;
-			info->num_trans = 0;
-			info->bit_depth = 8;
-			info->color_type = _GetColorType(source_image.GetChannels());
-			info->compression_type = PNG_COMPRESSION_TYPE_BASE;
-			info->filter_type = PNG_FILTER_TYPE_BASE;
-			info->interlace_type = PNG_INTERLACE_NONE;
-			info->channels = source_image.GetChannels();
-			info->pixel_depth = source_image.GetChannels()*8;
-			info->spare_byte = 0;
-			memcpy(info->signature,"PNG     ",8);
-		
-			image = new png_bytep[source_image.GetHeight()];
-			for (UINT32 i = 0; i < source_image.GetHeight(); i++)
-			{
-				image[i] = new png_byte[source_image.GetWidth()*source_image.GetChannels()];
-				for (UINT32 j = 0; j < source_image.GetWidth(); j++)
-				{
-					const BYTE*pixel = source_image.Get(j,i);
-					for (BYTE k = 0; k < info->channels; k++)
-						image[i][j*info->channels+k] = pixel[k];
-				}
-			}
-			
-			png_set_rows(png,info,image);
-			png_write_png(png,info,PNG_TRANSFORM_IDENTITY,NULL);
-			png_destroy_info_struct(png,&info);
+			png_set_write_fn(png,&buf,Detail::WriteFunc,Detail::FlushFunc);
+			Detail::WritePng(source_image, png);
 			png_destroy_write_struct(&png,NULL);
-			
-
-
-			for (UINT32 i = 0; i < source_image.GetHeight(); i++)
-			{
-				delete[] image[i];
-			}
-			delete[] image;
-	
-			//log_file << "copying compressed image ("<<out_buffer.Count()<<" byte(s))...\r\n";
-			out_buffer.copyToArray(data);
+			data = buf.ToRef();
 		}
-		catch (const std::exception&)
+		catch (...)
 		{
-			png_destroy_info_struct(png,&info);
 			png_destroy_write_struct(&png,NULL);
-			
-			if (image)
-			{
-				for (UINT32 i = 0; i < source_image.GetHeight(); i++)
-				{
-					delete[] image[i];
-				}
-				delete[] image;
-			}
 			throw;
 		}
 	}
@@ -594,79 +599,44 @@ namespace DeltaWorks
 
 	/*static*/	void		PNG::DecompressData(Image&out_image, const void*data, size_t data_size)
 	{
-		png_structp png = png_create_read_struct(PNG_LIBPNG_VER_STRING,(void*)pngError,readError,handleWarning);
-		png_infop info= png_create_info_struct(png);
-		png_set_read_fn(png,NULL,readSection);
-			
-		global_source = reinterpret_cast<const BYTE*>(data);
-		global_at = 0;
-		global_size = data_size;
-	
+		MemReadStream source(data,data_size);
+		Detail::StreamIn str(&source);
+		
+		png_structp png = Detail::NewReadStruct();
 		try
 		{
-			png_read_png(png,info,PNG_TRANSFORM_IDENTITY,NULL);
-			
-			png_bytepp image = png_get_rows(png,info);
-			bool palette = info->color_type&PNG_COLOR_MASK_PALETTE;
-			out_image.SetSize(info->width,info->height,palette?3:info->channels);
-			out_image.SetContentType(PixelType::Color);
-
-			for (UINT32 x = 0; x < info->width; x++)
-				for (UINT32 y = 0; y < info->height; y++)
-					if (palette)
-						out_image.Set(x,y,&info->palette[image[y][x]*info->channels].red);
-					else
-						out_image.Set(x,y,&image[y][x*info->channels]);
-
-			png_destroy_info_struct(png,&info);
-			png_destroy_read_struct(&png,NULL,NULL);
+			png_set_read_fn(png,&str,Detail::ReadFunc);
+			Detail::ReadPng(out_image, png);
+			png_destroy_read_struct(&png,nullptr,nullptr);
 		}
-		catch (std::exception&)
+		catch (...)
 		{
-			png_destroy_info_struct(png,&info);
-			png_destroy_read_struct(&png,NULL,NULL);
+			png_destroy_read_struct(&png,nullptr,nullptr);
 			throw;
 		}
 	}
 
-	/*static*/	void		PNG::DecompressArray(Image&out_image, const Ctr::Array<BYTE>&data)
+	/*static*/	void		PNG::DecompressArray(Image&out_image, const Ctr::ArrayRef<const BYTE>&data)
 	{
 		DecompressData(out_image,data.pointer(),data.size());
 
 	}
 
 
-	/*static*/	void		PNG::DecompressStream(Image&out_image, IReadStream&stream)
+	/*static*/	void		PNG::DecompressStream(Image&out_image, IReadStream&source)
 	{
-		inStream = &stream;
-
-		png_structp png = png_create_read_struct(PNG_LIBPNG_VER_STRING,(void*)pngError,readError,handleWarning);
-		png_infop info= png_create_info_struct(png);
-		png_set_read_fn(png,NULL,readSectionFromStream);
-	
+		Detail::StreamIn str(&source);
+		
+		png_structp png = Detail::NewReadStruct();
 		try
 		{
-			png_read_png(png,info,PNG_TRANSFORM_IDENTITY,NULL);
-			
-			png_bytepp image = png_get_rows(png,info);
-			bool palette = info->color_type&PNG_COLOR_MASK_PALETTE;
-			out_image.SetSize(info->width,info->height,palette?3:info->channels);
-			out_image.SetContentType(PixelType::Color);
-
-			for (UINT32 x = 0; x < info->width; x++)
-				for (UINT32 y = 0; y < info->height; y++)
-					if (palette)
-						out_image.Set(x,y,&info->palette[image[y][x]*info->channels].red);
-					else
-						out_image.Set(x,y,&image[y][x*info->channels]);
-
-			png_destroy_info_struct(png,&info);
-			png_destroy_read_struct(&png,NULL,NULL);
+			png_set_read_fn(png,&str,Detail::ReadFunc);
+			Detail::ReadPng(out_image, png);
+			png_destroy_read_struct(&png,nullptr,nullptr);
 		}
-		catch (const std::exception&)
+		catch (...)
 		{
-			png_destroy_info_struct(png,&info);
-			png_destroy_read_struct(&png,NULL,NULL);
+			png_destroy_read_struct(&png,nullptr,nullptr);
 			throw;
 		}
 	}

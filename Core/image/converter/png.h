@@ -15,6 +15,7 @@
 	#define FAR
 #endif
 #include "../../third_party/png/png.h"
+#include "../../container/buffer.h"
 
 namespace DeltaWorks
 {
@@ -28,8 +29,9 @@ namespace DeltaWorks
 		virtual	void		LoadFromFilePointer(Image&image, FILE*file)				override;
 		void				SaveToFileQ(const Image&image, const PathString&filename);	//!< Identical to saveToFile() using weaker compression
 		static	void		CompressToArray(const Image&image, Ctr::Array<BYTE>&data);
+		static	void		CompressToBuffer(const Image&image, Ctr::BasicBuffer<BYTE>&data);
 		static	void		CompressToStream(const Image&image, IWriteStream&stream);
-		static	void		DecompressArray(Image&image, const Ctr::Array<BYTE>&data);
+		static	void		DecompressArray(Image&image, const Ctr::ArrayRef<const BYTE>&data);
 		static	void		DecompressData(Image&image, const void*data, size_t data_size);
 		static	void		DecompressStream(Image&out_image, IReadStream&stream);
 

@@ -11,6 +11,8 @@ Simplified interface to extract image-date from compressed
 #undef LOG_TEXTURE_COMPRESSION
 //#define LOG_TEXTURE_COMPRESSION	//define this to write compression operations to compression.log in working directory
 
+#include "../image/converter/png.h"
+
 
 #undef LOG_TEXTURE_COMPRESSION_STAGE
 #ifdef LOG_TEXTURE_COMPRESSION
@@ -116,29 +118,7 @@ namespace DeltaWorks
 			break;
 			case PNGCompression:
 			{
-				png_structp png = png_create_read_struct(PNG_LIBPNG_VER_STRING,(void*)pngError,handleError,handleWarning);
-				png_infop info= png_create_info_struct(png);
-				png_set_read_fn(png,NULL,readSection);
-			
-				global_source = data+sizeof(Image::THeader);
-				global_at = 0;
-				global_size = (unsigned)(size-sizeof(Image::THeader));
-			
-				png_read_png(png,info,PNG_TRANSFORM_IDENTITY,NULL);
-			
-				png_bytepp image = png_get_rows(png,info);
-				bool palette = info->color_type&PNG_COLOR_MASK_PALETTE;
-				result->SetSize(info->width,info->height,palette?3:info->channels);
-
-				for (unsigned x = 0; x < info->width; x++)
-					for (unsigned y = 0; y < info->height; y++)
-						if (palette)
-							result->Set(x,y,&info->palette[image[y][x]*info->channels].red);
-						else
-							result->Set(x,y,&image[y][x*info->channels]);
-
-				png_destroy_info_struct(png,&info);
-				png_destroy_read_struct(&png,NULL,NULL);
+				png.DecompressArray(*result,ArrayRef<const BYTE>(data+sizeof(Image::THeader),size-sizeof(Image::THeader)));
 			}
 			break;
 			default:
@@ -191,29 +171,7 @@ namespace DeltaWorks
 			break;
 			case PNGCompression:
 			{
-				png_structp png = png_create_read_struct(PNG_LIBPNG_VER_STRING,(void*)pngError,handleError,handleWarning);
-				png_infop info= png_create_info_struct(png);
-				png_set_read_fn(png,NULL,readSection);
-			
-				global_source = data+sizeof(Image::THeader);
-				global_at = 0;
-				global_size = (unsigned)(size-sizeof(Image::THeader));
-			
-				png_read_png(png,info,PNG_TRANSFORM_IDENTITY,NULL);
-			
-				png_bytepp image = png_get_rows(png,info);
-				bool palette = info->color_type&PNG_COLOR_MASK_PALETTE;
-				to.SetSize(info->width,info->height,palette?3:info->channels);
-
-				for (unsigned x = 0; x < info->width; x++)
-					for (unsigned y = 0; y < info->height; y++)
-						if (palette)
-							to.Set(x,y,&info->palette[image[y][x]*info->channels].red);
-						else
-							to.Set(x,y,&image[y][x*info->channels]);
-
-				png_destroy_info_struct(png,&info);
-				png_destroy_read_struct(&png,NULL,NULL);
+				png.DecompressArray(to,ArrayRef<const BYTE>(data+sizeof(Image::THeader),size-sizeof(Image::THeader)));
 			}
 			break;
 			default:
@@ -303,70 +261,14 @@ namespace DeltaWorks
 			break;
 			case PNGCompression:
 			{
-				out_buffer.reset();
-				png_structp png = png_create_write_struct(PNG_LIBPNG_VER_STRING,(void*)pngError,handleError,handleWarning);
-				png_infop info= png_create_info_struct(png);
-				png_set_compression_level(png,9);	//maximum compression
-				png_set_write_fn(png,NULL,writeSection,flushSection);
+				out_buffer.Clear();
+				png.CompressToBuffer(*from,out_buffer);
 
-				LOG_TEXTURE_COMPRESSION_STAGE("configuring info");
-
-				info->width = from->GetWidth();
-				info->height = from->GetHeight();
-				info->valid = 0;
-				info->rowbytes = from->GetWidth()*from->GetChannels();
-				info->palette = NULL;
-				info->num_palette = 0;
-				info->num_trans = 0;
-				info->bit_depth = 8;
-				info->color_type = from->GetChannels()==3?PNG_COLOR_TYPE_RGB:PNG_COLOR_TYPE_RGBA;
-				info->compression_type = PNG_COMPRESSION_TYPE_BASE;
-				info->filter_type = PNG_FILTER_TYPE_BASE;
-				info->interlace_type = PNG_INTERLACE_NONE;
-				info->channels = from->GetChannels();
-				info->pixel_depth = from->GetChannels()*8;
-				info->spare_byte = 0;
-				memcpy(info->signature,"PNG     ",8);
-			
-				LOG_TEXTURE_COMPRESSION_STAGE("creating map");
-
-				png_bytepp image = new png_bytep[from->GetHeight()];
-				for (unsigned i = 0; i < from->GetHeight(); i++)
-				{
-					image[i] = new png_byte[from->GetWidth()*from->GetChannels()];
-					for (unsigned j = 0; j < from->GetWidth(); j++)
-					{
-						const BYTE*pixel = from->Get(j,i);
-						for (BYTE k = 0; k < info->channels; k++)
-							image[i][j*info->channels+k] = pixel[k];
-					}
-				}
-			
-				LOG_TEXTURE_COMPRESSION_STAGE("sending map");
-			
-				png_set_rows(png,info,image);
-				LOG_TEXTURE_COMPRESSION_STAGE("writing png");
-			
-				png_write_png(png,info,PNG_TRANSFORM_IDENTITY,NULL);
-				LOG_TEXTURE_COMPRESSION_STAGE("cleaning up 1");
-				png_destroy_info_struct(png,&info);
-				LOG_TEXTURE_COMPRESSION_STAGE("cleaning up 2");
-				png_destroy_write_struct(&png,NULL);
-			
-			
-				for (unsigned i = 0; i < from->GetHeight(); i++)
-				{
-					delete[] image[i];
-				}
-				delete[] image;
-	
-				LOG_TEXTURE_COMPRESSION_STAGE("copying compressed image ("<<out_buffer.Count()<<" byte(s))");
-	
-				compressed_size = out_buffer.Count();
 				buffer.SetSize(sizeof(Image::THeader)+out_buffer.Count());
 				LOG_TEXTURE_COMPRESSION_STAGE("buffer resized to "<<buffer.GetContentSize()<<" byte(s)");
 				memcpy(buffer.pointer()+sizeof(Image::THeader),out_buffer.pointer(),compressed_size);
 			}
+			break;
 		}
 		if (!compressed_size)
 			return 0;
