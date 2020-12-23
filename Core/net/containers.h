@@ -1,9 +1,10 @@
 #ifndef netContainersH
 #define netContainersH
 
-#include "tcp.h"
+#include "../global_root.h"
 #include "../third_party/bz2/bz2.h"
 #include "../global_string.h"
+//#include "tcp.h"
 
 namespace DeltaWorks
 {

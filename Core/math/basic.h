@@ -45,11 +45,6 @@ Collection of basic template functions.
 
 namespace DeltaWorks
 {
-	namespace Math
-	{
-		template <typename T>
-			auto			Pow10(T e);														//!< Calculates 10^e (exists. Commented here due to declaration order)
-	}
 
 
 	//taken from here:
