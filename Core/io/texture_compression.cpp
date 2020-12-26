@@ -29,44 +29,8 @@ namespace DeltaWorks
 	static String	ext_error;
 
 
-	static void pngError()
-	{}
-
-	static void PNGAPI handleError(png_structp strct, png_const_charp err_str)
-	{
-	
-	}
-
-	static void PNGAPI handleWarning(png_structp, png_const_charp err_str)
-	{
-	
-	}
-
-	static Ctr::Buffer<BYTE>	out_buffer;
-
-	static const BYTE*global_source = NULL;
-	static unsigned global_at = 0,
-					global_size = 0;
 
 
-	static void writeSection(png_structp png, png_bytep data, png_size_t size)
-	{
-		out_buffer.Append(data,size);
-	}
-
-	static void	flushSection(png_structp png)
-	{
-
-	}
-
-	static void readSection(png_structp png, png_bytep data, png_size_t size)
-	{
-		for (unsigned i = 0; i < size && global_at < global_size; i++)
-		{
-			BYTE v = global_source[global_at++];
-			data[i] = v;
-		}
-	}
 
 
 
@@ -261,7 +225,7 @@ namespace DeltaWorks
 			break;
 			case PNGCompression:
 			{
-				out_buffer.Clear();
+				Ctr::Buffer0<BYTE>	out_buffer;
 				png.CompressToBuffer(*from,out_buffer);
 
 				buffer.SetSize(sizeof(Image::THeader)+out_buffer.Count());
