@@ -14,7 +14,6 @@
 	#undef FAR
 	#define FAR
 #endif
-#include "../../third_party/png/png.h"
 #include "../../container/buffer.h"
 
 namespace DeltaWorks
