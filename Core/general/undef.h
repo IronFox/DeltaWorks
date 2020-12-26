@@ -1,5 +1,5 @@
 #undef  near
-#undef  far
+//#undef  far	//this breaks some windows kit includes
 #undef  index
 #undef  max
 #undef  min
