@@ -894,13 +894,13 @@ namespace Engine
 	        glEnable(GL_FOG);
 	    else
 	        glDisable(GL_FOG);
-	    float   near = fabs(fog.nearRange),
-	            far = fabs(fog.farRange);
-	    if (far < near)
-	        swp(near,far);
+	    float   nearPlane = fabs(fog.nearRange),
+	            farPlane = fabs(fog.farRange);
+	    if (farPlane < nearPlane)
+	        swp(nearPlane,farPlane);
 
-	    glFogf(GL_FOG_START,near);
-	    glFogf(GL_FOG_END,far);
+	    glFogf(GL_FOG_START, nearPlane);
+	    glFogf(GL_FOG_END, farPlane);
 	    glFogf(GL_FOG_DENSITY,fog.density);
 	    glFogfv(GL_FOG_COLOR,fog.color.v);
 	    switch (fog.type)

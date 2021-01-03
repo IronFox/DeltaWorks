@@ -45,8 +45,8 @@ public:
 		};
 		struct
 		{
-			M::TVec3<C>		near[4],		//!< near volume corners. each contains an R3 vector
-							far[4];			//!< far volume corners. each contains an R3 vector
+			M::TVec3<C>		nearCorner[4],		//!< near volume corners. each contains an R3 vector
+							farCorner[4];			//!< far volume corners. each contains an R3 vector
 		};
 		struct
 		{

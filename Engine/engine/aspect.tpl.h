@@ -294,17 +294,17 @@ template <class C>
 		defNormal(corner[3],corner[7],corner[4],left_normal);
 		//defNormal(corner[0],corner[1],corner[2],near_normal);	//near field may be too small
 		{
-			M::TVec3<C>	far_center = far[0],
-						near_center = near[0];
+			M::TVec3<C>	far_center = farCorner[0],
+						near_center = nearCorner[0];
 
-			M::Vec::add(near_center,near[1]);
-			M::Vec::add(near_center,near[2]);
-			M::Vec::add(near_center,near[3]);
+			M::Vec::add(near_center,nearCorner[1]);
+			M::Vec::add(near_center,nearCorner[2]);
+			M::Vec::add(near_center,nearCorner[3]);
 			M::Vec::div(near_center,(C)4);
 	
-			M::Vec::add(far_center,far[1]);
-			M::Vec::add(far_center,far[2]);
-			M::Vec::add(far_center,far[3]);
+			M::Vec::add(far_center,farCorner[1]);
+			M::Vec::add(far_center,farCorner[2]);
+			M::Vec::add(far_center,farCorner[3]);
 			M::Vec::div(far_center,(C)4);
 	
 			M::Vec::sub(near_center,far_center,near_normal);
