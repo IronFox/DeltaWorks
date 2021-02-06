@@ -1,6 +1,9 @@
 #ifndef vclassesTplH
 #define vclassesTplH
-
+namespace DeltaWorks
+{
+	namespace Math
+	{
 
 
     template <class C, count_t Len>MF_DECLARE (void) VecN<C,Len>::clear()
@@ -1099,7 +1102,8 @@
 
 
 
-
+    }
+}
 
 
 

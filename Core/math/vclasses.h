@@ -192,6 +192,7 @@ namespace DeltaWorks
 			MFUNC1 (void)					operator=(const TVec2<C0>&other);
 			MF_DECLARE(void)				operator=(const C&scalar);
 			MFUNC1 (bool)					operator==(const TVec2<C0>&other)		const;
+			MFUNC1 (bool)					operator==(const Vec2<C0>&other)		const	{return operator==((const TVec2<C0>&)other);}
 			MFUNC1 (bool)					operator!=(const TVec2<C0>&other)		const;
 			MFUNC1 (bool)					operator>(const TVec2<C0>&other)		const;		//!< Lexicographic order using _compare
 			MFUNC1 (bool)					operator<(const TVec2<C0>&other)		const;		//!< Lexicographic order using _compare
@@ -646,9 +647,9 @@ namespace DeltaWorks
 				return Vec2<T>(a.x /f, a.y /f);
 			}
 		template <typename T>
-			inline Vec3<T>	operator/(const TVec3<T>&a, const T&f)
+			inline TVec3<T>	operator/(const TVec3<T>&a, const T&f)
 			{
-				return Vec3<T>(a.x / f, a.y / f, a.z / f);
+				return {a.x / f, a.y / f, a.z / f};
 			}
 		template <typename T>
 			inline Vec4<T>	operator/(const TVec4<T>&a, const T&f)
@@ -1108,7 +1109,6 @@ namespace DeltaWorks
 
 
 
-		#include "vclasses.tpl.h"
 	}
 
 	typedef M::Vec2<float>	float2;
@@ -1139,5 +1139,7 @@ namespace DeltaWorks
 	typedef ALIGN2 M::Vec3<half>		half3;
 	typedef M::Vec4<half>		half4;
 }
+
+#include "vclasses.tpl.h"
 
 #endif
