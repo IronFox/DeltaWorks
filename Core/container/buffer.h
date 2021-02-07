@@ -144,7 +144,7 @@ namespace DeltaWorks
 				/**/					BasicBuffer(const Self&other);
 				#if __BUFFER_RVALUE_REFERENCES__
 					/**/				BasicBuffer(Self&&other);
-					/**/				BasicBuffer(Super&&other):Super(std::move(other)){}
+					/**/				BasicBuffer(Super&&other):Super(std::forward<Super>(other)){}
 				#endif
 				/**/					BasicBuffer(std::initializer_list<T> items);
 				virtual				   ~BasicBuffer();
@@ -205,8 +205,8 @@ namespace DeltaWorks
 				inline T&				MoveAppend(T&element)				/**@copydoc moveAppend()*/	{return moveAppend(element);}
 				#if __BUFFER_RVALUE_REFERENCES__
 					inline T&			append(T&&);						//!< Appends a single element via move, and returns a reference to it in buffer storage
-					inline T&			Append(T&&element)					/**@copydoc Append()*/ {return append(std::move(element));}
-					inline T&			MoveAppend(T&&element)				/**@copydoc moveAppend()*/ { return append(std::move(element)); }
+					inline T&			Append(T&&element)					/**@copydoc Append()*/ {return append(std::forward<T>(element));}
+					inline T&			MoveAppend(T&&element)				/**@copydoc moveAppend()*/ { return append(std::forward<T>(element)); }
 				#endif
 
 				inline T&				Insert(index_t before_element);		//!< Inserts an element into the buffer and returns a reference to it
@@ -290,13 +290,13 @@ namespace DeltaWorks
 									{}
 				#if __BUFFER_RVALUE_REFERENCES__
 					template<count_t Len>
-									Buffer(Buffer<T,Len,MyStrategy>&&other):Super(std::move(other))
+									Buffer(Buffer<T,Len,MyStrategy>&&other):Super(std::forward<Super>(other))
 									{}
-									Buffer(Self && other) :Super(std::move(other))
+									Buffer(Self && other) :Super(std::forward<Super>(other))
 									{}
-									Buffer(Super&&other) :Super(std::move(other))
+									Buffer(Super&&other) :Super(std::forward<Super>(other))
 									{}
-									Buffer(typename Super::Super&&other):Super(std::move(other))
+									Buffer(typename Super::Super&&other):Super(std::forward<typename Super::Super>(other))
 									{}
 					Self&			operator=(Self&&other) { Super::adoptData(other); return *this; }
 					Self&			operator=(Super&&other) { Super::adoptData(other); return *this; }
@@ -342,15 +342,15 @@ namespace DeltaWorks
 									{}
 				#if __BUFFER_RVALUE_REFERENCES__
 					template<count_t Len>
-									Buffer0(Buffer0<T,MyStrategy>&&other):Super(std::move(other))
+									Buffer0(Buffer<T,Len,MyStrategy>&&other):Super(std::forward<Buffer<T,Len,MyStrategy> >(other))
 									{}
-									Buffer0(Self&&other):Super(std::move(other))
+									Buffer0(Self&&other):Super(std::forward<Super>(other))
 									{}
-									Buffer0(Super&&other):Super(std::move(other))
+									Buffer0(Super&&other):Super(std::forward<Super>(other))
 									{}
-									Buffer0(typename Super::Super&&other):Super(std::move(other))
+									Buffer0(typename Super::Super&&other):Super(std::forward<typename Super::Super>(other))
 									{}
-									Buffer0(typename Super::Super::Super&&other):Super(std::move(other))
+									Buffer0(typename Super::Super::Super&&other):Super(std::forward<typename Super::Super::Super>(other))
 									{}
 					Self&			operator=(Self&&other){Super::adoptData(other); return *this;}
 					Self&			operator=(Super&&other){Super::adoptData(other); return *this;}
