@@ -341,7 +341,7 @@ namespace DeltaWorks
 				};
 
 
-				static TFloatRange<T>	Invalid;
+				static const TFloatRange<T>	Invalid;
 
 
 				bool					IsValid() const { return max >= min; }
@@ -572,7 +572,7 @@ namespace DeltaWorks
 			};
 
 		template <typename T>
-			TFloatRange<T>	TFloatRange<T>::Invalid = {TypeInfo<T>::max, TypeInfo<T>::min};
+			const TFloatRange<T>	TFloatRange<T>::Invalid = {TypeInfo<T>::max, TypeInfo<T>::min};
 
 
 		template <typename T=int>
@@ -593,7 +593,7 @@ namespace DeltaWorks
 					Type				extreme[2];
 				};
 
-				static TIntRange<T>		Invalid;
+				static const TIntRange<T>		Invalid;
 
 
 				bool					IsValid() const { return end >= start; }
@@ -719,7 +719,7 @@ namespace DeltaWorks
 			};
 
 		template <typename T>
-			TIntRange<T>	TIntRange<T>::Invalid = {TypeInfo<T>::max, TypeInfo<T>::min};
+			const TIntRange<T>	TIntRange<T>::Invalid = {TypeInfo<T>::max, TypeInfo<T>::min};
 
 
 
