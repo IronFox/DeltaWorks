@@ -314,6 +314,11 @@ namespace DeltaWorks
 					inline	bool					SetNew(const Key&ident);		//!< Attemps to insert the specified new identifier. @return true, if the key was not previously set, false otherwise
 				template <class Key>
 					inline	void					SetAll(const Ctr::ArrayData<Key>&idents);				//!< Sets the specified range of keys (if not set already). @param idents Ctr::Array of keys to set
+				/**
+				Sets all elements found in the other hashset in the local one
+				*/
+				template <class Key, class Hash2, class Strategy>
+					inline void						SetAll(const HashSet<Key,Hash2,Strategy>&other);
 			};
 
 	

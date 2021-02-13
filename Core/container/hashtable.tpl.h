@@ -345,6 +345,15 @@ template <class K, class Hash, class KeyStrategy>
 		}	
 
 
+template <class K, class Hash, class KeyStrategy>
+	template <class Key, class Hash2, class Strategy>
+		inline void			HashSet<K,Hash,KeyStrategy>::SetAll(const HashSet<Key,Hash2,Strategy>&other)
+		{
+			other.VisitAllKeys([this](const Key&otherKey)
+			{
+				Base::find(Hash::ComputeHash(otherKey),otherKey,true);
+			});
+		}
 
 
 
