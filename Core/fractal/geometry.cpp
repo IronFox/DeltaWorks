@@ -56,6 +56,23 @@ namespace DeltaWorks
 			return result;
 		}
 
+
+		static void IcoCoords(M::TVec3<>*vertices, index_t idx0, index_t idx1)
+		{
+			static const float phi = (1.f + sqrt(5.f)) / 2.f;
+			static const float normalize = 1.f / sqrt(1.f + phi*phi);
+
+			index_t at = 0;
+			for (int x = -1; x < 2; x+=2)
+				for (int y = -1; y < 2; y+=2, at++)
+				{
+					vertices[at].v[idx0] = x * normalize;
+					vertices[at].v[idx1] = phi * y * normalize;
+				}
+
+			bool brk = true;
+		}
+
 	
 		void	MakeSphereGeometry(Geometry&geometry)
 		{
@@ -180,23 +197,67 @@ namespace DeltaWorks
 			#undef E
 			ASSERT_CONCLUSION(geometry.edgeField,e);
 
+			geometry.vertexField.Fill(M::Vector3<>::zero);
 
-			M::Vec::sphereCoords(0,90,1,geometry.vertexField[0]);
+			/*
+			IcoCoords(geometry.vertexField+0,1,2);
+			IcoCoords(geometry.vertexField+4,0,1);
+			IcoCoords(geometry.vertexField+8,2,0);
+			*/
+			
+			{
+				const double phi = (1.0 + sqrt(5.0)) / 2.0;
+				const double r0 = sqrt(1.0 + phi*phi);
+				const double ea = 2.0 * asin(1.0 / r0) * 180.0 / M_PI;
+				float hAngle = 90 -ea;
+
+				/*
+				const double e = 2.0 / r0;
+				const double f = e * sqrt(0.75);
+
+				float hAngle = float(asin(f * 0.5) * 180.0 / M_PIF);
+				*/
+
+
+				M::Vec::sphereCoords(0,90,1,geometry.vertexField[0]);
 	    
-			M::Vec::sphereCoords(0, 30, 1, geometry.vertexField[1]);
-			M::Vec::sphereCoords(-72, 30, 1, geometry.vertexField[2]);
-			M::Vec::sphereCoords(-144, 30, 1, geometry.vertexField[3]);
-			M::Vec::sphereCoords(-216, 30, 1, geometry.vertexField[4]);
-			M::Vec::sphereCoords(-288, 30, 1, geometry.vertexField[5]);
+				M::Vec::sphereCoords(0, hAngle, 1, geometry.vertexField[1]);
+				M::Vec::sphereCoords(-72, hAngle, 1, geometry.vertexField[2]);
+				M::Vec::sphereCoords(-144, hAngle, 1, geometry.vertexField[3]);
+				M::Vec::sphereCoords(-216, hAngle, 1, geometry.vertexField[4]);
+				M::Vec::sphereCoords(-288, hAngle, 1, geometry.vertexField[5]);
 
-			M::Vec::sphereCoords(-36, -30, 1, geometry.vertexField[6]);
-			M::Vec::sphereCoords(-108, -30, 1, geometry.vertexField[7]);
-			M::Vec::sphereCoords(-180, -30, 1, geometry.vertexField[8]);
-			M::Vec::sphereCoords(-252, -30, 1, geometry.vertexField[9]);
-			M::Vec::sphereCoords(-324, -30, 1, geometry.vertexField[10]);
+				M::Vec::sphereCoords(-36, -hAngle, 1, geometry.vertexField[6]);
+				M::Vec::sphereCoords(-108, -hAngle, 1, geometry.vertexField[7]);
+				M::Vec::sphereCoords(-180, -hAngle, 1, geometry.vertexField[8]);
+				M::Vec::sphereCoords(-252, -hAngle, 1, geometry.vertexField[9]);
+				M::Vec::sphereCoords(-324, -hAngle, 1, geometry.vertexField[10]);
 
-			M::Vec::sphereCoords(0, -90, 1, geometry.vertexField[11]);
+				M::Vec::sphereCoords(0, -90, 1, geometry.vertexField[11]);
+
+			}
+
+
+			Array<float>distances (geometry.edgeField.GetLength()/2);
+			float min = std::numeric_limits<float>::max();
+			float max = 0;
 		
+			for (index_t i = 0; i < geometry.edgeField.GetLength(); i+=2)
+			{
+				const auto e0 = geometry.edgeField[i];
+				const auto e1 = geometry.edgeField[i+1];
+
+				auto d = distances[i/2] = Vec::distance(
+					geometry.vertexField[e0],
+					geometry.vertexField[e1]
+				);
+
+				min = std::min(min,d);
+				max = std::max(max,d);
+			}
+
+			float error = max/min - 1.f;
+			ASSERT3__(error < 0.01f, min,max, max/min);
 		}
 	
 	
