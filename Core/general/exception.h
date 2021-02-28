@@ -289,12 +289,17 @@ namespace DeltaWorks
 				virtual	const char*			GetType()	const {return StaticGetName();}
 				virtual	const char*			what()		const override
 				{
-					if (!hasLocation)
-						return Super::what();
 					static char buffer[0x4000];
-					TCodeLocation::TOutString	formatted;
-					location.Format(formatted);
-					sprintf_s<sizeof(buffer)>(buffer,"%s: %s",formatted.begin,Super::what());
+					if (!hasLocation)
+					{
+						sprintf_s<sizeof(buffer)>(buffer,"[%s] %s",GetType(),Super::what());
+					}
+					else
+					{
+						TCodeLocation::TOutString	formatted;
+						location.Format(formatted);
+						sprintf_s<sizeof(buffer)>(buffer,"%s: [%s] %s",formatted.begin,GetType(),Super::what());
+					}
 					buffer[sizeof(buffer)-1] = 0;
 					return buffer;
 				};
