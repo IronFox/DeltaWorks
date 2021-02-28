@@ -678,7 +678,7 @@ template <class K, class C, class Hash, class KeyStrategy, class DataStrategy>
 	{
 		Carrier*c = Base::find(Hash::ComputeHash(ident),ident,false);
 		if (!c->occupied)
-			throw Except::Program::MemberNotFound();
+			throw Except::Program::MemberNotFound(CLOCATION,"Hashtable lookup failed. Requested key is not registered in this table");
 		return c->cast();
 	}
 	
@@ -687,9 +687,8 @@ template <class K, class C, class Hash, class KeyStrategy, class DataStrategy>
 	{
 		const Carrier*c = Base::find(Hash::ComputeHash(ident),ident);
 		if (!c->occupied)
-			throw Except::Program::MemberNotFound();
+			throw Except::Program::MemberNotFound(CLOCATION,"Hashtable lookup failed. Requested key is not registered in this table");
 		return c->cast();
-		//return Base::find(Hash::ComputeHash(ident),ident)->cast();
 	}
 
 
