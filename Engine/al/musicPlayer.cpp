@@ -40,15 +40,26 @@ namespace Engine
 
 		void	MusicPlayer::Begin(const PathString&source, bool loop, float fadeInSeconds /*= 0.5f*/)
 		{
+			if (!TryBegin(source,loop,fadeInSeconds))
+			{
+				String ex;
+				exceptionMutex.lock();
+				ex.swap(exception);
+				exceptionMutex.unlock();
+				throw Except::Exception(CLOCATION,ex);
+			}
+		}
+
+
+
+
+		bool	MusicPlayer::TryBegin(const PathString&source, bool loop, float fadeInSeconds /*= 0.5f*/)
+		{
 			Stop();
 
 			Super::AwaitCompletion();
 			if (exception.IsNotEmpty())
-			{
-				String ex;
-				ex.swap(exception);
-				throw Except::Exception(CLOCATION,ex);
-			}
+				return false;
 
 			this->source = source;
 			this->loop = loop;
@@ -58,7 +69,19 @@ namespace Engine
 			this->fadeInSeconds = fadeInSeconds;
 			fadeInStarted=timer.Now();
 			Super::Start();
+			return true;
 		}
+
+		String			MusicPlayer::GetLastErrorText()
+		{
+			String rs;
+			exceptionMutex.lock();
+			exception.swap(rs);
+			exceptionMutex.unlock();
+			return rs;
+		}
+
+
 
 
 			 
@@ -167,7 +190,9 @@ namespace Engine
 					alDeleteSources(1,&output);
 				if (buffer[0])
 					alDeleteBuffers(ARRAYSIZE(buffer),buffer);
+				exceptionMutex.lock();
 				exception = ex.what();
+				exceptionMutex.unlock();
 			}
 			catch(...)
 			{}
