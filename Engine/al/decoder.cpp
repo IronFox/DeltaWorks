@@ -39,17 +39,17 @@ void AudioDecoder::Open(const PathString&filename)
 		// Initialize the COM library.
 		hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
 		if (FAILED(hr))
-			throw Except::IO::GeneralFault(CLOCATION,"SSMF: failed to initialize COM");
+			throw Except::IO::GeneralFault(CLOCATION,"SSMF: failed to initialize COM (CoInitializeEx)");
 
 		// Initialize the Media Foundation platform.
 		hr = MFStartup(MF_VERSION);
 		if (FAILED(hr))
-			throw Except::IO::GeneralFault(CLOCATION,"SSMF: failed to initialize Media Foundation");
+			throw Except::IO::GeneralFault(CLOCATION,"SSMF: failed to initialize Media Foundation (MFStartup)");
 
 		// Create the source reader to read the input file.
 		hr = MFCreateSourceReaderFromURL(filename.c_str(), NULL, data.reader.Init());
 		if (FAILED(hr))
-			throw Except::IO::DriveAccess::FileOpenFault(CLOCATION,"SSMF: Error opening input file:" +String(filename)+ ", with error: "+String( HRESULT_CODE(hr)));
+			throw Except::IO::DriveAccess::FileOpenFault(CLOCATION,"SSMF: Error opening input file:" +String(filename)+ ", with error (MFCreateSourceReaderFromURL): "+String( HRESULT_CODE(hr)));
 
 		ConfigureAudioStream();
 		ReadProperties();
