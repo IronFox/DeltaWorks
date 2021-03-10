@@ -303,9 +303,9 @@ namespace DeltaWorks
 			public:
 				typedef typename Super::const_iterator	const_iterator;
 
-				Super::Count;
-				Super::GetLength;
-				Super::size;
+				using Super::Count;
+				using Super::GetLength;
+				using Super::size;
 
 
 				const_iterator			begin()	const	{return Super::begin();}

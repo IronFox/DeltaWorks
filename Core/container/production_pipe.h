@@ -71,9 +71,9 @@ namespace DeltaWorks
 
 				//the following operations are provided for convenience. They are _not_ mutex protected and (except for Count() maybe) should be invoked only from inside a signalRead()/exitRead() block.
 				//Super::IsEmpty;
-				Super::IsNotEmpty;
-				Super::operator[];
-				Super::pointer;
+				using Super::IsNotEmpty;
+				using Super::operator[];
+				using Super::pointer;
 			
 				typedef T	Type;
 	

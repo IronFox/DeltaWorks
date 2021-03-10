@@ -3605,77 +3605,77 @@ namespace StringType
 	template <typename T0, typename T1>\
 		inline bool operator _OPERATOR_(const T0*a, const StringType::Template<T1>&b)\
 		{\
-			return !(b _REVERSE_OPERATOR_ a);\
+			return !(b.operator _REVERSE_OPERATOR_(a));\
 		}\
 	template <typename T>\
 		inline bool operator _OPERATOR_(char a, const StringType::Template<T>& b)\
 		{\
-			return !(b _REVERSE_OPERATOR_ a);\
+			return !(b.operator _REVERSE_OPERATOR_ (a));\
 		}\
 	template <typename T>\
 		inline bool operator _OPERATOR_(wchar_t a, const StringType::Template<T>& b)\
 		{\
-			return !(b _REVERSE_OPERATOR_ a);\
+			return !(b.operator _REVERSE_OPERATOR_ (a));\
 		}\
 	template <typename T0, typename T1>\
 		inline bool operator _OPERATOR_(const T0*a, const StringType::ReferenceExpression<T1>&b)\
 		{\
-			return !(b _REVERSE_OPERATOR_ a);\
+			return !(b.operator _REVERSE_OPERATOR_(a));\
 		}\
 	template <typename T>\
 		inline bool operator _OPERATOR_(char a, const StringType::ReferenceExpression<T>& b)\
 		{\
-			return !(b _REVERSE_OPERATOR_ a);\
+			return !(b.operator _REVERSE_OPERATOR_ (a));\
 		}\
 	template <typename T>\
 		inline bool operator _OPERATOR_(wchar_t a, const StringType::ReferenceExpression<T>& b)\
 		{\
-			return !(b _REVERSE_OPERATOR_ a);\
+			return !(b.operator _REVERSE_OPERATOR_ (a));\
 		}\
 	template <typename T0, typename T1>\
 		inline bool operator _OPERATOR_(const T0*a, const StringType::CharacterExpression<T1>&b)\
 		{\
-			return !(b _REVERSE_OPERATOR_ a);\
+			return !(b.operator _REVERSE_OPERATOR_ (a));\
 		}\
 	template <typename T>\
 		inline bool operator _OPERATOR_(char a, const StringType::CharacterExpression<T>& b)\
 		{\
-			return !(b _REVERSE_OPERATOR_ a);\
+			return !(b.operator _REVERSE_OPERATOR_(a));\
 		}\
 	template <typename T>\
 		inline bool operator _OPERATOR_(wchar_t a, const StringType::CharacterExpression<T>& b)\
 		{\
-			return !(b _REVERSE_OPERATOR_ a);\
+			return !(b.operator _REVERSE_OPERATOR_(a));\
 		}\
 	template <typename T0, typename T1>\
 		inline bool operator _OPERATOR_(const T0*a, const StringType::StringExpression<T1>&b)\
 		{\
-			return !(b _REVERSE_OPERATOR_ a);\
+			return !(b.operator _REVERSE_OPERATOR_ (a));\
 		}\
 	template <typename T>\
 		inline bool operator _OPERATOR_(char a, const StringType::StringExpression<T>& b)\
 		{\
-			return !(b _REVERSE_OPERATOR_ a);\
+			return !(b.operator _REVERSE_OPERATOR_ (a));\
 		}\
 	template <typename T>\
 		inline bool operator _OPERATOR_(wchar_t a, const StringType::StringExpression<T>& b)\
 		{\
-			return !(b _REVERSE_OPERATOR_ a);\
+			return !(b.operator _REVERSE_OPERATOR_ (a));\
 		}\
 	template <typename T0, typename T1, typename T2>\
 		inline bool operator _OPERATOR_(const T0*a, const StringType::ConcatExpression<T1, T2>&b)\
 		{\
-			return !(b _REVERSE_OPERATOR_ a);\
+			return !(b.operator _REVERSE_OPERATOR_ (a));\
 		}\
 	template <typename T0, typename T1>\
 		inline bool operator _OPERATOR_(char a, const StringType::ConcatExpression<T0, T1>&b)\
 		{\
-			return !(b _REVERSE_OPERATOR_ a);\
+			return !(b.operator _REVERSE_OPERATOR_ (a));\
 		}\
 	template <typename T0, typename T1>\
 		inline bool operator _OPERATOR_(wchar_t a, const StringType::ConcatExpression<T0, T1>&b)\
 		{\
-			return !(b _REVERSE_OPERATOR_ a);\
+			return !(b.operator _REVERSE_OPERATOR_ (a));\
 		}
 	
 

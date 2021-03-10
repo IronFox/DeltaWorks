@@ -755,13 +755,13 @@ namespace DeltaWorks
 			
 				count_t	w;
 			
-					AlignedArray<C,A>::resize;
-					AlignedArray<C,A>::resizeCopy;
-					AlignedArray<C,A>::resizeAdopt;
-					AlignedArray<C,A>::erase;
-					AlignedArray<C,A>::eraseAdopt;
-					AlignedArray<C,A>::append;
-					AlignedArray<C,A>::appendAdopt;
+					using AlignedArray<C,A>::resize;
+					using AlignedArray<C,A>::resizeCopy;
+					using AlignedArray<C,A>::resizeAdopt;
+					using AlignedArray<C,A>::erase;
+					using AlignedArray<C,A>::eraseAdopt;
+					using AlignedArray<C,A>::append;
+					using AlignedArray<C,A>::appendAdopt;
 		public:
 					AlignedArray2D():w(0)
 					{}
