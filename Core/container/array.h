@@ -111,6 +111,16 @@ namespace DeltaWorks
 					a.swap(b);
 				}
 
+				T*						GetPointer()
+				{
+					return &*Super::begin();
+				}
+				
+				const T*				GetPointer() const
+				{
+					return &*Super::begin();
+				}
+
 				T&						First()
 				{
 					return Super::front();
