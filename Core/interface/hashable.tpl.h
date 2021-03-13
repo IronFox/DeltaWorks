@@ -5,7 +5,7 @@
 template <typename T>
 	HashValue& HashValue::AddGeneric(const T&value)
 	{
-		using namespace GlobalHashFunctions;
+		using GlobalHashFunctions::Hash;
 		Add(Hash(value));
 		return *this;
 	}
@@ -13,7 +13,7 @@ template <typename T>
 template <typename T>
 	HashValue& HashValue::operator<<(const T&value)
 	{
-		using namespace GlobalHashFunctions;
+		using GlobalHashFunctions::Hash;
 		Add(Hash(value));
 		return *this;
 	}
@@ -21,7 +21,7 @@ template <typename T>
 template <typename T, count_t ArrayLength>
 	HashValue& HashValue::operator<<(const T(&value)[ArrayLength])
 	{
-		using namespace GlobalHashFunctions;
+		using GlobalHashFunctions::Hash;
 		for (index_t i = 0; i < ArrayLength; i++)
 			Add(Hash(value[i]));
 		return *this;
