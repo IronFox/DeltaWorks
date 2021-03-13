@@ -2124,6 +2124,7 @@ namespace DeltaWorks
 
 				friend String			ToString(const Sphere<T>&s)
 										{
+											using StringConversion::ToString;
 											return ToString(s.center)+",r="+ToString(s.radius);
 										}
 			};
