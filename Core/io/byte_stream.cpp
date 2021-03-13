@@ -6,6 +6,15 @@ namespace DeltaWorks
 
 
 
+	bool ByteReadStream::_TryGetData(void*pntr, size_t size)
+	{
+		if (current + size > end)
+			return false;
+		memcpy(pntr, current, size);
+		current += size;
+		return true;
+	}
+
 
 	void ByteReadStream::_GetData(void*pntr, size_t size)
 	{

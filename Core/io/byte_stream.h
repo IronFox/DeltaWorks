@@ -57,6 +57,7 @@ namespace DeltaWorks
 						*end;
 	
 		void			_GetData(void*pntr, size_t size);
+		bool			_TryGetData(void*pntr, size_t size);
 	public:
 
 		/**/			ByteReadStream() :begin(NULL), current(NULL), end(NULL)	{}
@@ -66,11 +67,15 @@ namespace DeltaWorks
 		void			Rewind()	{ current = begin; }
 		bool			ReachedEnd() const { return current == end; }
 		template <class C>
-			bool		Stream(C&out)	{ return _GetData(&out, sizeof(C)); }
+			void		Stream(C&out)	{ _GetData(&out, sizeof(C)); }
 		template <class C>
-			bool		Stream(C*array, count_t count)	{ return _GetData(array, sizeof(C)*count); }
+			void		Stream(C*array, count_t count)	{ _GetData(array, sizeof(C)*count); }
 		template <class C>
-			ByteReadStream&	operator>>(C&object)	{ if (!Stream(object)) throw Except::IO::GeneralFault("Unable to stream required object"); return *this; }
+			bool		TryStream(C&out)	{ return _TryGetData(&out, sizeof(C)); }
+		template <class C>
+			bool		TryStream(C*array, count_t count)	{ return _TryGetData(array, sizeof(C)*count); }
+		template <class C>
+			ByteReadStream&	operator>>(C&object)	{ Stream(object); return *this; }
 
 		virtual	void	Read(void*target_data, serial_size_t size)	override { _GetData(target_data, size); }
 		virtual serial_size_t		GetRemainingBytes() const override { return end - current; }
