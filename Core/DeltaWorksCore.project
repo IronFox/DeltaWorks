@@ -1,4 +1,4 @@
-<project type="StaticLibrary" extraProjectOptions="/std:c++latest /Zc:__cplusplus">
+<project type="StaticLibrary" extraProjectOptions="/std:c++latest">
 	<source path="." include="true">
 		<exclude find="mvc"/>
 		<exclude dir="maker" />
