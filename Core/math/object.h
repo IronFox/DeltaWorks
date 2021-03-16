@@ -974,7 +974,7 @@ namespace DeltaWorks
 					MeshVertex<Def>			*vertex[3];		//!< Vertices this triangle is connected to
 					struct
 					{
-						MeshVertex<Def>		*v0,			//!< Pointer to the first connected vertex (not NULL)
+						MeshVertex<Def>			*v0,			//!< Pointer to the first connected vertex (not NULL)
 												*v1,			//!< Pointer to the second connected vertex (not NULL)
 												*v2;			//!< Pointer to the third connected vertex (not NULL)
 					};
@@ -1070,10 +1070,10 @@ namespace DeltaWorks
 					typedef MeshTriangle<Def>		Triangle;
 					typedef MeshQuad<Def>			Quad;
 
-					Ctr::Array<Vertex>					vertex_field;		//!< Vertex array
-					Ctr::Array<Edge>						edge_field;			//!< Edge array
-					Ctr::Array<Triangle>					triangle_field;		//!< Triangle array
-					Ctr::Array<Quad>						quad_field;			//!< Quad array
+					Ctr::Array<Vertex>				vertex_field;		//!< Vertex array
+					Ctr::Array<Edge>				edge_field;			//!< Edge array
+					Ctr::Array<Triangle>			triangle_field;		//!< Triangle array
+					Ctr::Array<Quad>				quad_field;			//!< Quad array
 				
 			MF_CONSTRUCTOR							Mesh();
 			MF_CONSTRUCTOR							Mesh(const Mesh<Def>&other);
