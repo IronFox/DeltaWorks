@@ -24,6 +24,7 @@ as the Borland AnsiString-class.
 
 
 #include <string.h>
+#include <string>
 #include "charSequence.h"
 
 
@@ -935,6 +936,24 @@ namespace DeltaWorks
 												DBG_ASSERT_NOT_NULL__(Super::data);	//gonna crash with an access violation otherwise anyway
 												CharFunctions::Cast(otherField,Super::data,Super::elements);
 											}
+				template <typename Traits, typename Allocator>
+											Template(const std::basic_string<T,Traits,Allocator>&other)
+											{
+												Super::elements = other.length();
+												Super::data = allocate(Super::elements);
+												const auto*otherField = other.c_str();
+												DBG_ASSERT_NOT_NULL__(Super::data);	//gonna crash with an access violation otherwise anyway
+												CharFunctions::Cast(otherField,Super::data,Super::elements);
+											}
+				template <typename T1, typename Traits, typename Allocator>
+				explicit					Template(const std::basic_string<T1,Traits,Allocator>&other)
+											{
+												Super::elements = other.length();
+												Super::data = allocate(Super::elements);
+												const auto*otherField = other.c_str();
+												DBG_ASSERT_NOT_NULL__(Super::data);	//gonna crash with an access violation otherwise anyway
+												CharFunctions::Cast(otherField,Super::data,Super::elements);
+											}
 
 											Template():Super(sz,0)
 											{
@@ -1201,6 +1220,8 @@ namespace DeltaWorks
 				#ifdef DSTRING_H
 					Template<T>&		operator=(const AnsiString&);
 				#endif
+				template<typename Traits, typename Allocator>
+					Template<T>&		operator=(const std::basic_string<T,Traits,Allocator>&);
 				Template<T>&			operator=(const Template<T>&);					//!< Overwrites the local string content with the content of the specified Template object. \return Reference to the local string object.
 				#if __STR_RVALUE_REFERENCES__
 					Template<T>&		operator=(Template<T>&&);					//!< Overwrites the local string content with the content of the specified Template object. \return Reference to the local string object.
@@ -1385,6 +1406,10 @@ namespace DeltaWorks
 			}*/
 
 
+		extern template class Template<char>;
+		extern template class Template<wchar_t>;
+		extern template class ReferenceExpression<char>;
+		extern template class ReferenceExpression<wchar_t>;
 
 
 		typedef Template<char>		String;
@@ -1409,6 +1434,9 @@ namespace DeltaWorks
 
 
 
+
+
+
 	}
 
 	typedef StringType::String	String;
@@ -1419,6 +1447,12 @@ namespace DeltaWorks
 
 	typedef StringType::Template<char32_t>	UTF32String;
 	typedef StringType::Template<char16_t>	UTF16String;	//only one effective use for this kind of character
+
+
+	String operator "" _s(const char*v, size_t len);
+	StringW operator "" _s(const wchar_t*v, size_t len);
+	UTF32String operator "" _s(const char32_t*v, size_t len);
+	UTF16String operator "" _s(const char16_t*v, size_t len);
 
 	namespace StringConversion
 	{
@@ -1620,8 +1654,6 @@ namespace DeltaWorks
 	#endif
 
 
-	
-
 
 	#undef FOPEN
 	#if SYSTEM==WINDOWS
@@ -1636,8 +1668,8 @@ namespace DeltaWorks
 
 
 
-
-	#include "str_class.tpl.h"
 }
+
+#include "str_class.tpl.h"
 
 #endif

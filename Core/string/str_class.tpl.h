@@ -3,7 +3,8 @@
 
 #include <wchar.h>
 
-
+namespace DeltaWorks
+{
 
 template <typename T>
 	inline std::ostream& operator<<(std::ostream&stream, const StringType::Template<T>&string)
@@ -2614,6 +2615,17 @@ namespace StringType
 		}
 	#endif
 
+	template <typename T>
+		template <typename Traits, typename Allocator>
+			Template<T>&	Template<T>::operator=(const std::basic_string<T,Traits,Allocator>&string)
+			{
+				STRING_METHOD_BEGIN("(const std::basic_string<T,Traits,Allocator>&string)",string.c_str());
+				Resize(string.length());
+				memcpy(Super::data,string.c_str(),Super::elements*sizeof(T));
+				STRING_METHOD_END
+				return *this;
+			}
+
 
 	template <typename T>
 		Template<T>&	Template<T>::operator=(const Template<T>&string)
@@ -3687,6 +3699,6 @@ DEFINE_COMPARE_OPERATORS(>=,<)
 DEFINE_COMPARE_OPERATORS(==,!=)
 DEFINE_COMPARE_OPERATORS(!=,==)
 
-	
+}	
 
 #endif

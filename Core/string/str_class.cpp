@@ -809,6 +809,26 @@ namespace DeltaWorks
 
 
 
+	String operator "" _s(const char*v, size_t len)
+	{
+		return String(v,len);
+	}
+
+	StringW operator "" _s(const wchar_t*v, size_t len)
+	{
+		return StringW(v,len);
+	}
+
+
+	UTF32String operator "" _s(const char32_t*v, size_t len)
+	{
+		return UTF32String(v,len);
+	}
+
+	UTF16String operator "" _s(const char16_t*v, size_t len)
+	{
+		return UTF16String(v,len);
+	}
 
 
 }
