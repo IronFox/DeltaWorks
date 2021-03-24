@@ -693,7 +693,7 @@ namespace Engine
 		ApplyWindowPosition();
 		SetForegroundWindow(hWnd);
 		SetFocus(hWnd);
-		timing.initialize();
+		timing.Initialize();
 		
 		initAnalogs();
 		
@@ -770,7 +770,7 @@ namespace Engine
 		ApplyWindowPosition();
 		SetForegroundWindow(hWnd);
 		SetFocus(hWnd);
-		timing.initialize();
+		timing.Initialize();
 		
 		initAnalogs();
 		
@@ -1593,7 +1593,7 @@ namespace Engine
 					Engine::ExecuteEvent(event);
 				}
 			#endif
-			timing.update();
+			timing.Update();
 			exec_loop = exec_target() && !context.shutting_down;
 		}
 	}

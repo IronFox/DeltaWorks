@@ -102,10 +102,10 @@ namespace Engine
 		Channel*			openChannel(unsigned major_channel, unsigned minor_channel);
 		Channel*			start(unsigned major_channel, unsigned minor_channel);		//!< Starts time measuring on the specified channel, automatically stopping any other active channel
 		Channel*			start(Channel*channel);									//!< @overload
-		Timer::Time			stop();	//!< Stops the currently active channel and returns the recorded time interval since the last start() invokation (if any)
+		Time::Delta			stop();	//!< Stops the currently active channel and returns the recorded time interval since the last start() invokation (if any)
 		
 		Channel*			replace(unsigned major_channel, unsigned minor_channel);	//!< Pushes the active channel to the channel stack and starts time measuring on the specified channel instead. Must be terminated using restore()
-		Timer::Time			restore();	//!< Stops the currently active channel and returns the recorded time interval since the last replace() invokation. The channel active when replace() was invoked is restarted (if any)
+		Time::Delta			restore();	//!< Stops the currently active channel and returns the recorded time interval since the last replace() invokation. The channel active when replace() was invoked is restarted (if any)
 		
 		bool				update();				//!< Advances the profiler state by one frame. update() or update(float delta) must be called once each frame, ideally at the end of the frame. Uses internal means to determine the time passed since the last call  @return true if the profiler has advanced all open channels (typically once half a second has passed), false otherwise
 		bool				update(float delta);	//!< Advances the profiler state by one frame using a specific frame delta (in seconds). update() or update(float delta) must be called once each frame, ideally at the end of the frame @param delta Time passed during the last frame (in seconds) @return true if the profiler has advanced all open channels (typically once half a second has passed), false otherwise
@@ -116,7 +116,7 @@ namespace Engine
 		inline	void		render3dGraphs()	{renderPerspective();}
 		
 		
-		const Timer::Time&	lastChange();
+		const Time::Stamp&	lastChange();
 
 		static const float	density_profile_frame_length=0.001;
 
@@ -130,8 +130,8 @@ namespace Engine
 				friend class Data;
 				friend class Group;
 				
-				Timer::Time		started,
-									accumulated,
+				Time::Stamp			started;
+				Time::Delta			accumulated,
 									minimum,
 									maximum,
 									//weighted_accumulated,
@@ -150,7 +150,7 @@ namespace Engine
 				void				nextFrame(float weight);	//!< Advances the frame counter
 				void				generateColor(index_t channel_index);
 		public:
-				Timer::Time			total;		//!< Total time accumulated by this channel
+				Time::Delta			total;		//!< Total time accumulated by this channel
 				M::TVec3<float>		color;
 				String				name;
 				Array<float,Primitive>
@@ -165,8 +165,8 @@ namespace Engine
 				void				setColor(float r, float g, float b);
 				void				adoptData(Channel&other);
 				void				start();
-				Timer::Time			stop();
-				void				accumulatei(const Timer::Time&t);
+				Time::Delta			stop();
+				void				accumulatei(const Time::Delta&t);
 				void				accumulate(float value);
 				void				Set(const String name, float red, float green, float blue)
 									{

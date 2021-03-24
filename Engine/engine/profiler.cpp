@@ -8,7 +8,7 @@ namespace Engine
 		static unsigned channel_resolution=64;
 		static float	record_interval=0.5,
 						current_time=0;
-		static Timer::Time	last_change;
+		static Time::Stamp	last_change;
 		static Channel*active_channel=NULL;
 		static bool		record = false;
 		static OrthographicAspect<>		orthographic_aspect;
@@ -53,7 +53,7 @@ namespace Engine
 
 
 		
-		const Timer::Time&	lastChange()
+		const Time::Stamp&	lastChange()
 		{
 			return last_change;
 		}
@@ -108,18 +108,18 @@ namespace Engine
 			if (first_advance)
 			{
 				faccumulated = 0;
-				accumulated = 0;
+				accumulated = Time::Delta();
 				//frame_accumulated = 0;
 				//weighted_accumulated = 0;
-				maximum = minimum = 0;
+				maximum = minimum = Time::Delta();
 			}
-			history.Last() = (faccumulated + timer.toSecondsf(accumulated))/counter;
+			history.Last() = (faccumulated + accumulated.ToSeconds())/counter;
 			if (faccumulated > 0)
 			{
-				if (accumulated > 0)
+				if (accumulated.IsNotZero())
 				{
-					minimum_history.Last() = M::vmin(fminimum,timer.toSecondsf(minimum));
-					maximum_history.Last() = M::vmax(fmaximum,timer.toSecondsf(maximum));
+					minimum_history.Last() = M::vmin(fminimum,minimum.ToSeconds());
+					maximum_history.Last() = M::vmax(fmaximum,maximum.ToSeconds());
 				}
 				else
 				{
@@ -129,8 +129,8 @@ namespace Engine
 			}
 			else
 			{
-				minimum_history.Last() = timer.toSecondsf(minimum);
-				maximum_history.Last() = timer.toSecondsf(maximum);
+				minimum_history.Last() = minimum.ToSeconds();
+				maximum_history.Last() = maximum.ToSeconds();
 			}
 			
 			
@@ -143,14 +143,14 @@ namespace Engine
 			
 		
 			faccumulated = 0;
-			accumulated = 0;
+			accumulated = Time::Delta::Zero;
 			fframe_accumulated = 0;
-			frame_accumulated = 0;
+			frame_accumulated = Time::Delta::Zero;
 			//weighted_accumulated = 0;
 			fmaximum = 0;
-			maximum = 0;
+			maximum = Time::Delta::Zero;
 			fminimum = 0;
-			minimum = 0;
+			minimum = Time::Delta::Zero;
 			counter = 0;
 			//weighted_counter = 0;
 			first_advance = false;
@@ -172,7 +172,7 @@ namespace Engine
 				minimum = M::vmin(minimum,frame_accumulated);
 			}
 			
-			frame_accumulated = 0;
+			frame_accumulated = Time::Delta::Zero;
 			fframe_accumulated = 0;
 			counter++;
 			/*
@@ -239,14 +239,14 @@ namespace Engine
 			if (active_channel)
 				active_channel->stop();
 			active_channel = this;
-			started = timer.now();
+			started.Update();
 		}
 		
-		Timer::Time		Channel::stop()
+		Time::Delta		Channel::stop()
 		{
 			if (record)
 			{
-				Timer::Time delta = timer.now()-started;
+				Time::Delta delta = started.Elapsed();
 				accumulated += delta;
 				frame_accumulated += delta;
 				total += delta;
@@ -254,13 +254,13 @@ namespace Engine
 				return delta;
 			}
 			active_channel = NULL;
-			return 0;
+			return Time::Delta::Zero;
 		}
 		
 		
 		
 		
-		void		Channel::accumulatei(const Timer::Time&t)
+		void		Channel::accumulatei(const Time::Delta&t)
 		{
 			accumulated += t;
 			frame_accumulated += t;
@@ -413,11 +413,11 @@ namespace Engine
 							ch->start();
 							return ch;
 						}
-		Timer::Time	stop()
+		Time::Delta		stop()
 						{
 							if (active_channel)
 								return active_channel->stop();
-							return 0;
+							return Time::Delta::Zero;
 						}
 		Channel*		start(Channel*channel)
 						{
@@ -441,13 +441,13 @@ namespace Engine
 							return start(major_channel,minor_channel);
 						}
 						
-		Timer::Time	restore()
+		Time::Delta		restore()
 						{
-							Timer::Time	result;
+							Time::Delta	result;
 							if (active_channel)
 								result = active_channel->stop();
 							else
-								result = 0;
+								result = Time::Delta::Zero;
 							start(channel_stack.pop());
 							return result;
 						}
@@ -472,15 +472,15 @@ namespace Engine
 							fps_channel.accumulate(timing.delta>0?1.0f/timing.delta:0);
 							
 							
-							static Timer::Time t=timer.now();
-							Timer::Time now = timer.now();
+							static Time::Stamp t;
+							Time::Stamp now;
 							
-							static float times[5] = {0,0,0,0,0};
-							float d = timer.toSecondsf(now-t);
+							static Time::Delta times[5] = {Time::Delta::Zero};
+							Time::Delta d = now-t;
 							for (index_t i = 0; i < ARRAYSIZE(times)-1; i++)
 								times[i] = times[i+1];
 							times[ARRAYSIZE(times)-1] = d;
-							float base = M::vmin(M::vmin(M::vmin(times[0],times[1]),M::vmin(times[2],times[3])),times[4]);
+							Time::Delta base = M::vmin(M::vmin(M::vmin(times[0],times[1]),M::vmin(times[2],times[3])),times[4]);
 							float weight = d > base*2;;
 
 							
@@ -504,7 +504,7 @@ namespace Engine
 							}
 							if (has_changed)
 							{
-								last_change = timer.now();
+								last_change.Update();
 								if (active_channel)
 									active_channel->start();
 								foreach (orthographic_graphs,graph)

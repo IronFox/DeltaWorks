@@ -185,6 +185,7 @@ namespace DeltaWorks
 
 		*/
 
+		#if 0
 
 		struct TPackageHead	//!	Package header
 		{
@@ -361,7 +362,6 @@ namespace DeltaWorks
 		};
 
 
-
 		class Task		//! Transfer task
 		{
 		private:
@@ -369,7 +369,7 @@ namespace DeltaWorks
 				BYTE			*data;
 				bool			*package;
 				UINT16			completed,packages;
-				Timer::Time	in,*out;
+				Time::Stamp		in,*out;
 				bool			closed,undef;
 		friend	class			TaskList;
 		public:
@@ -384,7 +384,7 @@ namespace DeltaWorks
 				void			Insert(UINT16 package, const void*data, UINT16 size);	//!< Inserts package into the transfer field \param package Index of the package \param data Pointer to the data field \param size Size of the data field in bytes
 				void			confirm(UINT16 package);								//!< Confirms that the specified package was received
 				bool			finished();																//!< Queries status \return true if the transfer is finished, false otherwise
-				void			timeOutSend(Timer::Time now, BYTE flags, Connection*connection);	//!< Resends all packages that timed out to the specified connection \param now Current system time in microseconds \param flags Package flags to use for resent packages
+				void			timeOutSend(Time::Stamp now, BYTE flags, Connection*connection);	//!< Resends all packages that timed out to the specified connection \param now Current system time in microseconds \param flags Package flags to use for resent packages
 				void			redef(UINT32 size);														//!< Redefines the local task to match the new size
 				TransferItem*	get();																	//!< Returns a pointer to a new TransferItem object if the local transfer is finished or NULL otherwise
 		};
@@ -397,16 +397,14 @@ namespace DeltaWorks
 
 								TaskList();
 				TransferItem*	getFinished(Node*sender, bool serial);		//!< Returns the next finished inbound transfer that is not empty \param sender Transfer origin for debug output \param serial Force serial finishing \return Pointer to a new TransferItem object containing the finished transfer
-				void			timeOutClose(Node*sender, Timer::Time now, bool direct_erase_undef);	//!< Closes timed out inbound transfers \param sender Transfer origin for debug output \param now Current time \param direct_erase_undef Causes the method to erase undefined (implied) transfers
-				void			timeOutSend(Timer::Time now, BYTE flags, Connection*connection);		//!< Resends timed out outbound transfers via the specified connection using the specified flags \param now Current time \param flags Package flags \param connection Out connection
+				void			timeOutClose(Node*sender, Time::Stamp now, bool direct_erase_undef);	//!< Closes timed out inbound transfers \param sender Transfer origin for debug output \param now Current time \param direct_erase_undef Causes the method to erase undefined (implied) transfers
+				void			timeOutSend(Time::Stamp now, BYTE flags, Connection*connection);		//!< Resends timed out outbound transfers via the specified connection using the specified flags \param now Current time \param flags Package flags \param connection Out connection
 				Task*			append(UINT16 channel, const void*data, UINT32 size);						//!< Appends a new outbound transfer \param channel Transfer channel \param data Pointer to the resource data \param size Size of the resource data in bytes \return Inserted task object
 				Task*			locate(Node*sender, UINT16 transfer, UINT32 size);						//!< Checks if the respective transfer exists. Potentially creates new transfers \param sender Transfer origin for debug output \param transfer Transfer ID \param size Transfer size in bytes
 				void			confirm(UINT16 transfer, UINT16 package);									//!< Confirms inbound package receive
 			
 				Queue<Task>::clear;
 		};
-
-	#if 0
 
 		class Node:public ThreadObject		//! Root network node
 		{

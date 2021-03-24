@@ -534,13 +534,13 @@ namespace Engine
 				if (++callAnyway > 10)
 				{
 					callAnyway = 0;
-					timing.update();
+					timing.Update();
 					exec_loop = !context.shutting_down && exec_target();
 				}
 			}
 			else
 			{
-				timing.update();
+				timing.Update();
 				exec_loop = !context.shutting_down && exec_target();
 			}
 
@@ -581,13 +581,13 @@ namespace Engine
 				if (++callAnyway > 10)
 				{
 					callAnyway = 0;
-					timing.update();
+					timing.Update();
 					exec_loop = !context.shutting_down && exec_target();
 				}
 			}
 			else
 			{
-				timing.update();
+				timing.Update();
 				exec_loop = !context.shutting_down && exec_target();
 			}
 

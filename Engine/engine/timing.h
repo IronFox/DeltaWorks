@@ -18,16 +18,15 @@ namespace Engine
 	class Timing
 	{
 	public:
-	        Timer::Time		ticks_per_second,
-							now64,
-			                delta64,
-							timerReference;
-	        float   		delta;
-			double			now;
+		Time::Stamp		now64,
+						timeReference;
+		Time::Delta		delta64;
 
-							Timing();
-	        void    		update();
-	        void    		initialize();
+	    float   		delta;
+		double			now;
+
+	    void    		Update();
+	    void    		Initialize();
 	};
 
 	extern Timing timing;

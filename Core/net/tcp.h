@@ -58,10 +58,35 @@ namespace DeltaWorks
 
 
 		class Dispatchable
-		{};
+		{
+		public:
+			virtual ~Dispatchable(){}
+		};
 	
 		typedef std::shared_ptr<Dispatchable>	PDispatchable;
 
+
+		/**
+		Atomic storage for time stamps
+		*/
+		class AtomicTimeStamp
+		{
+		public:
+			/**/				AtomicTimeStamp():time(Time::Stamp().ToTicks())
+			{}
+
+			/**
+			Casts the locally stored time to a stamp
+			*/
+			Time::Stamp			Cast() const {return Time::Stamp::FromTicks(time);}
+			/**
+			Updates the internally stored time to now
+			*/
+			void				Update() {time = Time::Stamp().ToTicks();}
+
+		private:
+			std::atomic<UINT64>	time;
+		};
 
 		/**
 		Special mutex for events that allows to completely kick out threads before they enter a critical section
@@ -1017,7 +1042,7 @@ namespace DeltaWorks
 		private:
 			friend class Dispatcher;
 			friend class ConnectionAttempt;
-			std::atomic<Timer::Time>	lastReceivedPackage;
+			AtomicTimeStamp				lastReceivedPackage;
 
 			void						CloseWriterDown(Event::event_t ev, const String&errorMessage);
 		protected:
@@ -1078,8 +1103,7 @@ namespace DeltaWorks
 				
 			/**/						Peer(Connection*connection):owner(connection),socketAccess(new DefaultSocketAccess()),
 										userLevel(User::Anonymous),addressLength(0), destroyed(false),
-										writer(this),
-										lastReceivedPackage(timer.Now())
+										writer(this)
 										{
 											memset(&address,0,sizeof(address));
 											ASSERT_NOT_NULL__(owner);
@@ -1176,8 +1200,8 @@ namespace DeltaWorks
 			/**
 			Retrieves the high-resolution time of last receiving of any package from the remote end. Even partial packages count
 			*/
-			Timer::Time					GetLastPackageTime()	const	{return lastReceivedPackage;}
-			void						SignalPackage()					{lastReceivedPackage = timer.Now();}
+			Time::Stamp					GetLastPackageTime()	const	{return lastReceivedPackage.Cast();}
+			void						SignalPackage()					{lastReceivedPackage.Update();}
 		};
 
 		typedef std::shared_ptr<Peer::Attachment>	PAttachment;

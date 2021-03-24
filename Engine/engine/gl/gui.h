@@ -607,7 +607,7 @@ namespace Engine
 									appearsFocused;	//!< Indicates that this window should always look focused, even when it is not. False by default
 
 			const bool				isModal;		//!< True if this window does not allow events to pass further down.
-			Timer::Time				hidden;			//!< Time stamp when this window was hidden
+			Time::Stamp				hidden;			//!< Time stamp when this window was hidden
 				
 
 			FunctionalEvent			onFocusGained,	//!< Triggered whenever this window gains the focus (also, if it has just become visible)

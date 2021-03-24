@@ -11,23 +11,18 @@ namespace Engine
 
 	Timing		timing;
 
-	Timing::Timing():ticks_per_second(0),now64(0),delta64(0),delta(0),now(0),timerReference(timer.Now())
-	{}
-
-	void Timing::update()
+	void Timing::Update()
 	{
-	    delta64 = timer.now()-now64;
-	    now64+=delta64;
-	    delta = (float)delta64/ticks_per_second;
-	    now = (double)(now64 - timerReference) /ticks_per_second;
+	    delta64 = now64.Elapsed();
+	    now64 += delta64;
+	    delta = delta64.ToSeconds();
 	}
 
-	void Timing::initialize()
+	void Timing::Initialize()
 	{
-		ticks_per_second = timer.getTicksPerSecond();
 		delta = 0.01f;
-		delta64 = 1;
-		now64 = timer.now();
-		timerReference = timer.Now();
+		delta64 = Time::Delta(delta);
+		now64.Update();
+		timeReference = now64;
 	}
 }

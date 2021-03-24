@@ -37,7 +37,7 @@ namespace Engine
 	{
 		if (read)
 		{
-			if (!block || timer.toSecondsf(timer.now() - block_start) > block_len)
+			if (!block || block_start.Elapsed() > block_len)
 			{
 				block = false;
 				
@@ -218,11 +218,11 @@ namespace Engine
 	Keyboard::~Keyboard()
 	{}
 
-	void Keyboard::DelayRead(float len)
+	void Keyboard::DelayRead(Time::Delta len)
 	{
 		block = true;
 		block_len = len;
-		block_start = timer.now();
+		block_start.Update();
 	}
 
 

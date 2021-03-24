@@ -2195,8 +2195,8 @@ namespace Engine
 			if (menuWindow)
 			{
 				POperator op = RequireOperator();
-				float delta = timer.toSecondsf(timing.now64-menuWindow->hidden);
-				if (delta >= 0 && delta<0.1f)
+				auto delta = (timing.now64-menuWindow->hidden);
+				if (delta.IsInRange(0_s,0.1_s))
 				{
 					op->HideMenus();
 					//Window::hideMenus();

@@ -23,6 +23,7 @@ engine keyboard-interface.
 namespace Engine
 {
 
+	using namespace Time::Literals;
 
 
 	
@@ -131,8 +132,8 @@ namespace Engine
 	private:
 			char				translation[0x100];
 			bool				block;
-			Timer::Time			block_start;
-			float				block_len;
+			Time::Stamp			block_start;
+			Time::Delta			block_len;
 			BYTE				on_char_input;
 			unsigned			delay_started,delay;
 			CharacterBuffer		internalBuffer;
@@ -150,7 +151,7 @@ namespace Engine
 
 	public:
 		typedef void	(*charReader)	(char);
-			
+		
 			
 		InputMap		&map;
 		bool			read;					//!< Species whether or not character inputs should be handled.
@@ -171,7 +172,7 @@ namespace Engine
 		void			TruncateIfLonger(size_t len);										//!< Wipes and dumps a number of characters from the end of the internal character buffer so that its content is at most \b len characters long after execution. \param len Maximum number of characters, the internal buffer should contain after execution, not counting the terminating zero.
 		void			ReplaceInputSection(index_t offset, size_t len, const String&string);	//!< Replaces a section of the internal character buffer with the specified string. \param offset Index of the first character to remove (0=first character in the buffer) \param len Number of characters to remove \param strn String to replace the removed section with. The string is not required to be of the same length as the section it replaces.
 		void			ReplaceInputSection(index_t offset, size_t len, const char*string);	//!< Replaces a section of the internal character buffer with the specified string. \param offset Index of the first character to remove (0=first character in the buffer) \param len Number of characters to remove \param strn String to replace the removed section with. The string is not required to be of the same length as the section it replaces.
-		void			DelayRead(float seconds=0.1);									//!< Enables character input handling after the specified time interval has passed. \param seconds Seconds to wait before enabling character handling.
+		void			DelayRead(Time::Delta seconds=0.1_s);									//!< Enables character input handling after the specified time interval has passed. \param seconds Seconds to wait before enabling character handling.
 
 		void			ResetTranslation();					//!< Resets the internal input character translation to the internal default.
 		void			Filter(const char*characters);		//!< Modifies the internal input character translation to only allow the specified characters. \param characters Characters to allow. All non-specified characters will be blocked.

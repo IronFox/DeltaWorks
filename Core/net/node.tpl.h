@@ -8,6 +8,7 @@ Network-interface.
 
 ******************************************************************/
 
+#if 0
 
 template <class Item>
 	Item*	Net::Queue<Item>::get()
@@ -64,7 +65,6 @@ template <class Item> UINT16 Net::Queue<Item>::elements()
     return last-first;
 }
 
-#if 0
 template <class C> inline void Net::Connection::send(UINT16 channel, BYTE flags, const C*data, unsigned elements)
 {
     write(channel,flags,data,sizeof(C)*elements);

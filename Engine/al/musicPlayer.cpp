@@ -17,7 +17,7 @@ namespace Engine
 		void	MusicPlayer::FadeOut(float fadeOutSeconds)
 		{
 			this->fadeOutSeconds = fadeOutSeconds;
-			this->fadeOutStarted = timer.Now();
+			this->fadeOutStarted.Update();
 			this->doFade = true;
 		}
 
@@ -67,7 +67,7 @@ namespace Engine
 			this->quit = false;
 			doFadeIn = fadeInSeconds > 0;
 			this->fadeInSeconds = fadeInSeconds;
-			fadeInStarted=timer.Now();
+			fadeInStarted.Update();
 			Super::Start();
 			return true;
 		}
@@ -150,7 +150,7 @@ namespace Engine
 
 					if (doFade)
 					{
-						float fadeAt = timer.GetSecondsSince(fadeOutStarted) / fadeOutSeconds;
+						float fadeAt = fadeOutStarted.ElapsedSeconds() / fadeOutSeconds;
 						if (fadeAt > 1)
 						{
 							break;
@@ -161,7 +161,7 @@ namespace Engine
 					}
 					elif (doFadeIn)
 					{
-						float fadeAt = timer.GetSecondsSince(fadeInStarted) / fadeInSeconds;
+						float fadeAt = fadeInStarted.ElapsedSeconds() / fadeInSeconds;
 						if (fadeAt > 1)
 						{
 							doFadeIn = false;

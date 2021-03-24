@@ -10,79 +10,181 @@ Works under linux and windows so far.
 
 #include "../global_root.h"
 
-#if SYSTEM==UNIX
-	#include <sys/time.h>
+#undef TIME_IMPL
+#undef TIME_CHRONO
+#undef TIME_SYS
+#undef TIME_WIN
+
+#define TIME_CHRONO 1
+#define TIME_SYS 2
+#define TIME_WIN 3
+#define TIME_WIN_QUERY 4
+
+#define TIME_IMPL	TIME_CHRONO
+
+
+#ifdef __has_include
+	#if __has_include(<sys/time.h>)
+		#undef TIME_IMPL
+		#define TIME_IMPL	TIME_SYS
+	#endif
+	#if __has_include(<Windows.h>)
+		#undef TIME_IMPL
+		#define TIME_IMPL	TIME_WIN
+	#endif
 #endif
 
 
-namespace DeltaWorks
+#if TIME_IMPL == TIME_SYS
+	#include <sys/time.h>
+#endif
+#if TIME_IMPL == TIME_WIN
+	//#include <Windows.h>
+#endif
+#if TIME_IMPL == TIME_CHRONO
+	#include <chrono>
+#endif
+
+
+/**
+High-precision timing helper classes
+*/
+namespace DeltaWorks::Time
 {
-	/*!
-	\brief Accurate timer class
-
-	The Timer class can be used to meassures time in microseconds.
-	*/
-	class Timer
+	namespace Details
 	{
-	private:
-		float					fresolution;
-		double					dresolution;
-		UINT64					frequency,
-								lastcall;
+		#if TIME_IMPL == TIME_CHRONO
+			typedef std::chrono::high_resolution_clock chrono_clock_t;
+			typedef std::chrono::time_point<chrono_clock_t> stamp_t;
+			typedef stamp_t::duration delta_t;
+		#else
+			typedef UINT64 stamp_t;
+			typedef INT64 delta_t;
+		#endif
+	}
+
+
+	class Delta;
+	class Stamp;
+
+	/**
+	Micro-second timestamp, used for network time transmission
+	where time resolution may vay.
+	*/
+	class MicroStamp
+	{
 	public:
-		typedef UINT64			Time;				//!< Time container. Currently using unsigned 64 bit integers
+		/**/					MicroStamp(const Stamp&);
+		/**/					MicroStamp(UINT64 ticks):internal(ticks)	{}
+		UINT64					GetTicks() const	{return internal;}
+	private:
+		UINT64					internal;
+	};
 
-		/**/					Timer();
-		float					getDeltaf();		//!< Query time since last call in seconds (float) \return Time since last call in seconds
-		inline float			GetDelta()				{return getDeltaf();}
-		double					getDeltad();		//!< Query time since last call in seconds (double) \return Time since last call in seconds
-		inline double			GetDeltaD()			{return getDeltad();}
-		Time					getDeltai();		//!< Query time since last call in ticks \return Time since last call in ticks
-		inline Time				GetTimeDelta()		{return getDeltai();}
-		Time					now()									const;	//!< Query native system time \return Current system time in ticks (zero time unknown)
-		inline Time				Now()									const	{return now();}
-		Time					netTime()								const;	//!< Query native system time in microseconds \return Current system time in micro seconds
-		inline Time				GetNetTime()							const	{return netTime();}
-		Time					getTicksPerSecond()						const;	//!< Query number of ticks per second \return Number of ticks per second (always 1000000 on unix)
-		inline Time				GetTicksPerSecond()						const	{return getTicksPerSecond();}
-		Time					GetAgeOf(Time stamp)					const;	//!< Calculates the time difference in ticks between the specified stamp and the current time
-		float					GetSecondsSince(Time stamp)				const;	//!< Calculates the time difference in seconds between the specified stamp and the current time
-		double					GetSecondsSinceD(Time stamp)			const;	//!< Calculates the time difference in seconds between the specified stamp and the current time
-		float					toSecondsf(const Time&ticks)			const;	//!< Converts ticks into seconds (float) \param ticks Time in ticks \return Time equivalent in seconds
-		double					toSecondsd(const Time&ticks)			const;	//!< Converts ticks into seconds (double) \param ticks Time in ticks \return Time equivalent in seconds
-		inline float			ToSeconds(const Time&ticks)				const	{return toSecondsf(ticks);}
-		inline double			ToSecondsD(const Time&ticks)			const	{return toSecondsd(ticks);}
-		Time					toTicks(double seconds)					const;	//!< Converts seconds into ticks \param seconds Time (in seconds) to convert to ticks \return Time equivalent in ticks
-		inline Time				ToTicks(double seconds)					const	{return toTicks(seconds);}
-		
+	/**
+	Maximum precision time stamp. Auto-initialized to current time
+	*/
+	class Stamp
+	{
+	public:
+		/**/					Stamp();
+		/**/					Stamp(const MicroStamp&);
+
+		Delta					operator-(const Stamp&other) const;
+		Stamp					operator+(const Delta&delta) const;
+		Stamp					operator-(const Delta&delta) const;
+		Stamp&					operator+=(const Delta&delta);
+		Stamp&					operator-=(const Delta&delta);
+
 		/**
-		Checks if the current timestamp is greater than the specified stamp plus maxAgeInSeconds.
-		If outdated, then stamp is updated to Now() and the method returns true
-
-		@param[inout] stamp Time stamp to check and potentially update to Now() if outdated
-		@param maxAgeInSeconds Maximum time span in seconds that the specified stamp may be outdated by
-		@return True, if the specified time stamp is older than the specified amount of seconds and has been updated. False otherwise
+		Updates the local time stamp to the current time.
+		Semantically identical to *this = Stamp();
 		*/
-		bool					CheckIfOutdatedAndUpdate(Time&stamp, float maxAgeInSeconds)	const;
+		void					Update();
 
-		Time					netToLocalTicks(const Time&mseconds)	const;
-		inline Time				NetToLocalTicks(const Time&mseconds)	const	{return netToLocalTicks(mseconds);}
-		Time					localToNetTicks(const Time&ticks)		const;
-		inline Time				LocalToNetTicks(const Time&ticks)		const	{return localToNetTicks(ticks);}
+		/**
+		Calculates the delta between the current timestamp and the local one
+		*/
+		Delta					Elapsed() const;
+		float					ElapsedSeconds() const;
 
-		static float			netToSecondsf(const Time&mseconds);	//!< Converts net time (micro seconds) into seconds (float) \param mseconds Time in micro seconds \return Time in seconds
-		static inline float		NetToSeconds(const Time&mseconds)	{return netToSecondsf(mseconds);}
-		static double			netToSecondsd(const Time&mseconds);	//!< Converts net time (micro seconds) into seconds (double) \param mseconds Time in micro seconds \return Time in seconds
-		static inline double	NetToSecondsD(const Time&mseconds)	{return netToSecondsd(mseconds);}
-		static Time				netToTicks(double seconds);			//!< Converts net time (in seconds) into ticks (micro seconds)	@param seconds Time (in seconds) to convert to net ticks @return Time equivalent in net ticks
-		static inline Time		NetToTicks(double seconds)			{return netToTicks(seconds);}
+		UINT64					ToMicroSecondsU() const;
+
+		UINT64					ToTicks() const;
+		static Stamp			FromTicks(UINT64 ticks);
+
+		/**
+		Checks if the local time stamp is older than the specified maximum age,
+		and updates if so. Returns true if updated, false if not outdated and unchanged.
+		*/
+		bool					CheckIfOutdatedAndUpdate(const Delta&maxAge);
+	private:
+		friend class Delta;
+
+		/**/					Stamp(const Details::stamp_t&);
+		Details::stamp_t		internal;
 	};
 
 
+	/**
+	High precision time difference between two time stamps
+	*/
+	class Delta
+	{
+	public:
+		static const Delta		Zero;
+
+		/**
+		Initializes the local time delta with zero
+		*/
+		/**/					Delta();
+		explicit				Delta(long double seconds);
+
+		float					ToSeconds() const;
+		double					ToSecondsD() const;
+
+		bool					IsInRange(const Delta&min, const Delta&max) const;
+		Delta					operator+(const Delta&other) const;
+		Delta&					operator+=(const Delta&other);
+		Delta					operator-(const Delta&other) const;
+		Delta&					operator-=(const Delta&other);
+		bool					operator>(const Delta&other) const;
+		bool					operator>=(const Delta&other) const;
+		bool					operator<(const Delta&other) const;
+		bool					operator<=(const Delta&other) const;
+		bool					operator==(const Delta&other) const;
+		bool					operator!=(const Delta&other) const;
+		bool					IsNotZero() const;
+		bool					IsZero() const;
+		bool					IsPositiveNonZero() const;
+		bool					IsNegativeNonZero() const;
+		Delta					operator*(double factor) const;
+		Delta					operator-() const;
+	private:
+		friend class Stamp;
+
+		/**/					Delta(const Details::delta_t&, bool);
+		Details::delta_t		internal;
+	};
 
 
-
-	extern Timer timer;
+	namespace Literals
+	{
+		Delta operator "" _d(long double days);
+		Delta operator "" _d(unsigned long long days);
+		Delta operator "" _h(long double hours);
+		Delta operator "" _h(unsigned long long hours);
+		Delta operator "" _m(long double minutes);
+		Delta operator "" _m(unsigned long long minutes);
+		Delta operator "" _s(long double seconds);
+		Delta operator "" _s(unsigned long long seconds);
+		Delta operator "" _ms(long double millis);
+		Delta operator "" _ms(unsigned long long millis);
+		Delta operator "" _us(long double microseconds);
+		Delta operator "" _us(unsigned long long microseconds);
+		Delta operator "" _ns(long double nanos);
+		Delta operator "" _ns(unsigned long long nanos);
+	}
 }
 
 #endif

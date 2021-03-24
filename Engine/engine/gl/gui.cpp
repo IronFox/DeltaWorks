@@ -1075,7 +1075,7 @@ namespace Engine
 		}
 
 
-		Window::Window(bool modal, Layout*style):isModal(modal),toneBackground(true),appearsFocused(false),exp(Vector2<UINT>::zero),size(1,1),progress(0),fsize(Vector2<>::one),usage(Vector2<>::zero),layout(style),title(""),sizeChanged(true),layoutChanged(true),visualChanged(true),fixedPosition(false),hidden(timer.now())
+		Window::Window(bool modal, Layout*style):isModal(modal),toneBackground(true),appearsFocused(false),exp(Vector2<UINT>::zero),size(1,1),progress(0),fsize(Vector2<>::one),usage(Vector2<>::zero),layout(style),title(""),sizeChanged(true),layoutChanged(true),visualChanged(true),fixedPosition(false)
 		{
 			#ifdef DEEP_GUI
 				_clear(destination.coord);

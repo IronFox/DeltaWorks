@@ -20,7 +20,7 @@ namespace Engine
 			bool		focusLostMuted = false;
 
 			bool		fadeGainIn = false;
-			Timer::Time	fadeGainFrom;
+			Time::Stamp	fadeGainFrom;
 			float		fadeGainSeconds = 0;
 
 			CWaves		wave_loader;
@@ -649,7 +649,7 @@ namespace Engine
 					using namespace OpenAL::Status;
 					if (fadeGainIn && !focusLostMuted)
 					{
-						float at = timer.GetSecondsSince(fadeGainFrom) / fadeGainSeconds;
+						float at = fadeGainFrom.ElapsedSeconds() / fadeGainSeconds;
 						if (at > 1)
 						{
 							at = 1;
@@ -761,7 +761,7 @@ namespace Engine
 			{
 				OpenAL::Status::focusLostMuted = false;
 				OpenAL::Status::fadeGainIn = true;
-				OpenAL::Status::fadeGainFrom = timer.Now();
+				OpenAL::Status::fadeGainFrom.Update();
 				OpenAL::Status::fadeGainSeconds = 2;
 			}
 		}

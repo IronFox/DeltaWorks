@@ -682,7 +682,7 @@ namespace DeltaWorks
 			try
 			{
 				client->socketAccess->SetSocket(socketHandle);
-				client->lastReceivedPackage = timer.Now();
+				client->lastReceivedPackage.Update();
 			}
 			catch (const std::exception&exception)
 			{
@@ -839,7 +839,7 @@ namespace DeltaWorks
 				if (size <= 0)
 					throw Except::IO::Network::ConnectionLost(CLOCATION,"SocketAccess::Read() returned "+String(size));
 				current += size;
-				lastReceivedPackage = timer.Now();
+				lastReceivedPackage.Update();
 			}
 			if (verbose)
 				std::cout << "Peer::netRead() exit"<<std::endl;

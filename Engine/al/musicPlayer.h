@@ -54,7 +54,7 @@ namespace Engine
 		private:
 			bool			GetData(ALuint target, ALenum format, count_t samplesPerSecond);
 
-			Timer::Time		fadeOutStarted,fadeInStarted;
+			Time::Stamp		fadeOutStarted,fadeInStarted;
 			float			fadeOutSeconds,fadeInSeconds;
 			String			exception;
 			Sys::Mutex		exceptionMutex;

@@ -27,7 +27,7 @@ namespace DeltaWorks
 		};
 	private:
 		PROCESS_INFORMATION	infoOut;
-		Timer::Time		lastCheck = timer.Now();
+		Time::Stamp		lastCheck;
 
 		Paths			paths;
 		PathString		executableName;

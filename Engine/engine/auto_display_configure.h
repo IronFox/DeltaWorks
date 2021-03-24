@@ -8,6 +8,8 @@
 
 namespace Engine
 {
+	using namespace Time::Literals;
+
 	inline bool validFileNameChar(char c)
 	{
 		return CharFunctions::isalnum(c) || c == ' ' || c == '_';
@@ -77,25 +79,25 @@ namespace Engine
 			
 			DisplayConfig config(displayName,[xmlFileName,onResize,&display, resolution](const Resolution&newRes, UINT32 flags){
 				
-				Timer::Time tUpdateXML = 0;
-				Timer::Time t0 = timer.Now();
-				Timer::Time t1 = t0;
+				Time::Delta tUpdateXML;
+				Time::Stamp t0;
+				Time::Stamp t1 = t0;
 				display.SignalWindowResize(flags);
-				Timer::Time tResizeDisplay = timer.Now() - t1;
+				Time::Delta tResizeDisplay = t1.Elapsed();
 				t1 += tResizeDisplay;
 				if (flags & Engine::DisplayConfig::ResizeDragHasEnded)
 				{
 					Detail::UpdateXML(display,flags, display.GetPreMaxiMinimizeLocation(), xmlFileName);
-					tUpdateXML = timer.Now() - t1;
+					tUpdateXML = t1.Elapsed();
 					t1 += tUpdateXML;
 				}
 				onResize(newRes,flags);
-				Timer::Time tOnResize = timer.Now() - t1;
+				Time::Delta tOnResize = t1.Elapsed();
 				t1 += tOnResize;
 				#ifdef _DEBUG
-				if (t1 - t0 > timer.GetTicksPerSecond()/2)
+				if (t1 - t0 > 0.5_s)
 				{
-					ShowOnce("Warning: Resize time threshold exceeded: display="+String(timer.ToSeconds(tResizeDisplay))+", XML="+String(timer.ToSeconds(tUpdateXML))+", client="+String(timer.ToSeconds(tOnResize)));
+					ShowOnce("Warning: Resize time threshold exceeded: display="+String(tResizeDisplay.ToSeconds())+", XML="+String(tUpdateXML.ToSeconds())+", client="+String(tOnResize.ToSeconds()));
 				}
 				#endif
 			});

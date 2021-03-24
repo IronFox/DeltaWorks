@@ -66,9 +66,9 @@ namespace DeltaWorks
 										else
 											current_callback = &default_callback;
 										last_error = "No Error";
-										Timer::Time t = timer.now();
+										Time::Stamp t;
 										bool result = Read(structure,filename);
-										seconds = timer.toSecondsf(timer.now()-t);
+										seconds = t.ElapsedSeconds();
 										return result;
 									}
 								
@@ -87,9 +87,9 @@ namespace DeltaWorks
 										else
 											current_callback = &default_callback;
 										last_error = "No Error";
-										Timer::Time t = timer.now();
+										Time::Stamp t;
 										bool result = Write(structure,filename);
-										seconds = timer.toSecondsf(timer.now()-t);
+										seconds = t.ElapsedSeconds();
 										return result;
 									}
 			virtual	const String&	GetError()	const					//! Returns a string representation of the last occured error (if any)
