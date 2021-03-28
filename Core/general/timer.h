@@ -3,8 +3,7 @@
 
 /******************************************************************
 
-Theoretically plattform independent time-query-class.
-Works under linux and windows so far.
+Plattform independent time-query-class.
 
 ******************************************************************/
 
@@ -121,7 +120,7 @@ namespace DeltaWorks::Time
 	private:
 		friend class Delta;
 
-		/**/					Stamp(const Details::stamp_t&);
+		/**/					Stamp(const Details::stamp_t&, bool);
 		Details::stamp_t		internal;
 	};
 

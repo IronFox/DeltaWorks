@@ -1,18 +1,8 @@
 #include "../global_root.h"
 #include "timer.h"
 
-/******************************************************************
-
-Theoretically plattform independent time-query-class.
-Works under linux and windows so far.
-
-******************************************************************/
-
 namespace DeltaWorks::Time
 {
-
-	//:internal(std::chrono::nanoseconds(long long(seconds * 1e9l))){}
-
 	namespace Details
 	{
 		
@@ -41,9 +31,14 @@ namespace DeltaWorks::Time
 
 		#endif
 		#if TIME_IMPL == TIME_WIN
-			#define TICKS_PER_SECONDS	10'000'000
+			#define TICKS_PER_SECONDS	10'000'000ll
 			#define TICK_D		1e-7
 			#define TICK_F		1e-7f
+		#endif
+		#if TIME_IMPL == TIME_SYS
+			#define TICKS_PER_SECONDS	1'000'000ll
+			#define TICK_D		1e-6
+			#define TICK_F		1e-6f
 		#endif
 
 			//100-nanosecond intervals
@@ -122,7 +117,10 @@ namespace DeltaWorks::Time
 	{}
 
 	Stamp::Stamp(const MicroStamp&micro):internal(Details::FromMicroSeconds(micro.GetTicks()))
-	{}
+	{
+		DBG_ASSERT__(internal < Details::Now());
+		DBG_ASSERT__(internal > Details::Now() - TICKS_PER_SECONDS*1000);
+	}
 
 
 	Delta			Stamp::operator-(const Stamp&other) const
@@ -136,23 +134,31 @@ namespace DeltaWorks::Time
 
 	Stamp			Stamp::operator+(const Delta&delta) const
 	{
-		return Stamp(internal + delta.internal);
+		return Stamp(internal + delta.internal,false);
 	}
 
 	Stamp			Stamp::operator-(const Delta&delta) const
 	{
-		return Stamp(internal - delta.internal);
+		return Stamp(internal - delta.internal,false);
 	}
 
 	Stamp&			Stamp::operator+=(const Delta&delta)
 	{
 		internal += delta.internal;
+		#ifdef _DEBUG
+			const auto now = Details::Now();
+			const auto dt = Details::delta_t(now - internal);
+			ASSERT__(dt >= 0);
+			ASSERT__(dt < TICKS_PER_SECONDS*1000);
+		#endif
 		return *this;
 	}
 
 	Stamp&			Stamp::operator-=(const Delta&delta)
 	{
 		internal -= delta.internal;
+		DBG_ASSERT__(internal < Details::Now());
+		DBG_ASSERT__(internal > Details::Now() - TICKS_PER_SECONDS*1000);
 		return *this;
 	}
 
@@ -177,12 +183,18 @@ namespace DeltaWorks::Time
 	}
 
 
-	Stamp::Stamp(const Details::stamp_t&s):internal(s)
-	{}
+	Stamp::Stamp(const Details::stamp_t&s, bool):internal(s)
+	{
+		DBG_ASSERT__(internal < Details::Now());
+		DBG_ASSERT__(internal > Details::Now() - TICKS_PER_SECONDS*1000);
+	}
 
 	Delta			Stamp::Elapsed() const
 	{
-		return Delta(Details::Now() - internal);
+		auto now = Details::Now();
+		auto delta = Details::delta_t(now - internal);
+		DBG_ASSERT__(delta > Details::ZeroDelta());
+		return Delta(delta,false);
 	}
 
 	float			Stamp::ElapsedSeconds() const
@@ -205,7 +217,7 @@ namespace DeltaWorks::Time
 		#if TIME_IMPL == TIME_CHRONO
 			return Stamp(MicroStamp(ticks));
 		#else
-			return Stamp(ticks);
+			return Stamp(ticks,false);
 		#endif
 	}
 
