@@ -53,7 +53,8 @@ namespace DeltaWorks
 		Self&				operator<<(double);
 		
 		void				Insert(index_t index, const T*str, size_t len);	//!< Inserts a string segment before the specified position (0=first character)
-		void				Insert(index_t index, const String&string);			//!< Inserts a string before the specified position (0=first character)
+		void				Insert(index_t index, const String&string)		{Insert(index,string.c_str(),string.GetLength());}
+		void				Insert(index_t index, const StringRef&string)	{Insert(index,string.pointer(),string.GetLength());}
 		
 		inline T			operator[](index_t index)	const{return Super::operator[](index);}
 		
@@ -354,12 +355,6 @@ namespace DeltaWorks
 	void			GenericStringBuffer<T>::Insert(index_t index, const T*str, size_t len)
 	{
 		memcpy(Super::insertRow(index,len),str,len);
-	}
-
-	template <typename T>
-	void			GenericStringBuffer<T>::Insert(size_t index, const String&string)
-	{
-		Insert(index,string.c_str(),string.GetLength());
 	}
 
 

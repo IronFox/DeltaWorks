@@ -291,8 +291,13 @@ namespace Engine
 			void					WriteText(const char*string, count_t length)	{WriteText(StringRef(string,length));}
 			void					WriteText(const String&str)	{WriteText(str.ref());}
 			void					WriteText(const StringRef&text);
+			void					WriteText(const char32_t*string, count_t length)	{WriteText(UTF32StringRef(string,length));}
+			void					WriteText(const UTF32String&str)	{WriteText(str.ref());}
+			void					WriteText(const UTF32StringRef&text);
 			float					GetUnscaledWidth(const StringRef&text) const;
+			float					GetUnscaledWidth(const UTF32StringRef&text) const;
 			float					GetUnscaledWidth(const char*text, count_t textLength) const {return GetUnscaledWidth(StringRef(text,textLength));}
+			float					GetUnscaledWidth(const char32_t*text, count_t textLength) const {return GetUnscaledWidth(UTF32StringRef(text,textLength));}
 
 			void					Paint(const TFreeCell&);
 			void					SetPointSize(float size);
@@ -376,7 +381,7 @@ namespace Engine
 		class Component: public std::enable_shared_from_this<Component>
 		{
 		private:
-			static	void 						ReadChar(char c);
+			static	void 						ReadChar(char32_t c);
 		protected:
 			std::weak_ptr<Window>				windowLink;	//!< Link to the owning window. Not NULL if this component is part of any window.
 			friend class Window;
@@ -447,7 +452,7 @@ namespace Engine
 			virtual	eEventResult				OnFocusLost()					{return Unsupported;}						//!< Triggered if this component has lost the input focus
 			virtual	eEventResult				OnKeyDown(Key::Name key)		{return Unsupported;}						//!< Triggered if the user has pressed a supported key while this component had the focus. This event may fire multiple times before the user releases the key and the onKeyUp() event method is triggered.
 			virtual	eEventResult				OnKeyUp(Key::Name key)			{return Unsupported;}						//!< Triggered if the user has released a supported key while this component had the focus.
-			virtual	eEventResult				OnChar(char c)					{return Unsupported;}						//!< Triggered if the user has pressed a character key while this component had the focus.
+			virtual	eEventResult				OnChar(char32_t c)				{return Unsupported;}						//!< Triggered if the user has pressed a character key while this component had the focus.
 			virtual	eEventResult				OnTick()						{return Unsupported;}						//!< Triggered each time the counter hit @b tick_interval seconds while this component has the focus
 			virtual	bool						IsTabFocusable() const			{return false;}								//!< Queries whether or not this entry is focusable via the tab key
 			virtual bool						CanHandleMouseWheel() const		{return false;}

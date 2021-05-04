@@ -2,6 +2,7 @@
 
 #include "renderer/opengl.h"
 #include "renderer/dummygl.h"
+#include <string/encoding.h>
 
 template class Engine::Display < Engine::OpenGL > ;
 template class Engine::Display < Engine::DummyGL > ;
@@ -649,16 +650,11 @@ namespace Engine
 
 
 		//#ifdef _UNICODE
-			Array<wchar_t>	w_name;
-			w_name.SetSize(window_name.GetLength()+1);
-			for (index_t i = 0; i < window_name.GetLength(); i++)
-				w_name[i] = (wchar_t)window_name.GetChar(i);
-			w_name.Last() = 0;
 				
 			
 			hWnd = CreateWindowExW(
 				0,
-				ENGINE_CLASS_NAME,w_name.pointer(),
+				ENGINE_CLASS_NAME, StringEncoding::UTF8::ToUTF16(window_name).c_str(),
 				style,
 				_location.left,_location.top, //Position
 				_location.right-_location.left,_location.bottom-_location.top, //Dimensionen
@@ -666,6 +662,10 @@ namespace Engine
 				NULL,
 				hInstance, //Application
 				NULL);
+			#ifndef GWL_WNDPROC
+				#define GWL_WNDPROC (-4)
+			#endif
+			SetWindowLongW(hWnd, GWL_WNDPROC, GetWindowLongW(hWnd, GWL_WNDPROC));
 		//#else
 		//	hWnd = CreateWindowExA(
 		//		0,
@@ -1840,7 +1840,21 @@ namespace Engine
 			case WM_KEYDOWN:	keyboard.keyDown((Key::Name)wParam);						return 0;
 			case WM_SYSKEYUP:
 			case WM_KEYUP:		keyboard.keyUp((Key::Name)wParam);							return 0;
-			case WM_CHAR:		keyboard.input(wParam);										return 0;
+			case WM_UNICHAR:
+				keyboard.input(wParam);										
+
+			return 0;
+			case WM_CHAR:
+			{
+				StringEncoding::UTF16::TChar c16;
+				c16.encoded[1] = (wParam>>16);
+				c16.encoded[0] = (wParam&0xFFFF);
+				c16.numCharsUsed = c16.encoded[1] == 0 ? 1 : 2;
+
+				char32_t c32 = StringEncoding::UTF16::ToUTF32(c16);
+				keyboard.input(wParam);										
+			}
+			return 0;
 			case WM_LBUTTONDOWN:mouse.SignalButtonDown(0); installHook();							return 0;
 			case WM_LBUTTONUP:  mouse.SignalButtonUp(0);											return 0;
 			case WM_MBUTTONDOWN:mouse.SignalButtonDown(1); installHook();							return 0;

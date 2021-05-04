@@ -1,4 +1,5 @@
 #include "keyboard.h"
+#include <string/encoding.h>
 
 
 /******************************************************************
@@ -24,16 +25,9 @@ namespace Engine
 		map.keyUp(index);
 	}
 	
-	char Keyboard::convertInput(char c)
-	{
-		c = translation[(BYTE)c];
-		if (map.pressed[Key::Shift] && c>='a' && c <='z')
-			c+='A'-'a';
-		return c;
-	}
 
 
-	void Keyboard::input(char c)
+	void Keyboard::input(char32_t c)
 	{
 		if (read)
 		{
@@ -41,9 +35,10 @@ namespace Engine
 			{
 				block = false;
 				
-				c = translation[(BYTE)c];
-				if (map.pressed[Key::Shift] && c>='a' && c <='z')
-					c+='A'-'a';
+				if (StringFunctions::IsInvalidChar(c) || c == '\n' || (filter && !filter(c)))
+					return;
+				if (map.pressed[Key::Shift])
+					c = StringFunctions::toupper(c);
 
 				if (c)
 				{
@@ -71,7 +66,14 @@ namespace Engine
 		DBG_ASSERT__(IsSane());
 	}
 
-	void				Keyboard::CharacterBuffer::SetTo(const char*str, size_t strLen)
+	void				Keyboard::CharacterBuffer::SetToUTF8(const StringRef&ref)
+	{
+		UTF32String str;
+		StringEncoding::UTF8::ToUTF32(ref,str);
+		SetTo(str);
+	}
+
+	void				Keyboard::CharacterBuffer::SetTo(const Character*str, size_t strLen)
 	{
 		Wipe();
 		Append(str,strLen);
@@ -91,7 +93,7 @@ namespace Engine
 
 
 
-	void				Keyboard::CharacterBuffer::ReplaceSection(index_t from, size_t len, const char*str, size_t strLen)
+	void				Keyboard::CharacterBuffer::ReplaceSection(index_t from, size_t len, const Character*str, size_t strLen)
 	{
 		DBG_ASSERT__(IsSane());
 		if (len == 0 && strLen == 0)
@@ -107,7 +109,7 @@ namespace Engine
 			len = GetLength() - from;
 		}
 		
-		Array<char> tail;
+		Array<Character> tail;
 		size_t tailLength = GetLength() - (from+len);
 		if (tailLength)
 		{
@@ -124,7 +126,7 @@ namespace Engine
 		DBG_ASSERT__(IsSane());
 	}
 
-	void			Keyboard::CharacterBuffer::Append(const char*str, size_t strLen)
+	void			Keyboard::CharacterBuffer::Append(const Character*str, size_t strLen)
 	{
 		if (strLen == 0)
 			return;
@@ -139,12 +141,12 @@ namespace Engine
 
 
 
-	const char* Keyboard::GetInput()	const
+	UTF32StringRef Keyboard::GetRawInput()	const
 	{
-		return internalBuffer.GetCharacters();
+		return internalBuffer.ToRef();
 	}
 
-	size_t Keyboard::GetInputLen()	const
+	count_t Keyboard::GetRawInputLen()	const
 	{
 		return internalBuffer.GetLength();
 	}
@@ -160,38 +162,57 @@ namespace Engine
 		internalBuffer.Truncate(len);
 	}
 
-	void	Keyboard::FilterAppend(const char*strn)
+	void	Keyboard::FilterAppendUTF8(const char*strn)
 	{
-		while (*strn)
+		const auto end = strn + StringFunctions::strlen(strn);
+		while (strn < end)
 		{
-			input(*strn);
-			++strn;
+			char32_t c32;
+			if (!StringEncoding::UTF8::ToUTF32(strn,end,c32))
+				return;
+			input(c32);
 		}
 	}
 
-	void	Keyboard::FilterAppend(const String&strn)
+	void	Keyboard::FilterAppendUTF8(const String&str)
 	{
-		FilterAppend(strn.c_str());
+		auto strn = str.c_str();
+		const auto end = strn + str.GetLength();
+		while (strn < end)
+		{
+			char32_t c32;
+			if (!StringEncoding::UTF8::ToUTF32(strn,end,c32))
+				return;
+			input(c32);
+		}
+	}
 
+	String	Keyboard::GetInputAsUTF8() const
+	{
+		String str;
+		StringEncoding::UTF32::ToUTF8(GetRawInput(),str);
+		return str;
 	}
 
 
-	void Keyboard::FillInput(const String&strn)
+	void Keyboard::FillInputUTF8(const String&strn)
+	{
+		internalBuffer.SetToUTF8(strn);
+	}
+
+	void Keyboard::FillInputUTF8(const char*strn)
 	{
 		internalBuffer.SetTo(strn);
 	}
 
-	void Keyboard::FillInput(const char*strn)
+	void Keyboard::ReplaceInputSectionUTF8(index_t offset, size_t len, const String&strn)
 	{
-		internalBuffer.SetTo(strn);
+		UTF32String str;
+		StringEncoding::UTF8::ToUTF32(strn,str);
+		internalBuffer.ReplaceSection(offset,len,str);
 	}
 
-	void Keyboard::ReplaceInputSection(index_t offset, size_t len, const String&strn)
-	{
-		internalBuffer.ReplaceSection(offset,len,strn);
-	}
-
-	void Keyboard::ReplaceInputSection(index_t offset, size_t len, const char*strn)
+	void Keyboard::ReplaceInputSectionUTF8(index_t offset, size_t len, const char*strn)
 	{
 		internalBuffer.ReplaceSection(offset,len,strn);
 	}
@@ -226,69 +247,15 @@ namespace Engine
 	}
 
 
-
-
 	void Keyboard::ResetTranslation()
+	{}
+
+
+	void Keyboard::SetFilter(const FAllowed&filter)
 	{
-		Filter("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789°!\"§$%&/()=?´`{[]}\\#+'*~-_.:,;|<> ");
-
-		translation[(BYTE)'â'] = 'a';
-		translation[(BYTE)'ô'] = 'o';
-		translation[(BYTE)'û'] = 'u';
-		translation[(BYTE)'î'] = 'i';
-		translation[(BYTE)'ê'] = 'e';
-		translation[(BYTE)'Â'] = 'A';
-		translation[(BYTE)'Ô'] = 'O';
-		translation[(BYTE)'Û'] = 'U';
-		translation[(BYTE)'Î'] = 'I';
-		translation[(BYTE)'Ê'] = 'E';
-
-		translation[(BYTE)'à'] = 'a';
-		translation[(BYTE)'ò'] = 'o';
-		translation[(BYTE)'ù'] = 'u';
-		translation[(BYTE)'ì'] = 'i';
-		translation[(BYTE)'è'] = 'e';
-		translation[(BYTE)'À'] = 'A';
-		translation[(BYTE)'Ò'] = 'O';
-		translation[(BYTE)'Ù'] = 'U';
-		translation[(BYTE)'Ì'] = 'I';
-		translation[(BYTE)'È'] = 'E';
+		this->filter = filter;
 	}
 
-
-	void Keyboard::Filter(const char*characters)
-	{
-		memset(translation,0,sizeof(translation));
-		unsigned index = 0;
-		while (characters[index])
-		{
-			translation[(BYTE)characters[index]] = characters[index];
-			index++;
-		}
-	}
-
-	void Keyboard::Allow(const char*characters)
-	{
-		unsigned index = 0;
-		while (characters[index])
-		{
-			translation[(BYTE)characters[index]] = characters[index];
-			index++;
-		}
-	}
-
-	void Keyboard::Disallow(const char*characters)
-	{
-		unsigned index = 0;
-		while (characters[index])
-			translation[(BYTE)characters[index++]] = 0;
-	}
-
-	void Keyboard::Translate(const char*from, const char*to)
-	{
-		while (*from && *to)
-			translation[(BYTE)*from++] = *to++;
-	}
 
 
 }

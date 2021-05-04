@@ -1,4 +1,5 @@
 #include "containers.h"
+#include <string/encoding.h>
 
 namespace DeltaWorks
 {
@@ -9,41 +10,31 @@ namespace DeltaWorks
 	{
 		template class NetString<256>;
 
-		bool			IsValidChar(char c)
+		bool			IsValidChar(char32_t c)
 		{
-			switch (c)
-			{
-				case 'ä':
-				case 'ö':
-				case 'ü':
-				case 'Ä':
-				case 'Ö':
-				case 'Ü':
-				case 'ß':
-
-				case ' ':
-				case '\t':
-				case '\n':
-				//case '\r':	<- should not be in a network-string. Standard uses \n as newline
-					return true;
-			}
-			const auto rs = isgraph((BYTE)c);
-			bool result = rs != 0;
-			return result;
+			return !StringFunctions::IsInvalidChar(c) && c != '\t';
 		}
 
 		bool			IsValid(const StringRef&str, const count_t maxLength)
 		{
 			if (str.GetLength() > maxLength)
 				return false;
-			for (index_t i = 0; i < str.GetLength(); i++)
-				if (!IsValidChar(str[i]))
-				{
-					//cout << "invalid char '"<<
+			StringEncoding::UTF8::Scanner scanner(str);
+			while (scanner.HasNext())
+				if (!IsValidChar(scanner.Next()))
 					return false;
-				}
 			return true;
 		}
+		bool			IsValid(const UTF32StringRef&str, const count_t maxLength)
+		{
+			if (str.GetLength() > maxLength)
+				return false;
+			for (index_t i = 0; i < str.GetLength(); i++)
+				if (!IsValidChar(str.GetChar(i)))
+					return false;
+			return true;
+		}
+
 
 		void			AssertValidity(String&str, const count_t maxLength)
 		{

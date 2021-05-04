@@ -26,9 +26,9 @@ void Console::closeEvent()
 void Console::fetchInput()
 {
 	CONSOLE_LOG("retrieving input");
-    const char*input = keyboard.GetInput();
+    String input = keyboard.GetInputAsUTF8();
 	CONSOLE_LOG("input is '"<<input<<"'");
-    if (keyboard.GetInputLen())
+    if (input.IsNotEmpty())
     {
 		CONSOLE_LOG("erasing history occurrences");
         inputs.eraseOccurrences(input);
@@ -39,7 +39,7 @@ void Console::fetchInput()
     if (parser)
 	{
 		CONSOLE_LOG("sending to parser");
-        parser(input);
+        parser(input.c_str());
 		CONSOLE_LOG("parser returned");
 	}
 	CONSOLE_LOG("flushing input");
@@ -54,7 +54,7 @@ void Console::prevInput()
     if (selected_input < inputs.Count())
     {
         selected_input++;
-        keyboard.FillInput(inputs.getReverse(selected_input-1));
+        keyboard.FillInputUTF8(inputs.getReverse(selected_input-1));
     }
 }
 
@@ -63,7 +63,7 @@ void Console::nextInput()
     if (selected_input)
     {
         selected_input--;
-        keyboard.FillInput(inputs.getReverse(selected_input-1));
+        keyboard.FillInputUTF8(inputs.getReverse(selected_input-1));
     }
 }
 

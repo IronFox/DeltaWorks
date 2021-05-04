@@ -814,6 +814,13 @@ namespace StringType
 			}
 		
 	template <typename T>
+		Template<T>::Template(const ReferenceExpression<T>&expression)
+		{
+			makeFromExpression(expression);
+			//ASSERT_NOT_NULL__(Super::data);
+		}
+		
+	template <typename T>
 		template <class T0>
 			Template<T>::Template(const ReferenceExpression<T0>&expression)
 			{
@@ -828,6 +835,26 @@ namespace StringType
 				makeFromExpression(expression);
 				//ASSERT_NOT_NULL__(Super::data);
 			}
+	template <typename T>
+		Template<T>::Template(const StringExpression<T>&expression)
+		{
+			makeFromExpression(expression);
+			//ASSERT_NOT_NULL__(Super::data);
+		}
+
+	template <typename T>
+		template <class T0>
+			Template<T>::Template(const CharacterExpression<T0>&expression)
+			{
+				makeFromExpression(expression);
+				//ASSERT_NOT_NULL__(Super::data);
+			}
+	template <typename T>
+		Template<T>::Template(const CharacterExpression<T>&expression)
+		{
+			makeFromExpression(expression);
+			//ASSERT_NOT_NULL__(Super::data);
+		}
 
 	
 	template <typename T>

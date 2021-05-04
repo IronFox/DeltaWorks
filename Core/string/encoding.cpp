@@ -274,6 +274,32 @@ namespace DeltaWorks
 			return ((signed char)csource) < 0;
 		}
 
+		bool	UTF8::ToUTF32(const char*&begin, const char*const end, char32_t&outChar)
+		{
+			if (begin >= end)
+				return false;
+			const BYTE length = GetLength(*begin);
+			if (begin + length > end || length == 0)
+				return false;
+
+			unsigned char first = (BYTE) *begin;
+
+
+			UINT32 rs = first & ((0xFF>>(length)));
+
+			for (index_t at = 1; at < length; at++)
+			{
+				if ((begin[at] & 0xC0) != 0x80)
+					throw Except::Program::DataConsistencyFault(CLOCATION, "UTF8 Encoding error. Expected following byte "+String(at)+" to contain 10xxxxxx header (encountered "+DataToBinary(&begin[at],1)+")");
+				rs <<= 6;
+				rs |= (begin[at] & 0x3F);
+			}
+			
+			begin += length;
+			outChar = (char32_t)rs;
+			return true;
+		}
+
 
 		BYTE	UTF8::GetLength(char firstChar)
 		{
@@ -373,74 +399,116 @@ namespace DeltaWorks
 					return (char32_t)(BYTE)c;
 			};
 		}
-
-		char	UTF32::ToCP1252(char32_t c)
+		
+		bool	UTF32::ToCP1252(char32_t c, char&outChar)
 		{
 			if ((UINT32)c < 0x100)
 			{
-				return (char)(BYTE)(UINT32)c;
+				outChar = (char)(BYTE)(UINT32)c;
+				return true;
 			}
 			switch ((UINT32)c)
 			{
 				case 0x20AC:
-					return (char)(BYTE)128;
+					outChar = (char)(BYTE)128;
+					break;
 				case 0x201A:
-					return (char)(BYTE)130;
+					outChar = (char)(BYTE)130;
+					break;
 				case 0x0192:
-					return (char)(BYTE)131;
+					outChar = (char)(BYTE)131;
+					break;
 				case 0x201E:
-					return (char)(BYTE)132;
+					outChar = (char)(BYTE)132;
+					break;
 				case 0x2026:
-					return (char)(BYTE)133;
+					outChar = (char)(BYTE)133;
+					break;
 				case 0x2020:
-					return (char)(BYTE)134;
+					outChar = (char)(BYTE)134;
+					break;
 				case 0x2021:
-					return (char)(BYTE)135;
+					outChar = (char)(BYTE)135;
+					break;
 				case 0x02C6:
-					return (char)(BYTE)136;
+					outChar = (char)(BYTE)136;
+					break;
 				case 0x2030:
-					return (char)(BYTE)137;
+					outChar = (char)(BYTE)137;
+					break;
 				case 0x0160:
-					return (char)(BYTE)138;
+					outChar = (char)(BYTE)138;
+					break;
 				case 0x2039:
-					return (char)(BYTE)139;
+					outChar = (char)(BYTE)139;
+					break;
 				case 0x0152:
-					return (char)(BYTE)140;
+					outChar = (char)(BYTE)140;
+					break;
 				case 0x017D:
-					return (char)(BYTE)142;
+					outChar = (char)(BYTE)142;
+					break;
 				case 0x2018:
-					return (char)(BYTE)145;
+					outChar = (char)(BYTE)145;
+					break;
 				case 0x2019:
-					return (char)(BYTE)146;
+					outChar = (char)(BYTE)146;
+					break;
 				case 0x201C:
-					return (char)(BYTE)147;
+					outChar = (char)(BYTE)147;
+					break;
 				case 0x201D:
-					return (char)(BYTE)148;
+					break;
+					outChar = (char)(BYTE)148;
+					break;
 				case 0x2022:
-					return (char)(BYTE)149;
+					outChar = (char)(BYTE)149;
+					break;
 				case 0x2013:
-					return (char)(BYTE)150;
+					outChar = (char)(BYTE)150;
+					break;
 				case 0x2014:
-					return (char)(BYTE)151;
+					outChar = (char)(BYTE)151;
+					break;
 				case 0x02DC:
-					return (char)(BYTE)152;
+					outChar = (char)(BYTE)152;
+					break;
 				case 0x2122:
-					return (char)(BYTE)153;
+					outChar = (char)(BYTE)153;
+					break;
 				case 0x0161:
-					return (char)(BYTE)154;
+					outChar = (char)(BYTE)154;
+					break;
 				case 0x203A:
-					return (char)(BYTE)155;
+					outChar = (char)(BYTE)155;
+					break;
 				case 0x0153:
-					return (char)(BYTE)156;
+					outChar = (char)(BYTE)156;
+					break;
 				case 0x017E:
-					return (char)(BYTE)158;
+					outChar = (char)(BYTE)158;
+					break;
 				case 0x0178:
-					return (char)(BYTE)159;
+					outChar = (char)(BYTE)159;
+					break;
+				default:
+					if ((UINT32)c > 255)
+						return false;
+					outChar = (char)(BYTE)(UINT32)c;
+					break;
+
 			};
 
-			if ((UINT32)c > 255)
+			return true;
+
+		}
+
+		char	UTF32::ToCP1252(char32_t c)
+		{
+			char rs;
+			if (!ToCP1252(c,rs))
 				throw Except::Program::DataConsistencyFault(CLOCATION, "UTF32 character is out of range for CP-1252");
-			return (char)(BYTE)(UINT32)c;
+			return rs;
 		}
 
 		char UTF8::ToCP1252(const UTF8::TChar&ch)
@@ -458,6 +526,14 @@ namespace DeltaWorks
 		}
 
 
+		UTF32String	UTF8::ToUTF32(const String&utf8Source)
+		{
+			UTF32String rs;
+			ToUTF32(utf8Source,rs);
+			return rs;
+		}
+
+
 		void	UTF8::ToUTF32(const String&utf8Source, UTF32String&utf32Dest)
 		{
 			UTF8::ToUTF32(utf8Source.ref(),utf32Dest);
@@ -471,6 +547,14 @@ namespace DeltaWorks
 		{
 			UTF32::ToUTF8(utf32Source.ref(),utf8Dest);
 		}
+
+		String	UTF32::ToUTF8(const UTF32StringRef&utf32Source)
+		{
+			String rs;
+			ToUTF8(utf32Source,rs);
+			return rs;
+		}
+
 
 
 
@@ -815,6 +899,14 @@ namespace DeltaWorks
 		{
 			ToUTF16(utf8Source.ToRef(),utf16Dest);
 		}
+
+		StringW	UTF8::ToUTF16(const String&utf8Source)
+		{
+			StringW rs;
+			ToUTF16(utf8Source,rs);
+			return rs;
+		}
+
 
 
 

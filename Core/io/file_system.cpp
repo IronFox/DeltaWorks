@@ -49,6 +49,59 @@ namespace DeltaWorks
 			prefixRules.Clear();
 		}
 
+		static bool		IsAbsPathWin(const PathString&path)
+		{
+			 return (isalpha(path.FirstChar()) && path.GetChar(1) == ':');
+		}
+
+		PathString		StringToPath(const UTF32StringRef&utf32Path)
+		{
+			#if SYSTEM==WINDOWS
+				PathString rs;
+				StringEncoding::UTF32::ToUTF16(utf32Path,rs);
+				if (IsAbsPathWin(rs))
+					rs = ABS_MARKER + rs;
+
+				rs.FindAndReplace('/',FOLDER_SLASH);
+
+				return rs;
+			#else
+				PathString rs;
+				StringEncoding::UTF32::ToUTF8(utf32Path,rs);
+				rs.FindAndReplace('\\',FOLDER_SLASH);
+				return utf8Path;
+			#endif
+		}
+
+		PathString		StringToPath(const UTF32String&utf32Path)
+		{
+			return StringToPath(utf32Path.ToRef());
+		}
+
+		PathString		StringToPath(const String&utf8Path)
+		{
+			return StringToPath(utf8Path.ToRef());
+		}
+
+
+		PathString		StringToPath(const StringRef&utf8Path)
+		{
+			#if SYSTEM==WINDOWS
+				PathString rs;
+				StringEncoding::UTF8::ToUTF16(utf8Path,rs);
+				if (IsAbsPathWin(rs))
+					rs = ABS_MARKER + rs;
+
+				rs.FindAndReplace('/',FOLDER_SLASH);
+
+				return rs;
+			#else
+				PathString rs = utf8Path;
+				rs.FindAndReplace('\\',FOLDER_SLASH);
+				return utf8Path;
+			#endif
+		}
+
 		String			PathToString(const PathString&path, bool replaceDetectedPrefixes/*=true*/)
 		{
 			String*caption = nullptr;
@@ -67,13 +120,10 @@ namespace DeltaWorks
 			#if SYSTEM==WINDOWS
 				if (ref.BeginsWith(ABS_MARKER))
 					ref = ref.SubStringRef(4);
-			#endif
-			if (sizeof(PathString::char_t) != 1)
-			{
 				StringEncoding::UTF16::ToUTF8(ref,rs);
-			}
-			else
+			#else
 				rs = ref;
+			#endif
 			if (caption)
 				rs = "["+*caption+"]"+rs;
 			return rs;
@@ -459,7 +509,7 @@ namespace DeltaWorks
 			#if SYSTEM==WINDOWS
 			
 				bool isAbs = path_string.BeginsWith(ABS_MARKER);
-				if (isAbs || (isalpha(path_string.FirstChar()) && path_string.GetChar(1) == ':'))
+				if (isAbs || IsAbsPathWin(path_string))
 				{
 					if (isAbs)
 					{

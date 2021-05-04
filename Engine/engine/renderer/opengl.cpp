@@ -1,5 +1,5 @@
 #include "opengl.h"
-
+#include <string/encoding.h>
 
 namespace Engine
 {
@@ -2341,8 +2341,8 @@ namespace Engine
 				if (!hide_border)
 					style |=   WS_OVERLAPPEDWINDOW  | WS_SIZEBOX;
 
-	            window = CreateWindowA(
-	                class_name.c_str(),window_name.c_str(),
+	            window = CreateWindowExW(0L,
+	                StringEncoding::UTF8::ToUTF16(class_name).c_str(),StringEncoding::UTF8::ToUTF16(window_name).c_str(),
 	                style,
 	                x,y, //Position
 	                width,height, //Dimensionen

@@ -25,6 +25,12 @@ namespace Engine
 		}
 		
 	template <class Font>
+		void		Textout<Font>::WriteSegment(const char32_t*field, size_t len)
+		{
+			activeFont->Write(UTF32StringRef(field,len));
+		}
+		
+	template <class Font>
 		void		Textout<Font>::EndOutput()
 		{
 			activeFont->End();
@@ -72,8 +78,18 @@ namespace Engine
 	{
 	    return activeFont->GetWidth(line)*state.x_scale;
 	}
+
+	template <class Font> float Textout<Font>::GetScaledWidth(const UTF32StringRef&line) const
+	{
+	    return activeFont->GetWidth(line)*state.x_scale;
+	}
 		
 	template <class Font> /*virtual override*/ float Textout<Font>::QueryUnscaledWidth(const StringRef&line) const
+	{
+	    return activeFont->GetWidth(line);
+	}
+		
+	template <class Font> /*virtual override*/ float Textout<Font>::QueryUnscaledWidth(const UTF32StringRef&line) const
 	{
 	    return activeFont->GetWidth(line);
 	}
@@ -84,6 +100,11 @@ namespace Engine
 	}
 
 	template <class Font> float Textout<Font>::GetUnscaledWidth(const StringRef&line) const
+	{
+	    return activeFont->GetWidth(line);
+	}
+
+	template <class Font> float Textout<Font>::GetUnscaledWidth(const UTF32StringRef&line) const
 	{
 	    return activeFont->GetWidth(line);
 	}
@@ -109,18 +130,19 @@ namespace Engine
 	}
 
 	template <class Font>
-		void	Textout<Font>::Stream(const char*str, size_t len)
+		template <typename Char>
+		void	Textout<Font>::Stream(const Char*str, size_t len)
 		{
 			if (!len)
 				return;
 		    activeFont->Begin(state);
-		    const char*at = str,*end=str+len;
+		    const Char*at = str,*end=str+len;
 		    while (at<end)
 		    {
 		        size_t len(0);
 		        while (at+len<end && at[len] != '\n')
 		            len++;
-				const StringRef toWrite(at,len);
+				const StringType::ReferenceExpression<Char> toWrite(at,len);
 		        activeFont->Write(toWrite);
 				if (at+len >= end)
 				{
@@ -145,6 +167,10 @@ namespace Engine
 	template <class Font> void Textout<Font>::Print(const StringRef&str)
 	{
 	    Print(str.pointer(),str.GetLength());
+	}
+	template <class Font> void Textout<Font>::Print(const UTF32StringRef&str)
+	{
+		Print(str.pointer(),str.GetLength());
 	}
 
 	template <class Font> void Textout<Font>::PrintTagged(const char*str, char tag)
@@ -249,6 +275,19 @@ namespace Engine
 		}
 	template <class Font>
 		Textout<Font>&	Textout<Font>::operator<<(const StringRef&str)
+		{
+			Stream(str.pointer(),str.GetLength());
+			return *this;
+		}
+
+	template <class Font>
+		Textout<Font>&	Textout<Font>::operator<<(const UTF32String&str)
+		{
+			Stream(str.c_str(),str.GetLength());
+			return *this;
+		}
+	template <class Font>
+		Textout<Font>&	Textout<Font>::operator<<(const UTF32StringRef&str)
 		{
 			Stream(str.pointer(),str.GetLength());
 			return *this;
@@ -449,6 +488,93 @@ namespace Engine
 		{
 			StreamFloat(d,8);
 			return *this;
+		}
+
+
+
+
+	template <typename Char>
+		void		VirtualTextout::Write(const StringType::ReferenceExpression<Char>&str)
+		{
+			if (str.GetLength()==0)
+				return;
+			BeginOutput();
+			const Char*at = str.pointer(),
+					*const end=at+str.GetLength();
+			while (at<end)
+			{
+				size_t len(0);
+				while (at+len<end && at[len] != '\n')
+					len++;
+				WriteSegment(at,len);
+				at+=len;
+				if (at<end)
+				{
+					state.lineOffset += QueryScaledHeight();
+					EndOutput();
+					BeginOutput();
+					at++;
+				}
+			}
+			EndOutput();
+		}
+
+	template <typename Char>
+		void		VirtualTextout::WriteTagged(const StringType::ReferenceExpression<Char>&str, Char tag)
+		{
+			if (!str)
+				return;
+			TFontColor 	color_state = state;
+			TFontColor	color_stack[0x100];
+			BYTE        color_depth(0);
+
+			BeginOutput();
+			const Char*at = str;
+			while (*at)
+			{
+				size_t l(0);
+				while (at[l] && at[l] != '\n' && at[l] != tag)
+					l++;
+				WriteSegment(at,l);
+				at+=l;
+				if ((*at) == '\n')
+				{
+					state.lineOffset += QueryScaledHeight();
+					EndOutput();
+					BeginOutput();
+					AlterColor(color_state);
+					at++;
+				}
+				else
+					if ((*at) == tag)
+					{
+						at++;
+						size_t remaining = strlen(at);
+						if (remaining > 4 && !strncmpi(at,"push",4))
+						{
+							color_stack[color_depth++] = color_state;
+							at+=4;
+						}
+						else
+							if (remaining > 3 && !strncmpi(at,"pop",3))
+							{
+								color_state = color_stack[--color_depth];
+								AlterColor(color_state);
+								at+=3;
+							}
+							else
+								if (remaining > 8)
+								{
+									color_state.red = (float)hexStr(at)/255;
+									color_state.green = (float)hexStr(at+2)/255;
+									color_state.blue = (float)hexStr(at+4)/255;
+									color_state.alpha = (float)hexStr(at+6)/255;
+									at+=8;
+									AlterColor(color_state);
+								}
+					}
+			}
+			EndOutput();
 		}
 
 

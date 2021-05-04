@@ -500,11 +500,47 @@ namespace DeltaWorks
 				return false;
 
 			#else
-				#error stump
+				#error stub
 			#endif
 		}
 
-		bool				getFromClipboardIfText(HWND window, char*buffer, size_t buffer_size)
+		count_t				GetClipboardTextLength(HWND window)
+		{
+			#if SYSTEM==WINDOWS
+				size_t len;
+				if (!IsClipboardFormatAvailable(CF_TEXT))
+					return false;
+				if (!OpenClipboard(window))
+					return false;
+
+				bool success = false;
+				HANDLE hglb = GetClipboardData(CF_TEXT);
+				if (hglb != NULL)
+				{
+					len = GlobalSize(hglb);
+					success = true;
+					/*
+					const char*lptstr = (const char*)GlobalLock(hglb);
+					if (lptstr)
+					{
+						len = strlen(lptstr);
+						GlobalUnlock(hglb);
+						success = true;
+					}*/
+				}
+				CloseClipboard();
+
+				return success ? len : 0;
+			#elif SYSTEM==LINUX
+
+
+				return 0;
+			#else
+				#error stub
+			#endif
+		}
+
+		bool				GetFromClipboardIfText(HWND window, char*buffer, size_t buffer_size)
 		{
 			#if SYSTEM==WINDOWS
 				if (!IsClipboardFormatAvailable(CF_TEXT))
@@ -535,7 +571,7 @@ namespace DeltaWorks
 
 				return false;
 			#else
-				#error stump
+				#error stub
 			#endif
 		}
 

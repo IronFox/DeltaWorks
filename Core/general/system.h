@@ -266,7 +266,8 @@ namespace DeltaWorks
 		size_t					getMemoryConsumption();	//!< Memory currently consumed by this application (in bytes)
 	
 		bool					copyToClipboard(HWND window, const char*line);
-		bool					getFromClipboardIfText(HWND window, char*buffer, size_t buffer_size);
+		bool					GetFromClipboardIfText(HWND window, char*buffer, size_t buffer_size);
+		count_t					GetClipboardTextLength(HWND window);
 	
 		int						getConsoleWidth();		//!< Retrieves the visual width of the console in characters
 

@@ -596,9 +596,9 @@ namespace Engine
 
 	        #if SYSTEM==WINDOWS
 	            MSG msg;
-	            while (PeekMessage(&msg,NULL,0,0,PM_NOREMOVE))
+	            while (PeekMessageW(&msg,NULL,0,0,PM_NOREMOVE))
 	            {
-	                if (!GetMessage(&msg, NULL,0,0))
+	                if (!GetMessageW(&msg, NULL,0,0))
 	                    FATAL__("event-handling error");
 	                TranslateMessage(&msg);
 	                Process(msg);
@@ -624,7 +624,7 @@ namespace Engine
 	        if ((msg.message == WM_DESTROY || msg.message == WM_CLOSE || msg.message == WM_QUIT) && !context.shutting_down)
 	            Destroy();
 	        else
-	            DispatchMessage(&msg);
+	            DispatchMessageW(&msg);
 	    }
 
 	#elif SYSTEM==UNIX

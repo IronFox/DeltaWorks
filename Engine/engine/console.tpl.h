@@ -379,17 +379,17 @@ namespace Engine
 		                textout.line(i);
 		                textout.print(lines[offset+i],'$');
 		            }
-		        float displace = clamped(textout.GetUnscaledWidth(keyboard.GetInput())*font_x-(absolute_text.GetWidth()),0,100000);
+		        float displace = clamped(textout.GetUnscaledWidth(keyboard.GetRawInput())*font_x-(absolute_text.GetWidth()),0,100000);
 
 		        textout.MoveTo(absolute_text.x.min-displace,absolute_text.y.min+font_y);
-		        textout.line(0);
-		        textout.print(keyboard.GetInput());
+		        textout.SetLine(0);
+		        textout.Print(keyboard.GetRawInput());
 
 		        if (Console::is_focused)
 		        {
 		            renderer->useTexture(NULL);
 		            TColorVertex  v0,v1;
-		            float x = absolute_text.x.min-displace+textout.GetUnscaledWidth(keyboard.GetInput())*font_x,
+		            float x = absolute_text.x.min-displace+textout.GetUnscaledWidth(keyboard.GetRawInput())*font_x,
 		                  y = absolute_text.y.min,
 		                  light = cos(Engine::timing.now);
 		            M::Vec::def(v0,x,y+font_y*0.1,0,1);

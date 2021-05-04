@@ -213,148 +213,6 @@ namespace Engine
 	
 
 	
-
-	void	VirtualTextout::Write(const StringRef&str)
-	{
-		if (str.GetLength()==0)
-			return;
-		BeginOutput();
-		const char*at = str.pointer(),
-				*const end=at+str.GetLength();
-		while (at<end)
-		{
-			size_t len(0);
-			while (at+len<end && at[len] != '\n')
-				len++;
-			WriteSegment(at,len);
-			at+=len;
-			if (at<end)
-			{
-				state.lineOffset += QueryScaledHeight();
-				EndOutput();
-				BeginOutput();
-				at++;
-			}
-		}
-		EndOutput();
-	}
-
-	void	VirtualTextout::Write(const char*str)
-	{
-	    if (!str)
-	        return;
-	    BeginOutput();
-	    const char*at = str;
-	    while (*at)
-	    {
-	        size_t len(0);
-	        while (at[len] && at[len] != '\n')
-	            len++;
-	        WriteSegment(at,len);
-	        at+=len;
-	        if (*at)
-	        {
-	            state.lineOffset+=QueryScaledHeight();
-	            EndOutput();
-	            BeginOutput();
-	            at++;
-	        }
-	    }
-	    EndOutput();
-	}
-
-	void	VirtualTextout::Write(const String&str)
-	{
-	    Write(str.ref());
-	}
-
-	void	VirtualTextout::WriteTagged(const char*str, char tag)
-	{
-	    if (!str)
-	        return;
-	    TFontColor 	color_state = state;
-	    TFontColor	color_stack[0x100];
-	    BYTE        color_depth(0);
-
-	    BeginOutput();
-	    const char*at = str;
-	    while (*at)
-	    {
-	        size_t l(0);
-	        while (at[l] && at[l] != '\n' && at[l] != tag)
-	            l++;
-	        WriteSegment(at,l);
-	        at+=l;
-	        if ((*at) == '\n')
-	        {
-	            state.lineOffset += QueryScaledHeight();
-	            EndOutput();
-	            BeginOutput();
-	            AlterColor(color_state);
-	            at++;
-	        }
-	        else
-	            if ((*at) == tag)
-	            {
-	                at++;
-	                size_t remaining = strlen(at);
-	                if (remaining > 4 && !strncmpi(at,"push",4))
-	                {
-	                    color_stack[color_depth++] = color_state;
-	                    at+=4;
-	                }
-	                else
-	                    if (remaining > 3 && !strncmpi(at,"pop",3))
-	                    {
-	                        color_state = color_stack[--color_depth];
-	                        AlterColor(color_state);
-	                        at+=3;
-	                    }
-	                    else
-	                        if (remaining > 8)
-	                        {
-	                            color_state.red = (float)hexStr(at)/255;
-	                            color_state.green = (float)hexStr(at+2)/255;
-	                            color_state.blue = (float)hexStr(at+4)/255;
-	                            color_state.alpha = (float)hexStr(at+6)/255;
-	                            at+=8;
-	                            AlterColor(color_state);
-	                        }
-	            }
-	    }
-	    EndOutput();
-	}
-
-	void VirtualTextout::WriteTagged(const String&str, char tag)
-	{
-	    WriteTagged(str.c_str(),tag);
-	}
-
-
-	void VirtualTextout::WriteLn(const char*str)
-	{
-		Write(str);
-		state.lineOffset += QueryScaledHeight();
-	}
-
-	void VirtualTextout::WriteLn(const String&str)
-	{
-		Write(str);
-		state.lineOffset += QueryScaledHeight();
-	}
-
-	void VirtualTextout::WriteTaggedLine(const char*str, char tag)
-	{
-		WriteTagged(str,tag);
-		state.lineOffset += QueryScaledHeight();
-	}
-
-	void VirtualTextout::WriteTaggedLine(const String&str, char tag)
-	{
-		WriteTagged(str,tag);
-		state.lineOffset += QueryScaledHeight();
-	}
-	
 	float VirtualTextout::QueryScaledWidth(const char*line) const
 	{
 		return QueryUnscaledWidth(StringRef(line))*state.x_scale;
@@ -362,9 +220,23 @@ namespace Engine
 
 	float VirtualTextout::QueryScaledWidth(const String&line) const
 	{
-		return QueryUnscaledWidth(line.ref())*state.x_scale;
+		return QueryUnscaledWidth(line.ToRef())*state.x_scale;
 	}
 	float VirtualTextout::QueryScaledWidth(const StringRef&line) const
+	{
+		return QueryUnscaledWidth(line)*state.x_scale;
+	}
+	
+	float VirtualTextout::QueryScaledWidth(const char32_t*line) const
+	{
+		return QueryUnscaledWidth(UTF32StringRef(line))*state.x_scale;
+	}
+
+	float VirtualTextout::QueryScaledWidth(const UTF32String&line) const
+	{
+		return QueryUnscaledWidth(line.ToRef())*state.x_scale;
+	}
+	float VirtualTextout::QueryScaledWidth(const UTF32StringRef&line) const
 	{
 		return QueryUnscaledWidth(line)*state.x_scale;
 	}
@@ -373,8 +245,6 @@ namespace Engine
 	{
 		return QueryUnscaledHeight() * state.y_scale;
 	}
-
-	float			QueryScaledHeight();										//!< Determine the height of a string \return Scaled height of a single line
 
 
 

@@ -457,7 +457,7 @@ namespace Engine
 			out.height *= scale;
 		}
 		
-		/*static*/ void Component::ReadChar(char c)
+		/*static*/ void Component::ReadChar(char32_t c)
 		{
 			eEventResult rs = Unsupported;
 			if (focused)
@@ -1892,7 +1892,19 @@ namespace Engine
 			layerIsDirty = true;
 		}
 
+		void					ColorRenderer::WriteText(const UTF32StringRef&text)
+		{
+			textout.SetColor(color);
+			textout.Write(text);
+			layerIsDirty = true;
+		}
+
 		float					ColorRenderer::GetUnscaledWidth(const StringRef&text) const
+		{
+			return textout.GetUnscaledWidth(text);
+		}
+
+		float					ColorRenderer::GetUnscaledWidth(const UTF32StringRef&text) const
 		{
 			return textout.GetUnscaledWidth(text);
 		}

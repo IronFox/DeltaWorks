@@ -79,6 +79,14 @@ namespace DeltaWorks
 			inline bool __fastcall isEscapable(T chr) throw();	//!< Returns true for characters that can be escaped
 		template <typename T0, typename T1>
 			inline void	__fastcall Cast(const T0*from, T1*to, count_t numChars);
+
+		/**
+		Checks whether the given character is a control character that should not be present in a regular string.
+		The tab and newline (\n) characters are permitted although they are technically control characters.
+		Carriage return (\r) is considered invalid, although sometimes due to OS compatibility, it may be appropriate
+		*/
+		template <typename T>
+			inline bool __fastcall IsInvalidChar(T chr) throw();
 	}
 	namespace StringFunctions = CharFunctions;
 	#include "charFunctions.tpl.h"

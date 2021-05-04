@@ -1,5 +1,5 @@
 #include "components.h"
-
+#include <string/encoding.h>
 
 
 namespace Engine
@@ -1282,7 +1282,18 @@ namespace Engine
 
 		void Edit::SetText(const String&new_text)
 		{
-			text = new_text;
+			text.Clear();
+			{
+				auto begin = new_text.c_str();
+				const auto end = begin + new_text.GetLength();
+				while (begin < end)
+				{
+					char32_t c32;
+					if (!StringEncoding::UTF8::ToUTF32(begin,end,c32))
+						break;
+					text.Append(c32);
+				}
+			}
 			selectionStart = 0;
 			cursor = 0;
 			viewBegin = viewEnd = 0;
@@ -1291,7 +1302,14 @@ namespace Engine
 		}
 		void Edit::SetText(const StringRef&new_text)
 		{
-			text = new_text;
+			text.Clear();
+			StringEncoding::UTF8::Scanner scanner(new_text);
+			while (scanner.HasNext())
+			{
+				char32_t c32 = scanner.Next();
+				if (c32)
+					text.Append(c32);
+			}
 			selectionStart = 0;
 			viewBegin = viewEnd = 0;
 			_UpdateView();
@@ -1634,9 +1652,11 @@ namespace Engine
 				case Key::V:
 					if (input.pressed[Key::Ctrl] && !readOnly)
 					{
-						char buffer[0x1000];
-						if (System::getFromClipboardIfText(NULL,buffer,sizeof(buffer)))
+						size_t len = System::GetClipboardTextLength(NULL);
+						String clipboard{TStringLength(len)};
+						if (System::GetFromClipboardIfText(NULL,clipboard.mutablePointer(),len))
 						{
+
 							if (cursor!=selectionStart)
 							{
 								if (cursor > selectionStart)
@@ -1647,8 +1667,8 @@ namespace Engine
 								else
 									text.Erase(cursor,selectionStart-cursor);
 							}
-							size_t len = strlen(buffer);
-							text.Insert(cursor,buffer,len);
+
+							text.Insert(cursor,StringEncoding::UTF8::ToUTF32(clipboard));
 							cursor+=len;
 							selectionStart = cursor;
 							_UpdateView();
@@ -1706,7 +1726,7 @@ namespace Engine
 		
 		
 		
-		Component::eEventResult	Edit::OnChar(char c)
+		Component::eEventResult	Edit::OnChar(char32_t c)
 		{
 			if (readOnly || (acceptChar && !acceptChar(c)))
 				return Unsupported;

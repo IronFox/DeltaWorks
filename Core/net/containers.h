@@ -16,11 +16,10 @@ namespace DeltaWorks
 	{
 		/**
 		Checks whether a character is a valid network-character.
-		Valid characters include all ASCII graph-characters, German umlauts (CP1251), space, tab, and newline (\n).
-		All other characters are rejected
+		Valid characters are currently all characters for which StringFunctions::IsInvalidChar() returns false
 		@return true if the specified character is valid, false otherwise
 		*/
-		bool			IsValidChar(char c);
+		bool			IsValidChar(char32_t c);
 		/**
 		Checks whether or not the specified string is a valid network string.
 		Each character must pass IsValidChar(), and the length of the local string must be less or equal than @a maxLength (if set)
@@ -29,6 +28,7 @@ namespace DeltaWorks
 		@return true if the specified string is valid, false otherwise
 		*/
 		bool			IsValid(const StringRef&str, const count_t maxLength=std::numeric_limits<count_t>::max());
+		bool			IsValid(const UTF32StringRef&str, const count_t maxLength=std::numeric_limits<count_t>::max());
 		/**
 		Similar to IsValid(), but throws detailed exceptions
 		*/
@@ -37,6 +37,7 @@ namespace DeltaWorks
 		@copydoc IsValid(const StringRef&,const count_t maxLength)
 		*/
 		inline bool		IsValid(const String&str, const count_t maxLength=std::numeric_limits<count_t>::max()) {return IsValid(str.ToRef(),maxLength);}
+		inline bool		IsValid(const UTF32String&str, const count_t maxLength=std::numeric_limits<count_t>::max()) {return IsValid(str.ToRef(),maxLength);}
 		/**
 		Similar to IsValid(), but triggers detailed fatals in debug mode, and silently fixes issues in release. Any found error in debug mode terminate the local program
 		*/

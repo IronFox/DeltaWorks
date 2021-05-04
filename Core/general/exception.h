@@ -590,6 +590,7 @@ namespace DeltaWorks
 		void	BeginFatal();	//!< Begins fatal handling (synchronizes)
 
 		void	HolyShit(const char*message);		//!< This is when shit hit the fan, most commonly somewhere where fatal event handling is no longer possible. Immediately shuts down application
+		[[noreturn]]		
 		void	TerminateApplication();				//!< Immediately terminates the application
 
 

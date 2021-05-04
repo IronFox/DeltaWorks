@@ -402,11 +402,17 @@ namespace CharFunctions
 	template <typename T>
 		inline T	__fastcall toupper(T chr) throw()
 		{
+			std::locale::global(std::locale(""));  // (*)
+			auto& f = std::use_facet<std::ctype<T>>(std::locale());
+			f.toupper(&chr, &chr + 1);
+			return chr;
+
+			/*
 			if (chr >= T('a') && chr <= T('z'))
 				return chr + (T('A') - T('a'));
 			//if (chr >= T('à') && chr <= T('ö'))
 			//	return chr + (T('À') - T('à'));
-			return chr;
+			return chr;*/
 		}
 
 	template <>
@@ -425,11 +431,18 @@ namespace CharFunctions
 	template <typename T>
 		inline T	__fastcall tolower(T chr) throw()
 		{
+			std::locale::global(std::locale(""));  // (*)
+			auto& f = std::use_facet<std::ctype<T>>(std::locale());
+			f.tolower(&chr, &chr + 1);
+			return chr;
+			/*
 			if (chr >= T('A') && chr <= T('Z'))
 				return chr + (T('a') - T('A'));
+
 			//if (chr >= T('À') && chr <= T('Ö'))
 			//	return chr + (T('à') - T('À'));
 			return chr;
+			*/
 		}
 
 	template <>
@@ -489,7 +502,7 @@ namespace CharFunctions
 	template <typename T>
 		inline bool	__fastcall isalnum(T chr) throw()
 		{
-			return isalpha(chr) || isdigit(chr);
+			return std::isalpha(chr) || std::isdigit(chr);
 		}
 
 	template <>
@@ -523,6 +536,18 @@ namespace CharFunctions
 		{
 			for (index_t i = 0; i < numChars; i++)
 				to[i] =  (unsigned char)from[i];
+		}
+
+	template <typename T>
+		inline bool __fastcall IsInvalidChar(T chr) throw()
+		{
+			return (chr >= 0 && chr < 32 && chr != 9 && chr != 10) || (chr >= 127 && chr <= 159);
+		}
+
+	template <>
+		inline bool __fastcall IsInvalidChar<char>(char chr) throw()
+		{
+			return (chr >= 0 && chr < 32 && chr != 9 && chr != 10);
 		}
 
 }

@@ -1,5 +1,6 @@
 #include "texture_font2.h"
 #include <io/file_system.h>
+#include <string/encoding.h>
 
 /******************************************************************
 
@@ -166,16 +167,43 @@ namespace Engine
 	}
 
 
+	GLuint				GLTextureFont2::ToIndex(char32_t c) const
+	{
+		char c8;
+		if (StringEncoding::UTF32::ToCP1252(c,c8))
+		{
+			GLuint rs = GLuint((BYTE)c8);
+			if (chars[rs].isset)
+				return rs;
+		}
+		return GLuint((BYTE)'?');
+	}
+
 	float GLTextureFont2::GetWidth(const StringRef&str)
 	{
 		float rs = 0;
 		const char*at = str.pointer(),
 				*const end = at + str.GetLength();
-		for (;at != end; ++at)
+		while (at < end)
 		{
-			BYTE index = (BYTE)*at;
-			if (chars[index].isset)
-				rs += chars[index].width;
+			char32_t c;
+			if (!StringEncoding::UTF8::ToUTF32(at,end,c))
+				break;
+			auto index = ToIndex(c);
+			rs += chars[index].width;
+		}
+	    return rs*scale;
+	}
+
+	float GLTextureFont2::GetWidth(const UTF32StringRef&str)
+	{
+		float rs = 0;
+		const auto*at = str.pointer(),
+				*const end = at + str.GetLength();
+		for (;at < end; at++)
+		{
+			auto index = ToIndex(*at);
+			rs += chars[index].width;
 		}
 	    return rs*scale;
 	}
@@ -209,15 +237,26 @@ namespace Engine
 	{
 		const char*c = str.pointer(),
 				*const end = c + str.GetLength();
-		for (;c != end; ++c)
+		while (c < end)
 		{
-			BYTE at= *c;
-			if (chars[at].isset)
-				glCallList(base + at);
-			else
-				glCallList(base + (BYTE)'?');
+			char32_t c32;
+			if (!StringEncoding::UTF8::ToUTF32(c,end,c32))
+				break;
+			auto idx = ToIndex(c32);
+			glCallList(base + idx);
 		}
 	        //glCallLists(GLuint(len),GL_UNSIGNED_BYTE,str);
+	}
+	
+	void GLTextureFont2::Write(const UTF32StringRef&str)
+	{
+		const auto*c = str.pointer(),
+				*const end = c + str.GetLength();
+		for (;c != end; ++c)
+		{
+			auto idx = ToIndex(*c);
+			glCallList(base + idx);
+		}
 	}
 
 	void GLTextureFont2::End()

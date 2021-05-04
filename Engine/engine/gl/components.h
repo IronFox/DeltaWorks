@@ -1,6 +1,7 @@
 #ifndef gl_gui_componentsH
 #define gl_gui_componentsH
 
+#include <string/encoding.h>
 #include "gui.h"
 #undef GetObject
 
@@ -488,6 +489,9 @@ namespace Engine
 		*/
 		class Edit:public Component
 		{
+		public:
+			typedef GenericStringBuffer<char32_t> TextBuffer;
+		private:
 			typedef Component			Super;
 			bool						goLeft,	//!< Indicates that during the next onTick() invocation the view should move to the left
 										goRight,	//!< Indicates that during the next onTick() invocation the view should move to the right
@@ -495,7 +499,7 @@ namespace Engine
 			count_t						cursorTicks;		//!< Tick counter for cursor visibility
 			float						cursorOffset,
 										cursorLength;
-			StringBuffer				text;			//!< Edit buffer
+			TextBuffer					text;			//!< Edit buffer
 			size_t						cursor,			//!< Current cursor location
 										selectionStart,		//!< Selection start. This can be before or after the cursor location
 										viewBegin,		//!< First visible character
@@ -510,7 +514,14 @@ namespace Engine
 											return ColorRenderer::textout.GetFont().GetWidth(c);
 										}
 			inline float				_GetTextWidth(const char*str, count_t stringLength)	const {return _GetTextWidth(StringRef(str,stringLength));}
+			inline float				_GetTextWidth(const char32_t*str, count_t stringLength)	const {return _GetTextWidth(UTF32StringRef(str,stringLength));}
 			inline float				_GetTextWidth(const StringRef&str) const
+										{
+											if (maskInput)
+												return ColorRenderer::textout.GetFont().GetHeight()*0.75*str.GetLength();
+											return ColorRenderer::textout.GetUnscaledWidth(str);
+										}
+			inline float				_GetTextWidth(const UTF32StringRef&str) const
 										{
 											if (maskInput)
 												return ColorRenderer::textout.GetFont().GetHeight()*0.75*str.GetLength();
@@ -532,7 +543,7 @@ namespace Engine
 			};
 			FunctionalEvent				onChange,	//!< Event that is fired if the local input is changed
 										onEnter;	//!< Event that is fired if the user pressed enter or return on this edit field
-			bool						(*acceptChar)(char);	//!< Pointer to a char filter. Only if the function returns true then the character is inserted
+			bool						(*acceptChar)(char32_t);	//!< Pointer to a char filter. Only if the function returns true then the character is inserted
 				
 
 			static Layout				globalLayout;	//!< Global default edit layout
@@ -544,10 +555,11 @@ namespace Engine
 			void						SetText(const char*new_text);
 			void						SetText(const String&new_text);
 			void						SetText(const StringRef&new_text);
-			StringBuffer&				GetBuffer()			{SignalVisualChange(); return text;}
-			const StringBuffer&			GetBuffer() const	{return text;}
-			String						GetText()		const{return text.ToStringRef();}
-			StringRef					GetTextRef()	const {return text.ToStringRef();}
+			TextBuffer&					GetBuffer()			{SignalVisualChange(); return text;}
+			const TextBuffer&			GetBuffer() const	{return text;}
+			UTF32String					GetTextUTF32()		const {return text.ToStringRef();}
+			UTF32StringRef				GetTextRefUTF32()	const {return text.ToStringRef();}
+			String						GetTextUTF8()		const {return StringEncoding::UTF32::ToUTF8(text.ToStringRef());}
 			virtual	eEventResult		OnFocusGained()	override				{cursorTicks = 0; return RequestingRepaint;}
 			virtual	eEventResult		OnFocusLost()	override					{return RequestingRepaint;}
 			virtual	float				GetClientMinWidth()	const	override		{return 50;}
@@ -555,7 +567,7 @@ namespace Engine
 			virtual	void				OnColorPaint(ColorRenderer&, bool parentIsEnabled)	override;
 			virtual	eEventResult		OnKeyDown(Key::Name key)	override;
 			virtual	eEventResult		OnKeyUp(Key::Name key)	override;
-			virtual	eEventResult		OnChar(char c)	override;
+			virtual	eEventResult		OnChar(char32_t c)	override;
 			virtual	eEventResult		OnMouseDrag(float x, float y)	override;
 			virtual	eEventResult		OnMouseDown(float x, float y, TExtEventResult&)	override;
 			virtual	eEventResult		OnMouseHover(float x, float y, TExtEventResult&)	override;

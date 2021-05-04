@@ -1007,6 +1007,9 @@ namespace DeltaWorks
 											Template(unsigned long long);
 											Template(const ArrayRef<T>&array);
 											Template(const void*);
+											Template(const ReferenceExpression<T>&expression);
+											Template(const CharacterExpression<T>&expression);
+											Template(const StringExpression<T>&expression);
 									
 										#ifdef DSTRING_H
 											Template(const AnsiString&);
@@ -1014,11 +1017,11 @@ namespace DeltaWorks
 										template <typename T0, typename T1>
 											Template(const ConcatExpression<T0,T1>&expression);
 										template <class T0>
-											Template(const ReferenceExpression<T0>&expression);
+				explicit					Template(const ReferenceExpression<T0>&expression);
 										template <class T0>
-											Template(const CharacterExpression<T0>&expression);
+				explicit					Template(const CharacterExpression<T0>&expression);
 										template <class T0>
-											Template(const StringExpression<T0>&expression);
+				explicit					Template(const StringExpression<T0>&expression);
 								
 								
 				virtual					~Template();
@@ -1447,6 +1450,8 @@ namespace DeltaWorks
 
 	typedef StringType::Template<char32_t>	UTF32String;
 	typedef StringType::Template<char16_t>	UTF16String;	//only one effective use for this kind of character
+	typedef StringType::ReferenceExpression<char32_t>	UTF32StringRef;
+
 
 
 	String operator "" _s(const char*v, size_t len);
