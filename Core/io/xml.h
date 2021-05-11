@@ -99,8 +99,10 @@ namespace DeltaWorks
 			Node&				NewChild(const String&name);
 			Node&				AddChild(const String&name)			{return NewChild(name);}
 			Node&				AddNewChild(const String&name)		{return NewChild(name);}
-			void				Set(const String&attrib_name, const String&attrib_value)	{return attributes.Set(attrib_name,attrib_value);}
-			Node&				SetMore(const String&attrib_name, const String&attrib_value)	{Set(attrib_name,attrib_value); return *this;}
+			template <typename T>
+				void			Set(const String&attribName, const T&attribValue)	{return attributes.Set(attribName,String(attribValue));}
+			template <typename T>
+				Node&			SetMore(const String&attribName, const T&attribValue)	{Set(attribName,attribValue); return *this;}
 			void				Unset(const String&attrib_name)	{attributes.Unset(attrib_name);}
 			Node*          		Find(const String&path);				//!< Returns the first matching node (if any) @param path Path string in the form 'node/subnode/.../subnodeN' @return Pointer to the matching node or NULL if no such could be found
 			const Node*			Find(const String&path)		const;	//!< @copydoc Find()
@@ -149,8 +151,8 @@ namespace DeltaWorks
 			Encoding			encoding,							//!< Character encoding
 								hostEncoding;
 
-			/**/				Container(Encoding hostEncoding=Encoding::Windows1252):hostEncoding(hostEncoding)		{root_node.name = "xml"; encoding = Encoding::UTF8; }
-			/**/				Container(const PathString&source,Encoding hostEncoding=Encoding::Windows1252):hostEncoding(hostEncoding)	{root_node.name = "xml"; encoding = Encoding::UTF8; LoadFromFile(source);}
+			/**/				Container(Encoding hostEncoding=Encoding::UTF8):hostEncoding(hostEncoding)		{root_node.name = "xml"; encoding = Encoding::UTF8; }
+			/**/				Container(const PathString&source,Encoding hostEncoding=Encoding::UTF8):hostEncoding(hostEncoding)	{root_node.name = "xml"; encoding = Encoding::UTF8; LoadFromFile(source);}
 			void				Clear();													//!< Clears all local data
 			Node*				Find(const String&path);				//!< Returns the first matching node (if any) @param path Path string in the form 'node/subnode/.../subnodeN' @return Pointer to the matching node or NULL if no such could be found
 			const Node*			Find(const String&path)		const;	//!< @copydoc find()
@@ -230,7 +232,7 @@ namespace DeltaWorks
 			bool					skip(char until, FILE*f);
 			bool					skip(const char*until, FILE*f);
 		public:
-			/**/					Scanner(Encoding hostEncoding=Encoding::Windows1252);
+			/**/					Scanner(Encoding hostEncoding=Encoding::UTF8);
 			void					SetExcept(ScannerRule::pNodeCallback callback_on_except=NULL);
 			bool					Scan(const PathString&filename);
 			const String&			GetError()						const;

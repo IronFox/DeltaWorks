@@ -1,5 +1,6 @@
-#include	"../global_root.h"
-#include	"cli.h"
+#include "../global_root.h"
+#include "cli.h"
+#include "../io/file_system.h"
 
 namespace DeltaWorks
 {
@@ -1342,10 +1343,10 @@ namespace DeltaWorks
 		}
 
 
-		Script::Script(const String&Name):StringList(64),name(Name)
+		Script::Script(const String&Name):name(Name)
 		{}
 
-		Script::Script(const String&Name, const PathString&filename):StringList(64),name(Name)
+		Script::Script(const String&Name, const PathString&filename):name(Name)
 		{
 			Load(filename);
 		}
@@ -1377,7 +1378,7 @@ namespace DeltaWorks
 			clear();
 			FILE*f = FOPEN(filename.c_str(),"rb");
 			if (!f)
-				throw Except::IO::DriveAccess(CLOCATION,"Unable to open '"+filename+"'");
+				throw Except::IO::DriveAccess(CLOCATION,"Unable to open '"+FileSystem::PathToString(filename)+"'");
 			fseek(f,0,SEEK_END);
 			size_t size = ftell(f);
 			fseek(f,0,SEEK_SET);
@@ -1406,7 +1407,7 @@ namespace DeltaWorks
 			for	(index_t i = 0; i < Count(); i++)
 				if (at(i).name == alias)
 				{
-					Erase(i);
+					Super::Erase(i);
 					return true;
 				}
 			return	false;

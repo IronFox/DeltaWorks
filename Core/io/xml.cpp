@@ -1,6 +1,7 @@
 #include "../global_root.h"
 #include "xml.h"
 #include "../string/encoding.h"
+#include "file_system.h"
 
 /******************************************************************
 
@@ -634,7 +635,7 @@ namespace DeltaWorks
 			FILE*f = fopen(filename.c_str(),"rb");
 		#endif
 		if (!f)
-			throw Except::IO::DriveAccess::FileOpenFault("XML: Unable to open file '"+filename+"'");
+			throw Except::IO::DriveAccess::FileOpenFault(CLOCATION,"XML: Unable to open file '"+FileSystem::PathToString(filename)+"'");
 
 		Clear();
 		fseek(f,0,SEEK_END);
@@ -648,7 +649,7 @@ namespace DeltaWorks
 		{
 			fclose(f);
 
-			throw Except::IO::DriveAccess::DataReadFault("XML: Unable to read data from file");
+			throw Except::IO::DriveAccess::DataReadFault(CLOCATION,"XML: Unable to read data from file");
 		}
 		field[len] = 0;
 		fclose(f);
@@ -731,7 +732,7 @@ namespace DeltaWorks
 				case XML::Nice:
 				{
 					Ctr::Array<String,Adopt>	lines;
-					explodeCallback(isNewLine,entry->inner_content,lines);
+					ExplodeCallback(isNewLine,entry->inner_content,lines);
 					trim(lines);
 					if (lines.Count() > 1)
 					{
@@ -759,7 +760,7 @@ namespace DeltaWorks
 				case XML::Tidy:
 				{
 					Ctr::Array<String,Adopt>	lines;
-					explodeCallback(isNewLine,entry->inner_content,lines);
+					ExplodeCallback(isNewLine,entry->inner_content,lines);
 					trim(lines);
 					for (index_t i = 0; i < lines.Count(); i++)
 					{
@@ -794,7 +795,7 @@ namespace DeltaWorks
 				case XML::Nice:
 				{
 					Ctr::Array<String,Adopt>	lines;
-					explodeCallback(isNewLine,entry->following_content,lines);
+					ExplodeCallback(isNewLine,entry->following_content,lines);
 					trim(lines);
 					outfile << nl;
 					for (index_t i = 0; i < lines.Count(); i++)
@@ -808,7 +809,7 @@ namespace DeltaWorks
 				case XML::Tidy:
 				{
 					Ctr::Array<String,Adopt>	lines;
-					explodeCallback(isNewLine,entry->following_content,lines);
+					ExplodeCallback(isNewLine,entry->following_content,lines);
 					trim(lines);
 					for (index_t i = 0; i < lines.Count(); i++)
 					{
@@ -942,7 +943,7 @@ namespace DeltaWorks
 	{
 		ASSERT_NOT_NULL__(context);
 		Ctr::Array<String,Adopt>	components;
-		explode('/',path,components);
+		Explode('/',path,components);
 		if (!components.Count())
 			throw Except::IO::ParameterFault("Trying to create empty XML segment");
 

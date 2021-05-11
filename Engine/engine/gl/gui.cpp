@@ -763,7 +763,7 @@ namespace Engine
 			if (xlayout->Query("title_position",attrib))
 			{
 				Array<String>	segments;
-				explode(',',attrib,segments);
+				Explode(',',attrib,segments);
 				if (segments.Count() != 4)
 					throw Except::IO::DriveAccess::FileFormatFault(Except::globalString("'title_position' attribute of XML 'layout' node does not contain 4 comma-separated segments"));
 
@@ -784,7 +784,7 @@ namespace Engine
 					throw Except::IO::DriveAccess::FileFormatFault(Except::globalString("XML node 'layout' lacks 'border_edge' attribute"));
 					
 				Array<String>	segments;
-				explode(',',attrib,segments);
+				Explode(',',attrib,segments);
 				if (segments.Count() != 4)
 					throw Except::IO::DriveAccess::FileFormatFault(Except::globalString("'border_edge' attribute of XML 'layout' node does not contain 4 comma-separated segments"));
 
@@ -805,7 +805,7 @@ namespace Engine
 					throw Except::IO::DriveAccess::FileFormatFault(Except::globalString("XML node 'layout' lacks 'client_edge' attribute"));
 
 				Array<String>	segments;
-				explode(',',attrib,segments);
+				Explode(',',attrib,segments);
 				if (segments.Count() != 4)
 					throw Except::IO::DriveAccess::FileFormatFault(Except::globalString("'client_edge' attribute of XML 'layout' node does not contain 4 comma-separated segments"));
 

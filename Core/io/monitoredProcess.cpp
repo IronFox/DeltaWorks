@@ -327,7 +327,7 @@ namespace DeltaWorks
 		if (!found.DoesExist())
 			throw Except::IO::DriveAccess("Process Start: Chosen executable '"+FileSystem::PathToString(found.GetLocation())+"' does not exist");
 		this->asyncFetchParameters = parametersWithoutExecutableName;
-		executableName = '"'+FileSystem::ExtractFileNameExt(_executablePath)+"\"";
+		executableName = ((PathString::char_t)'"')+FileSystem::ExtractFileNameExt(_executablePath)+'\"';
 		paths.executablePath = found.GetLocation();
 		paths.workingDirectory = f.GetLocation();
 
@@ -340,7 +340,7 @@ namespace DeltaWorks
 	{
 		if (!asyncFetchParameters)
 			return executableName;
-		return executableName+" "+asyncFetchParameters();
+		return executableName+' '+asyncFetchParameters();
 	}
 
 
@@ -432,7 +432,7 @@ namespace DeltaWorks
 			imply that the 260 character limitation could be entirely removed eventually.
 			E.g. https://blogs.msdn.microsoft.com/jeremykuhne/2016/07/30/net-4-6-2-and-long-paths-on-windows-10/
 			*/
-			const PathString uncMarker = "\\\\?\\";
+			const PathString uncMarker = StringType::Cast("\\\\?\\");
 			if (local.executablePath.BeginsWith(uncMarker))
 				local.executablePath.EraseLeft(uncMarker.GetLength());
 			if (local.workingDirectory.BeginsWith(uncMarker))

@@ -127,7 +127,7 @@ namespace DeltaWorks
 				T				content;	//!< Scalar content
 				
 				/**/			SimpleVariable(const String&name, const String&typeName, const T&content_=(T)0,unsigned protection=NoProtection):Variable(name,typeName,1,protection),content(content_)	{}
-				virtual String	ConvertToString()		const	override	{return content;}
+				virtual String	ConvertToString()		const	override	{return String(content);}
 				virtual	bool	Set(const String&value)	override	{return Convert(value,content);}
 				virtual	bool	Set(const String&component, const String&value)	override	{return Set(value);}
 			};

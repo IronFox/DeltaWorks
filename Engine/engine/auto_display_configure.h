@@ -44,7 +44,7 @@ namespace Engine
 			String xmlBaseName = displayName;
 			xmlBaseName.EraseCharacters(validFileNameChar,false);
 			xmlBaseName.ConvertToLowerCase();
-			PathString xmlFileName = configFolderPath + FOLDER_SLASH + xmlBaseName + ".xml";
+			PathString xmlFileName = configFolderPath + FOLDER_SLASH + FileSystem::StringToPath(xmlBaseName) + DeltaWorks::StringType::Cast(".xml");
 			XML::Container xconfig;
 			bool updateFile = false;
 			UINT32 flags = DisplayConfig::ResizeDragHasEnded;

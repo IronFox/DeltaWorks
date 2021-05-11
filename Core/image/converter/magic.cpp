@@ -75,7 +75,7 @@ namespace DeltaWorks
 		FILE*file = FOPEN(filename.c_str(),"rb");
 		if (!file)
 		{
-			throw Except::IO::DriveAccess::FileOpenFault("File not found or inaccessible: '"+filename+"'");
+			throw Except::IO::DriveAccess::FileOpenFault(CLOCATION,"File not found or inaccessible: '"+FileSystem::PathToString(filename)+"'");
 			return;
 		}
 
@@ -139,7 +139,7 @@ namespace DeltaWorks
 		}
 
 		fclose(file);
-		throw Except::Program::UnsupportedRequest("'"+filename+"': Unable to find matching image format");
+		throw Except::Program::UnsupportedRequest(CLOCATION,"'"+ FileSystem::PathToString(filename)+"': Unable to find matching image format");
 	}
 
 	void			Magic::SaveToFile(const Image&image, const PathString&filename)
@@ -161,7 +161,7 @@ namespace DeltaWorks
 					return;
 				}
 		}
-		throw Except::Program::UnsupportedRequest("Extension not supported: '"+String(file_ext)+"'");
+		throw Except::Program::UnsupportedRequest(CLOCATION,"Extension not supported: '"+String(file_ext)+"'");
 	}
 }
 

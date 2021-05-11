@@ -143,6 +143,7 @@ namespace DeltaWorks
 		String			PathToString(const PathString&path, bool replaceDetectedPrefixes=true);
 		PathString		StringToPath(const StringRef&utf8Path);
 		PathString		StringToPath(const String&utf8Path);
+		PathString		StringToPath(const char*utf8Path);
 		PathString		StringToPath(const UTF32StringRef&utf32Path);
 		PathString		StringToPath(const UTF32String&utf32Path);
 
@@ -196,6 +197,9 @@ namespace DeltaWorks
 			bool				IsExtension(const PathString::ReferenceType&extRef) const;
 			bool				IsExtension(const PathString&ext)	const	{return IsExtension(ext.ToRef());}
 			bool				IsExtension(const PathString::char_t*cString) const {return IsExtension(PathString::ReferenceType(cString));}
+			#ifdef WIN32
+			bool				IsExtension(const char*cString)		const;
+			#endif
 			bool				IsDirectory()						const;		//!< Returns true if the local entry is a folder/directory \return true if folder
 			friend String		ToString(const File&);
 			bool				DoesExist()							const;		//!< Queries existence of the local file or folder
@@ -263,7 +267,7 @@ namespace DeltaWorks
 		public:
 				PathString		GetName()			const;
 				PathString		GetRoot()			const;
-				PathString		ToString()			const;
+				String			ToString()			const;
 				File			ToFile()			const;
 		};
 

@@ -97,8 +97,8 @@ public:
 	CWaves();
 	virtual ~CWaves();
 
-	WAVERESULT LoadWaveFile(const char *szFilename, WAVEID *WaveID);
-	WAVERESULT OpenWaveFile(const char *szFilename, WAVEID *WaveID);
+	WAVERESULT LoadWaveFile(const wchar_t *szFilename, WAVEID *WaveID);
+	WAVERESULT OpenWaveFile(const wchar_t *szFilename, WAVEID *WaveID);
 	WAVERESULT ReadWaveData(WAVEID WaveID, void *pData, unsigned long ulDataSize, unsigned long *pulBytesWritten);
 	WAVERESULT SetWaveDataOffset(WAVEID WaveID, unsigned long ulOffset);
 	WAVERESULT GetWaveDataOffset(WAVEID WaveID, unsigned long *pulOffset);
@@ -115,7 +115,7 @@ public:
 	bool IsWaveID(WAVEID WaveID);
 
 private:
-	WAVERESULT ParseFile(const char *szFilename, LPWAVEFILEINFO pWaveInfo);
+	WAVERESULT ParseFile(const wchar_t *szFilename, LPWAVEFILEINFO pWaveInfo);
 	WAVEID InsertWaveID(LPWAVEFILEINFO pWaveFileInfo);
 	
 	LPWAVEFILEINFO	m_WaveIDs[MAX_NUM_WAVEID];

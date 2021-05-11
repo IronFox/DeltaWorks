@@ -202,7 +202,7 @@ namespace Engine
 
 	void Keyboard::FillInputUTF8(const char*strn)
 	{
-		internalBuffer.SetTo(strn);
+		internalBuffer.SetToUTF8(strn);
 	}
 
 	void Keyboard::ReplaceInputSectionUTF8(index_t offset, size_t len, const String&strn)
@@ -214,7 +214,9 @@ namespace Engine
 
 	void Keyboard::ReplaceInputSectionUTF8(index_t offset, size_t len, const char*strn)
 	{
-		internalBuffer.ReplaceSection(offset,len,strn);
+		UTF32String str;
+		StringEncoding::UTF8::ToUTF32(strn,str);
+		internalBuffer.ReplaceSection(offset,len,str);
 	}
 
 

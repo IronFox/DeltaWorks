@@ -2,6 +2,7 @@
 #if SYSTEM==WINDOWS
 
 #include "joystick.h"
+#include <string/encoding.h>
 
 namespace Engine
 {
@@ -30,7 +31,7 @@ namespace Engine
 				st.info.dwFlags = JOY_RETURNALL;
 				joyGetDevCaps(i,&st.caps,sizeof(st.caps));
 				st.index = i;
-				st.name = st.caps.szPname;
+				st.name = StringEncoding::UTF16::ToUTF8(st.caps.szPname);
 			}
 		#else
 		

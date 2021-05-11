@@ -175,7 +175,7 @@ namespace DeltaWorks
 
 
 		template <typename Code0, typename Code1>
-			static void	VariableLengthToVariableLength(const StringType::ReferenceExpression<typename Code0::CharType>&variableSource, StringType::Template<typename Code1::CharType>&variableDest)
+			static void	VariableLengthToVariableLength(const StringType::Sequence<typename Code0::CharType>&variableSource, StringType::Template<typename Code1::CharType>&variableDest)
 			{
 				count_t len = 0;
 				const auto*const end = variableSource.end();
@@ -208,7 +208,7 @@ namespace DeltaWorks
 			}
 
 		template <typename FixedCode, typename Code>
-			static void	FixedLengthToVariableLength(const StringType::ReferenceExpression<typename FixedCode::CharType>&fixedSource, StringType::Template<typename Code::CharType>&variableDest)
+			static void	FixedLengthToVariableLength(const StringType::Sequence<typename FixedCode::CharType>&fixedSource, StringType::Template<typename Code::CharType>&variableDest)
 			{
 				count_t len = 0;
 
@@ -235,7 +235,7 @@ namespace DeltaWorks
 
 
 		template <typename Code, typename FixedCode>
-			static void	VariableLengthToFixedLength(const StringType::ReferenceExpression<typename Code::CharType>&variableSource, StringType::Template<typename FixedCode::CharType>&fixedDest)
+			static void	VariableLengthToFixedLength(const StringType::Sequence<typename Code::CharType>&variableSource, StringType::Template<typename FixedCode::CharType>&fixedDest)
 			{
 				count_t length = 0;
 				{
@@ -526,7 +526,7 @@ namespace DeltaWorks
 		}
 
 
-		UTF32String	UTF8::ToUTF32(const String&utf8Source)
+		UTF32String	UTF8::ToUTF32(const StringType::Sequence<char>&utf8Source)
 		{
 			UTF32String rs;
 			ToUTF32(utf8Source,rs);
@@ -534,21 +534,12 @@ namespace DeltaWorks
 		}
 
 
-		void	UTF8::ToUTF32(const String&utf8Source, UTF32String&utf32Dest)
-		{
-			UTF8::ToUTF32(utf8Source.ref(),utf32Dest);
-		}
-		void	UTF32::ToUTF8(const StringType::ReferenceExpression<char32_t>&utf32Source, String&utf8Dest)
+		void	UTF32::ToUTF8(const StringType::Sequence<char32_t>&utf32Source, String&utf8Dest)
 		{
 			FixedLengthToVariableLength<UTF32FixedCode,UTF8Code>(utf32Source,utf8Dest);
 		}
 
-		void	UTF32::ToUTF8(const UTF32String&utf32Source, String&utf8Dest)
-		{
-			UTF32::ToUTF8(utf32Source.ref(),utf8Dest);
-		}
-
-		String	UTF32::ToUTF8(const UTF32StringRef&utf32Source)
+		String	UTF32::ToUTF8(const StringType::Sequence<char32_t>&utf32Source)
 		{
 			String rs;
 			ToUTF8(utf32Source,rs);
@@ -558,12 +549,62 @@ namespace DeltaWorks
 
 
 
-		void	UTF8::ToUTF32(const StringRef&utf8Source, UTF32String&utf32Dest)
+		void	UTF8::ToUTF32(const StringType::Sequence<char>&utf8Source, UTF32String&utf32Dest)
 		{
 			VariableLengthToFixedLength<UTF8Code,UTF32FixedCode>(utf8Source,utf32Dest);
 		}
 
 
+
+		BYTE			UTF16::GetLength(char16_t firstChar)
+		{
+			return UTF16Code<char16_t>::DecipherVariableLength(firstChar);
+		}
+
+
+		#ifdef WIN32
+			bool		UTF16::ToUTF32(const wchar_t*&begin, const wchar_t*const end, char32_t&outChar)
+			{
+				auto len = GetLength(*begin);
+				if (begin + len > end)
+					return false;
+				if (len == 0)
+					return false;
+				if (len == 1)
+				{
+					if (!CompleteUtf16(*begin,outChar))
+						return false;
+					begin++;
+					return true;
+				}
+
+				outChar = Utf16ToUTF32Char(begin[0],begin[1]);
+				begin += 2;
+				return true;
+
+			}
+		#endif
+
+
+		bool			UTF16::ToUTF32(const char16_t*&begin, const char16_t*const end, char32_t&outChar)
+		{
+			auto len = GetLength(*begin);
+			if (begin + len > end)
+				return false;
+			if (len == 0)
+				return false;
+			if (len == 1)
+			{
+				if (!CompleteUtf16(*begin,outChar))
+					return false;
+				begin++;
+				return true;
+			}
+
+			outChar = Utf16ToUTF32Char(begin[0],begin[1]);
+			begin += 2;
+			return true;
+		}
 
 
 
@@ -691,6 +732,13 @@ namespace DeltaWorks
 			throw Except::Program::DataConsistencyFault(CLOCATION,"Invalid UTF32 character "+BinaryToHex(&c,4));
 		}
 
+		UTF8::TChar		UTF32::ToUTF8(char32_t c)
+		{
+			 UTF8::TChar rs;
+			 ToUTF8(c,rs);
+			 return rs;
+		}
+
 		void	UTF32::ToUTF8(char32_t c, UTF8::TChar&rs)
 		{
 			UINT32 u = (UINT32)c;
@@ -759,118 +807,71 @@ namespace DeltaWorks
 
 
 		template <typename T>
-		static void	Utf8ToUtf16T(const StringRef&utf8Source, StringType::Template<T>&utf16Dest)
+		static void	Utf8ToUtf16T(const StringType::Sequence<char>&utf8Source, StringType::Template<T>&utf16Dest)
 		{
 			VariableLengthToVariableLength<UTF8Code,UTF16Code<T> >(utf8Source,utf16Dest);
 		}
 
-		void	UTF16::ToUTF8(const StringType::ReferenceExpression<char16_t>&utf16Source, String&utf8Dest)
+		void	UTF16::ToUTF8(const StringType::Sequence<char16_t>&utf16Source, String&utf8Dest)
 		{
 			VariableLengthToVariableLength<UTF16Code<char16_t>, UTF8Code>(utf16Source,utf8Dest);
 		}
 
-		void	UTF16::ToUTF8(const StringType::Template<char16_t>&utf16Source, String&utf8Dest)
-		{
-			UTF16::ToUTF8(utf16Source.ref(),utf8Dest);
-		}
-
-		void	UTF16::ToUTF32(const StringType::ReferenceExpression<char16_t>&utf16Source, UTF32String&utf32Dest)
+		void	UTF16::ToUTF32(const StringType::Sequence<char16_t>&utf16Source, UTF32String&utf32Dest)
 		{
 			VariableLengthToFixedLength<UTF16Code<char16_t>,UTF32FixedCode>(utf16Source,utf32Dest);
 		}
 
-		void	UTF16::ToUTF32(const StringType::Template<char16_t>&utf16Source, UTF32String&utf32Dest)
-		{
-			UTF16::ToUTF32(utf16Source.ref(),utf32Dest);
-		}
 
 
-		UTF32String	UTF16::ToUTF32(const StringType::ReferenceExpression<char16_t>&utf16Source)
+		UTF32String	UTF16::ToUTF32(const StringType::Sequence<char16_t>&utf16Source)
 		{
 			UTF32String rs;
 			ToUTF32(utf16Source,rs);
 			return rs;
 		}
-		UTF32String	UTF16::ToUTF32(const StringType::Template<char16_t>&utf16Source)
-		{
-			UTF32String rs;
-			ToUTF32(utf16Source,rs);
-			return rs;
-		}
-		String		UTF16::ToUTF8(const StringType::ReferenceExpression<char16_t>&utf16Source)
-		{
-			String rs;
-			ToUTF8(utf16Source,rs);
-			return rs;
-		}
-		String		UTF16::ToUTF8(const StringType::Template<char16_t>&utf16Source)
+		String		UTF16::ToUTF8(const StringType::Sequence<char16_t>&utf16Source)
 		{
 			String rs;
 			ToUTF8(utf16Source,rs);
 			return rs;
 		}
 
+		void	UTF32::ToUTF16(const StringType::Sequence<char32_t>&utf32Source, StringType::Template<char16_t>&utf16Dest)
+		{
+			FixedLengthToVariableLength<UTF32FixedCode, UTF16Code<char16_t> >(utf32Source,utf16Dest);
+		}
 
+		
 		#ifdef WIN32
 			static_assert(sizeof(wchar_t)==sizeof(char16_t),"Expected wchar_t to be 16 bit on windows");
-			void	UTF32::ToUTF16(const StringType::ReferenceExpression<char32_t>&utf32Source, StringType::Template<wchar_t>&utf16Dest)
+			void	UTF32::ToUTF16(const StringType::Sequence<char32_t>&utf32Source, StringType::Template<wchar_t>&utf16Dest)
 			{
 				FixedLengthToVariableLength<UTF32FixedCode, UTF16Code<wchar_t> >(utf32Source,utf16Dest);
 			}
-			void	UTF32::ToUTF16(const UTF32String&utf32Source, StringType::Template<wchar_t>&utf16Dest)
-			{
-				UTF32::ToUTF16(utf32Source.ref(),utf16Dest);
-			}
 
-			void	UTF8::ToUTF16(const StringRef&utf8Source, StringType::Template<wchar_t>&utf16Dest)
+			void	UTF8::ToUTF16(const StringType::Sequence<char>&utf8Source, StringType::Template<wchar_t>&utf16Dest)
 			{
 				Utf8ToUtf16T(utf8Source,utf16Dest);
 			}
 
-			void	UTF8::ToUTF16(const String&utf8Source, StringType::Template<wchar_t>&utf16Dest)
-			{
-				Utf8ToUtf16T(utf8Source.ref(),utf16Dest);
-			}
-
-			void	UTF16::ToUTF32(const StringType::ReferenceExpression<wchar_t>&utf16Source, UTF32String&utf32Dest)
+			void	UTF16::ToUTF32(const StringType::Sequence<wchar_t>&utf16Source, UTF32String&utf32Dest)
 			{
 				VariableLengthToFixedLength<UTF16Code<wchar_t>,UTF32FixedCode>(utf16Source,utf32Dest);
 			}
 
-			void	UTF16::ToUTF32(const StringW&utf16Source, UTF32String&utf32Dest)
-			{
-				UTF16::ToUTF32(utf16Source.ref(),utf32Dest);
-			}
-
-			void	UTF16::ToUTF8(const StringType::ReferenceExpression<wchar_t>&utf16Source, String&utf8Dest)
+			void	UTF16::ToUTF8(const StringType::Sequence<wchar_t>&utf16Source, String&utf8Dest)
 			{
 				VariableLengthToVariableLength<UTF16Code<wchar_t>, UTF8Code>(utf16Source,utf8Dest);
 			}
 
-			void	UTF16::ToUTF8(const StringW&utf16Source, String&utf8Dest)
-			{
-				UTF16::ToUTF8(utf16Source.ref(),utf8Dest);
-			}
-
-			UTF32String	UTF16::ToUTF32(const StringType::ReferenceExpression<wchar_t>&utf16Source)
+			UTF32String	UTF16::ToUTF32(const StringType::Sequence<wchar_t>&utf16Source)
 			{
 				UTF32String rs;
 				ToUTF32(utf16Source,rs);
 				return rs;
 			}
-			UTF32String	UTF16::ToUTF32(const StringW&utf16Source)
-			{
-				UTF32String rs;
-				ToUTF32(utf16Source,rs);
-				return rs;
-			}
-			String		UTF16::ToUTF8(const StringType::ReferenceExpression<wchar_t>&utf16Source)
-			{
-				String rs;
-				ToUTF8(utf16Source,rs);
-				return rs;
-			}
-			String		UTF16::ToUTF8(const StringW&utf16Source)
+			String		UTF16::ToUTF8(const StringType::Sequence<wchar_t>&utf16Source)
 			{
 				String rs;
 				ToUTF8(utf16Source,rs);
@@ -880,27 +881,12 @@ namespace DeltaWorks
 
 		#endif
 
-		void	UTF32::ToUTF16(const UTF32String&utf32Source, StringType::Template<char16_t>&utf16Dest)
-		{
-			UTF32::ToUTF16(utf32Source.ref(),utf16Dest);
-		}
-
-		void	UTF32::ToUTF16(const StringType::ReferenceExpression<char32_t>&utf32Source, StringType::Template<char16_t>&utf16Dest)
-		{
-			FixedLengthToVariableLength<UTF32FixedCode, UTF16Code<char16_t> >(utf32Source,utf16Dest);
-		}
-
-		void	UTF8::ToUTF16(const StringRef&utf8Source, StringType::Template<char16_t>&utf16Dest)
+		void	UTF8::ToUTF16(const StringType::Sequence<char>&utf8Source, StringType::Template<char16_t>&utf16Dest)
 		{
 			Utf8ToUtf16T(utf8Source,utf16Dest);
 		}
 
-		void	UTF8::ToUTF16(const String&utf8Source, StringType::Template<char16_t>&utf16Dest)
-		{
-			ToUTF16(utf8Source.ToRef(),utf16Dest);
-		}
-
-		StringW	UTF8::ToUTF16(const String&utf8Source)
+		StringW	UTF8::ToUTF16(const StringType::Sequence<char>&utf8Source)
 		{
 			StringW rs;
 			ToUTF16(utf8Source,rs);
@@ -911,28 +897,18 @@ namespace DeltaWorks
 
 
 
-		void	UTF8::ToCP1252(const StringRef&utf8Source, String&cp1252Dest)
+		void	UTF8::ToCP1252(const StringType::Sequence<char>&utf8Source, String&cp1252Dest)
 		{
 			VariableLengthToFixedLength<UTF8Code,CP1252FixedCode>(utf8Source,cp1252Dest);
 		}
 
 
-		void	UTF8::ToCP1252(const String&utf8Source, String&cp1252Dest)
-		{
-			UTF8::ToCP1252(utf8Source.ref(),cp1252Dest);
-		}
-
-		void	CP1252::ToUTF8(const StringRef&cp1252Source, String&utf8Dest)
+		void	CP1252::ToUTF8(const StringType::Sequence<char>&cp1252Source, String&utf8Dest)
 		{
 			FixedLengthToVariableLength<CP1252FixedCode, UTF8Code>(cp1252Source,utf8Dest);
 		}
 
-		void	CP1252::ToUTF8(const String&cp1252Source, String&utf8Dest)
-		{
-			CP1252::ToUTF8(cp1252Source.ref(),utf8Dest);
-		}
-
-		void	CP1252::ToUTF32(const StringRef&cp1252Source, UTF32String&utf32Dest)
+		void	CP1252::ToUTF32(const StringType::Sequence<char>&cp1252Source, UTF32String&utf32Dest)
 		{
 			utf32Dest.SetLength(cp1252Source.GetLength());
 			auto*out = utf32Dest.mutablePointer();
@@ -945,12 +921,7 @@ namespace DeltaWorks
 			ASSERT_EQUAL__(out,utf32Dest.end());
 		}
 
-		void	CP1252::ToUTF32(const String&cp1252Source, UTF32String&utf32Dest)
-		{
-			CP1252::ToUTF32(cp1252Source.ref(),utf32Dest);
-		}
-
-		void	UTF32::ToCP1252(const StringType::ReferenceExpression<char32_t>&utf32Source, String&cp1525Dest)
+		void	UTF32::ToCP1252(const StringType::Sequence<char32_t>&utf32Source, String&cp1525Dest)
 		{
 			cp1525Dest.SetLength(utf32Source.GetLength());
 			auto*out = cp1525Dest.mutablePointer();
@@ -961,11 +932,6 @@ namespace DeltaWorks
 				*out = UTF32::ToCP1252(*in);
 			}
 			ASSERT_EQUAL__(out,cp1525Dest.end());
-		}
-
-		void	UTF32::ToCP1252(const UTF32String&utf32Source, String&cp1525Dest)
-		{
-			UTF32::ToCP1252(utf32Source.ref(),cp1525Dest);
 		}
 
 

@@ -480,6 +480,16 @@ namespace DeltaWorks
 			static void			writeObject(const CGS::Geometry<>&geometry, const Ctr::Array<Container::PointerContainer<Ctr::Array<TFace> > >&conversion_table,const CGS::SubGeometryA<>&object,StringFile&out) throw();
 			void				ExportTexture(const CGS::TextureA*texture, const PathString&outname, StringFile&out) throw();
 
+			inline void			LogLine(int line) throw()
+			{
+				logMessage(String(line));
+			}
+
+			inline void			LogSize(size_t size) throw()
+			{
+				logMessage(String(size));
+			}
+
 			inline void			logMessage(const String&message) throw()
 			{
 				if (log_file)

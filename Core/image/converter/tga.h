@@ -15,7 +15,7 @@ namespace DeltaWorks
 	class TGA:public ImageFormat
 	{
 	public:
-						TGA():ImageFormat("TGA","tga")
+						TGA():ImageFormat("TGA",IEXT("tga"))
 						{
 							magic_bytes.free();//no magic bytes
 						}

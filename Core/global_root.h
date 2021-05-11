@@ -246,11 +246,11 @@ namespace DeltaWorks
 		#ifndef STILL_RUNNING
 			#define STILL_RUNNING   0x0103
 		#endif
-		#define FOLDER_SLASH        '\\'
-		#define FOLDER_SLASH_STR    "\\"
-		#define ENV_PATH_SEPARATOR  ';'
+		#define FOLDER_SLASH        L'\\'
+		#define FOLDER_SLASH_STR    L"\\"
+		#define ENV_PATH_SEPARATOR  L';'
 		#define FS_CASE_IGNORE      true
-		#define FS_SHARED_LIB_EXT   "dll"
+		#define FS_SHARED_LIB_EXT   L"dll"
 	
 		#define popen				_popen
 		#define pclose				_pclose

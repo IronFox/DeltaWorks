@@ -88,7 +88,7 @@ CWaves::~CWaves()
 }
 
 
-WAVERESULT CWaves::LoadWaveFile(const char *szFilename, WAVEID *pWaveID)
+WAVERESULT CWaves::LoadWaveFile(const wchar_t *szFilename, WAVEID *pWaveID)
 {
 	WAVERESULT wr = WR_OUTOFMEMORY;
 	LPWAVEFILEINFO pWaveInfo;
@@ -149,7 +149,7 @@ WAVERESULT CWaves::LoadWaveFile(const char *szFilename, WAVEID *pWaveID)
 }
 
 
-WAVERESULT CWaves::OpenWaveFile(const char *szFilename, WAVEID *pWaveID)
+WAVERESULT CWaves::OpenWaveFile(const wchar_t *szFilename, WAVEID *pWaveID)
 {
 	WAVERESULT wr = WR_OUTOFMEMORY;
 	LPWAVEFILEINFO pWaveInfo;
@@ -260,7 +260,7 @@ WAVERESULT CWaves::GetWaveDataOffset(WAVEID WaveID, unsigned long *pulOffset)
 	return wr;
 }
 
-WAVERESULT CWaves::ParseFile(const char *szFilename, LPWAVEFILEINFO pWaveInfo)
+WAVERESULT CWaves::ParseFile(const wchar_t *szFilename, LPWAVEFILEINFO pWaveInfo)
 {
 	WAVEFILEHEADER	waveFileHeader;
 	RIFFCHUNK		riffChunk;
@@ -277,7 +277,7 @@ WAVERESULT CWaves::ParseFile(const char *szFilename, LPWAVEFILEINFO pWaveInfo)
 	#endif
 	
 	// Open the wave file for reading
-	pWaveInfo->pFile = fopen(szFilename, "rb");
+	pWaveInfo->pFile = _wfopen(szFilename, L"rb");
 	if (pWaveInfo->pFile)
 	{
 		// Read Wave file header

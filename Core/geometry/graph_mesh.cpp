@@ -22,7 +22,7 @@ namespace DeltaWorks
 			if (!node.Query(attrib_name,string))
 				throw Except::IO::DriveAccess::FileFormatFault("Unable to retrieve attribute '"+String(attrib_name)+"' from XML node '"+node.name+"'");
 			
-			explode(',',string,segments);
+			Explode(',',string,segments);
 			if (segments.Count() != 2)
 				throw Except::IO::DriveAccess::FileFormatFault("Unexpected segment count in attribute '"+String(attrib_name)+"' of XML node '"+node.name+"': "+String(segments.Count())+". Expected 2 comma separated segments in '"+string+"'");
 

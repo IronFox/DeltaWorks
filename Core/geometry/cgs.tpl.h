@@ -3444,7 +3444,7 @@ template <class Def> void Geometry<Def>::loadMaterials(Riff::File&riff)//, bool 
 										else
 										{
 											CGS_MSG("ROBJ chunk is of unexpected size: "+String(riff.GetSize()));
-												ShowMessage(riff.GetSize());
+												ShowMessage(String(riff.GetSize()));
 											riff.Exit();
 											continue;
 										}

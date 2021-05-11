@@ -2,9 +2,17 @@
 #define img_importerH
 
 #include "../image.h"
+#include "../../io/file_system.h"
 
 namespace DeltaWorks
 {
+	#undef IEXT
+	#ifdef WIN32
+		#define IEXT(STR) L##STR
+	#else
+		#define IEXT(STR) STR
+	#endif
+
 	/**
 	@brief Abstract image format descriptor
 	*/
@@ -52,7 +60,7 @@ namespace DeltaWorks
 		Ctr::Array<PathString>	extensions;		//!< Extensions supported by this image format
 		Ctr::Array<BYTE>			magic_bytes;	//!< Magic bytes (if any). May be up to 10 bytes
 		
-						ImageFormat(const String&name_, const PathString&ext):name(name_)	{explode((PathString::char_t)' ',ext,extensions);}
+						ImageFormat(const String&name_, const PathString&ext):name(name_)	{Explode<PathString::char_t>(' ',ext,extensions);}
 		
 		/**
 			@brief Attempts to write an image to the specified file
@@ -67,7 +75,7 @@ namespace DeltaWorks
 			FILE*f = FOPEN(filename.c_str(),"wb");
 			if (!f)
 			{
-				throw Except::IO::DriveAccess::FileOpenFault("File not found or inaccessible for writing: '"+filename+"'");
+				throw Except::IO::DriveAccess::FileOpenFault(StringType::Cast("File not found or inaccessible for writing: '")+filename+StringType::Cast("'"));
 			}
 			try
 			{
@@ -102,7 +110,7 @@ namespace DeltaWorks
 		{
 			FILE*f = FOPEN(filename.c_str(),"rb");
 			if (!f)
-				throw Except::IO::DriveAccess::FileOpenFault("File not found or inaccessible: '"+filename+"'");
+				throw Except::IO::DriveAccess::FileOpenFault(CLOCATION, "File not found or inaccessible: '"+FileSystem::PathToString(filename)+"'");
 			try
 			{
 				LoadFromFilePointer(image,f);

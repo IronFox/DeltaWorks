@@ -402,7 +402,7 @@ namespace DeltaWorks
 		const char*				getTempFolder()
 		{
 			static const char*	key_names[] = {"TEMP","TMP","TMPDIR"};
-			return getFirstEnv(key_names,ARRAYSIZE(key_names),FOLDER_SLASH_STR"tmp");
+			return getFirstEnv(key_names,ARRAYSIZE(key_names),"/tmp");
 		}
 
 		const char*				getHostName()

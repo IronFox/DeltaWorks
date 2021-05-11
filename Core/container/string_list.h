@@ -126,6 +126,12 @@ namespace DeltaWorks
 				}
 				return *this;
 			}
+			CharacterTable&	operator=(char token)		//!< Sets the local character map to the single given character
+			{
+				memset(field,0,sizeof(field));
+				field[(BYTE)token] = 1;
+				return *this;
+			}
 			
 			inline	size_t	Query(BYTE c) const	//! Queries the index entry of the specified character (cast to size_t char). The returned value will be the index of the specified character in the original string (plus 1) or 0 if the character is not defined in this table
 			{

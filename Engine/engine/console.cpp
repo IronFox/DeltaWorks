@@ -9,7 +9,7 @@ Language/Font-depended console.
 namespace Engine
 {
 
-	static LogFile		console_log("console.log",true);
+	static LogFile		console_log( StringType::Cast("console.log"),true);
 	#define CONSOLE_LOG(msg) console_log << __func__<<"("<<__LINE__<<"): "<<msg<<nl;
 
 

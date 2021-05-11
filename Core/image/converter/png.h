@@ -23,7 +23,7 @@ namespace DeltaWorks
 	class PNG:public ImageFormat
 	{
 	public:
-		PNG()				:ImageFormat("PNG","png") {magic_bytes.set4(0x89,0x50,0x4e,0x47);}
+		PNG()				:ImageFormat("PNG",IEXT("png")) {magic_bytes.set4(0x89,0x50,0x4e,0x47);}
 		virtual	void		SaveToFilePointer(const Image&image, FILE*file)			override;
 		virtual	void		LoadFromFilePointer(Image&image, FILE*file)				override;
 		void				SaveToFileQ(const Image&image, const PathString&filename);	//!< Identical to saveToFile() using weaker compression

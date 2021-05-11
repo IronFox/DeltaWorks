@@ -38,7 +38,7 @@ namespace DeltaWorks
 			Init()
 			{
 				#if SYSTEM == WINDOWS
-					bool success = kernel_library.Open("kernel32.dll");
+					bool success = kernel_library.Open(FileSystem::StringToPath("kernel32.dll"));
 					const String error = success?"":kernel_library.GetOpenError();
 					ASSERT1__(success,error);
 

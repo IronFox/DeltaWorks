@@ -521,9 +521,21 @@ namespace Engine
 			HRESULT rs = RegisterDragDrop(hWnd,&dropHandler);
 			if (rs != S_OK)
 			{
-				ShowMessage(rs == DRAGDROP_E_INVALIDHWND);
-				ShowMessage(rs == DRAGDROP_E_ALREADYREGISTERED);
-				ShowMessage(rs == E_OUTOFMEMORY);
+				switch (rs)
+				{
+					case DRAGDROP_E_INVALIDHWND:
+						ShowMessage("AcceptFileDrop failed: DRAGDROP_E_INVALIDHWND");
+					break;
+					case DRAGDROP_E_ALREADYREGISTERED:
+						ShowMessage("AcceptFileDrop failed: DRAGDROP_E_ALREADYREGISTERED");
+					break;
+					case E_OUTOFMEMORY:
+						ShowMessage("AcceptFileDrop failed: E_OUTOFMEMORY");
+					break;
+					default:
+						ShowMessage("AcceptFileDrop failed: ???");
+					break;
+				}
 			}
 			//ShowMessage();
 
@@ -562,7 +574,7 @@ namespace Engine
         if (!RegisterClassW(&wc))
         {
             _error = ERR_CLASS_REGISTRATION_FAILED;
-            return "";
+            return StringW();
         }
 		class_created = true;
 		return ENGINE_CLASS_NAME;

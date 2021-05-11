@@ -32,7 +32,7 @@ namespace DeltaWorks
 					return PNG_COLOR_TYPE_RGB_ALPHA;
 				break;
 				default:
-					throw Except::IO::DriveAccess::FileFormatFault(Except::globalString("Unexpected number of channels"));
+					throw Except::IO::DriveAccess::FileFormatFault(CLOCATION,Except::globalString("Unexpected number of channels"));
 				break;
 			}
 		}
@@ -42,12 +42,12 @@ namespace DeltaWorks
 
 		void PNGAPI OnReadError(png_structp png, png_const_charp err_str)
 		{
-			throw Except::IO::DriveAccess::DataReadFault(err_str);
+			throw Except::IO::DriveAccess::DataReadFault(CLOCATION,err_str);
 		}
 
 		void PNGAPI OnWriteError(png_structp png, png_const_charp err_str)
 		{
-			throw Except::IO::DriveAccess::DataWriteFault(err_str);
+			throw Except::IO::DriveAccess::DataWriteFault(CLOCATION,err_str);
 		}
 
 		void PNGAPI OnWarning(png_structp, png_const_charp)
@@ -302,7 +302,7 @@ namespace DeltaWorks
 	{
 		FILE*f = FOPEN(filename.c_str(),"rb");
 		if (!f)
-			throw Except::IO::DriveAccess::FileOpenFault("File not found or inaccessible for reading: '"+filename+"'");
+			throw Except::IO::DriveAccess::FileOpenFault(CLOCATION,"File not found or inaccessible for reading: '"+FileSystem::PathToString(filename)+"'");
 
 		png_structp png = Detail::NewReadStruct();
 		png_infop info = nullptr;
@@ -386,7 +386,7 @@ namespace DeltaWorks
 	{
 		FILE*f = FOPEN(filename.c_str(),"wb");
 		if (!f)
-			throw Except::IO::DriveAccess::FileOpenFault("File is inaccessible for writing: '"+filename+"'");
+			throw Except::IO::DriveAccess::FileOpenFault(CLOCATION,"File is inaccessible for writing: '"+FileSystem::PathToString(filename)+"'");
 
 
 		png_structp png = Detail::NewWriteStruct();
@@ -475,7 +475,7 @@ namespace DeltaWorks
 	{
 		FILE*f = FOPEN(filename.c_str(),"wb");
 		if (!f)
-			throw Except::IO::DriveAccess::FileOpenFault("File is inaccessible for writing: '"+filename+"'");
+			throw Except::IO::DriveAccess::FileOpenFault(CLOCATION,"File is inaccessible for writing: '"+FileSystem::PathToString(filename)+"'");
 
 
 		png_structp png = Detail::NewWriteStruct();

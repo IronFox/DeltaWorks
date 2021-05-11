@@ -2,6 +2,7 @@
 #include <general/timer.h>
 #include <container/buffer.h>
 #include <container/sorter.h>
+#include <io/file_system.h>
 
 #include <cstdlib>
 #include <iostream>
@@ -456,7 +457,7 @@ namespace Engine
 		}
 
 	
-		WaveBuffer			Load(const String&filename, String*error_out)
+		WaveBuffer			Load(const PathString&filename, String*error_out)
 		{
 			WaveBuffer	result;
 			if (!Status::initialized)
@@ -501,7 +502,7 @@ namespace Engine
 			else
 				if (error_out)
 				{
-					(*error_out) = "Failed to load file '"+filename+"'";
+					(*error_out) = "Failed to load file '"+FileSystem::PathToString(filename)+"'";
 					#undef ECASE
 					#define ECASE(_CASE_)	case _CASE_: (*error_out) += " ("#_CASE_")"; break;
 					switch (rs)

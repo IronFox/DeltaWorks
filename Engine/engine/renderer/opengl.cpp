@@ -56,7 +56,7 @@ namespace Engine
 		}
 	#endif
 
-	LogFile	OpenGL::log_file("opengl.log",true);
+	LogFile	OpenGL::log_file(StringType::Cast("opengl.log"),true);
 
 	GL::RenderState	OpenGL::state;
 

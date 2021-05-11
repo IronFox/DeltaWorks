@@ -44,18 +44,14 @@ namespace DeltaWorks
 			*/
 			bool			ToUTF32(const char*&begin, const char*const end, char32_t&outChar);
 			char32_t		ToUTF32(const TChar&c);
-			void			ToUTF32(const StringRef&utf8Source, UTF32String&utf32Dest);
-			void			ToUTF32(const String&utf8Source, UTF32String&utf32Dest);
-			UTF32String		ToUTF32(const String&utf8Source);
+			void			ToUTF32(const StringType::Sequence<char>&utf8Source, UTF32String&utf32Dest);
+			UTF32String		ToUTF32(const StringType::Sequence<char>&utf8Source);
 			char			ToCP1252(const TChar&ch);
-			void			ToCP1252(const StringRef&utf8Source, String&cp1252Dest);
-			void			ToCP1252(const String&utf8Source, String&cp1252Dest);
-			void			ToUTF16(const String&utf8Source, StringType::Template<char16_t>&utf16Dest);
-			StringW			ToUTF16(const String&utf8Source);
-			void			ToUTF16(const StringRef&utf8Source, StringType::Template<char16_t>&utf16Dest);
+			void			ToCP1252(const StringType::Sequence<char>&utf8Source, String&cp1252Dest);
+			void			ToUTF16(const StringType::Sequence<char>&utf8Source, StringType::Template<char16_t>&utf16Dest);
+			StringW			ToUTF16(const StringType::Sequence<char>&utf8Source);
 			#ifdef WIN32
-				void		ToUTF16(const StringRef&utf8Source, StringType::Template<wchar_t>&utf16Dest);
-				void		ToUTF16(const String&utf8Source, StringType::Template<wchar_t>&utf16Dest);
+				void		ToUTF16(const StringType::Sequence<char>&utf8Source, StringType::Template<wchar_t>&utf16Dest);
 			#endif
 
 
@@ -65,7 +61,7 @@ namespace DeltaWorks
 			class Scanner
 			{
 			public:
-				Scanner(const StringRef&source):current(source.GetPointer()),end(source.GetPointer()+source.GetLength())
+				Scanner(const StringType::Sequence<char>&source):current(source.GetPointer()),end(source.GetPointer()+source.GetLength())
 				{}
 
 				/**
@@ -123,25 +119,36 @@ namespace DeltaWorks
 			};
 
 
+			/**
+			Determines the total length (in 8bit characters) of a variable-length UTF-16 encoded character, by looking at the first character.
+			@return Character length in [1,2], including this first character
+			*/
+			BYTE			GetLength(char16_t firstChar);
+
+			/**
+			Parses a given UTF-16 string segment to a single UTF-32 character
+			@param[inout] begin Starting character. Incremented automatically. Left unchanged if the function returns false
+			@param end One past the last character available
+			@param[out] outChar Output character to write the parsed character into. Left unchanged if the function fails
+			@return True if the given character segment has at least one character and all of the possibly multi-byte character is present in the segment
+			*/
+			bool			ToUTF32(const char16_t*&begin, const char16_t*const end, char32_t&outChar);
+
 			char32_t		ToUTF32(const TChar&c);
-			void			ToUTF32(const StringType::ReferenceExpression<char16_t>&utf16Source, UTF32String&utf32Dest);
-			void			ToUTF32(const UTF16String&utf16Source, UTF32String&utf32Dest);
-			void			ToUTF8(const StringType::ReferenceExpression<char16_t>&utf16Source, String&utf8Dest);
-			void			ToUTF8(const UTF16String&utf16Source, String&utf8Dest);
-			UTF32String		ToUTF32(const StringType::ReferenceExpression<char16_t>&utf16Source);
-			UTF32String		ToUTF32(const UTF16String&utf16Source);
-			String			ToUTF8(const StringType::ReferenceExpression<char16_t>&utf16Source);
-			String			ToUTF8(const UTF16String&utf16Source);
+			void			ToUTF32(const StringType::Sequence<char16_t>&utf16Source, UTF32String&utf32Dest);
+			void			ToUTF8(const StringType::Sequence<char16_t>&utf16Source, String&utf8Dest);
+			UTF32String		ToUTF32(const StringType::Sequence<char16_t>&utf16Source);
+			String			ToUTF8(const StringType::Sequence<char16_t>&utf16Source);
 			#ifdef WIN32
 				static_assert(sizeof(wchar_t)==sizeof(char16_t),"Expected wchar_t to be 16 bit on windows");
-				void		ToUTF32(const StringType::ReferenceExpression<wchar_t>&utf16Source, UTF32String&utf32Dest);
-				void		ToUTF32(const StringW&utf16Source, UTF32String&utf32Dest);
-				void		ToUTF8(const StringType::ReferenceExpression<wchar_t>&utf16Source, String&utf8Dest);
-				void		ToUTF8(const StringW&utf16Source, String&utf8Dest);
-				UTF32String	ToUTF32(const StringType::ReferenceExpression<wchar_t>&utf16Source);
-				UTF32String	ToUTF32(const StringW&utf16Source);
-				String		ToUTF8(const StringType::ReferenceExpression<wchar_t>&utf16Source);
-				String		ToUTF8(const StringW&utf16Source);
+				void		ToUTF32(const StringType::Sequence<wchar_t>&utf16Source, UTF32String&utf32Dest);
+				void		ToUTF8(const StringType::Sequence<wchar_t>&utf16Source, String&utf8Dest);
+				UTF32String	ToUTF32(const StringType::Sequence<wchar_t>&utf16Source);
+				String		ToUTF8(const StringType::Sequence<wchar_t>&utf16Source);
+
+				inline BYTE	GetLength(wchar_t firstChar)	{return GetLength((char16_t)firstChar);}
+				bool		ToUTF32(const wchar_t*&begin, const wchar_t*const end, char32_t&outChar);
+
 			#endif
 		}
 
@@ -152,19 +159,16 @@ namespace DeltaWorks
 		{
 			BYTE			ToUTF8Length(char32_t utf32Char);
 			void			ToUTF8(char32_t c, UTF8::TChar&rs);
-			void			ToUTF8(const StringType::ReferenceExpression<char32_t>&utf32Source, String&utf8Dest);
-			void			ToUTF8(const UTF32String&utf32Source, String&utf8Dest);
-			String			ToUTF8(const UTF32StringRef&utf32Source);
+			UTF8::TChar		ToUTF8(char32_t c);
+			void			ToUTF8(const StringType::Sequence<char32_t>&utf32Source, String&utf8Dest);
+			String			ToUTF8(const StringType::Sequence<char32_t>&utf32Source);
 			char			ToCP1252(char32_t c);
 			bool			ToCP1252(char32_t c, char&outChar);
-			void			ToCP1252(const StringType::ReferenceExpression<char32_t>&utf32Source, String&cp1525Dest);
-			void			ToCP1252(const UTF32String&utf32Source, String&cp1525Dest);
+			void			ToCP1252(const StringType::Sequence<char32_t>&utf32Source, String&cp1525Dest);
 			void			ToUTF16(char32_t c, UTF16::TChar&rs);
-			void			ToUTF16(const StringType::ReferenceExpression<char32_t>&utf32Source, UTF16String&utf16Dest);
-			void			ToUTF16(const UTF32String&utf32Source, UTF16String&utf16Dest);
+			void			ToUTF16(const StringType::Sequence<char32_t>&utf32Source, UTF16String&utf16Dest);
 			#ifdef WIN32
-				void		ToUTF16(const UTF32String&utf32Source, StringType::Template<wchar_t>&utf16Dest);
-				void		ToUTF16(const StringType::ReferenceExpression<char32_t>&utf32Source, StringType::Template<wchar_t>&utf16Dest);
+				void		ToUTF16(const StringType::Sequence<char32_t>&utf32Source, StringType::Template<wchar_t>&utf16Dest);
 			#endif
 		}
 
@@ -174,11 +178,9 @@ namespace DeltaWorks
 		namespace CP1252
 		{
 			void			ToUTF8(char, UTF8::TChar&ch);
-			void			ToUTF8(const StringRef&cp1252Source, String&utf8Dest);
-			void			ToUTF8(const String&cp1252Source, String&utf8Dest);
+			void			ToUTF8(const StringType::Sequence<char>&cp1252Source, String&utf8Dest);
 			char32_t		ToUTF32(char);
-			void			ToUTF32(const StringRef&cp1252Source, UTF32String&utf32Dest);
-			void			ToUTF32(const String&cp1252Source, UTF32String&utf32Dest);
+			void			ToUTF32(const StringType::Sequence<char>&cp1252Source, UTF32String&utf32Dest);
 		}
 
 		/**

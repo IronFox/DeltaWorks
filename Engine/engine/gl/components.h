@@ -26,7 +26,7 @@ namespace Engine
 			M::Quad<float>				textMargin;	//!< Distance between text and the respective edge. All positive values (even up and right)
 				
 			void						_Setup();
-			static	float				_CharLen(char c);
+			static	float				_CharLen(char32_t c);
 		protected:
 			/**/						Label(const String&type):Component("Label/"+type){_Setup();}		
 		public:

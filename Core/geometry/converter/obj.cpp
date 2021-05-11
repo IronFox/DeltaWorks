@@ -276,7 +276,7 @@ namespace DeltaWorks
 		{
 			target.alpha = 1.0;
 			Ctr::Array<String>	segments;
-			explode(' ',line,segments);
+			Explode(' ',line,segments);
 			if (segments.Count() != 3)
 				return;
 			convert(segments[0].c_str(),target.red);
@@ -289,7 +289,7 @@ namespace DeltaWorks
 		{
 			if (!color_map.GetLength() && !alpha_map.GetLength())
 				return NULL;
-			PathString key = color_map+"|"+alpha_map;
+			PathString key = color_map+StringType::Cast("|")+alpha_map;
 			ObjTexture*result;
 			if (texture_field.Query(key,result))
 				return result;
@@ -497,10 +497,10 @@ namespace DeltaWorks
 					}
 				
 					sendMessage("unable to locate image '"+seg+"'");
-					return "";
+					return PathString();
 				}
 			}
-			return "";
+			return PathString();
 		}
 
 		void			ObjConverter::LoadObjMaterialLibrary(const CFSFile*file) throw()
@@ -563,9 +563,9 @@ namespace DeltaWorks
 									}
 								}
 							}
-							color_map = "";
-							transparency_map = "";
-							bump_map = "";
+							color_map.Clear();
+							transparency_map.Clear();
+							bump_map.Clear();
 							material.reset(new ObjMaterial());
 							material_list << material;
 							material->name = line.subString(7);
@@ -731,7 +731,7 @@ namespace DeltaWorks
 				break;
 				case 'm':
 					if (!strncmp(start,"mtllib",6) && end-start>6)
-						LoadObjMaterialLibrary(object_system.FindFile(start+7));
+						LoadObjMaterialLibrary(object_system.FindFile(FileSystem::StringToPath(start+7)));
 				break;
 			}
 		}
@@ -1121,7 +1121,7 @@ namespace DeltaWorks
 				target.local_textures.entry_field[i].adoptData(exp[i]->data);
 				exp[i]->target = target.local_textures.entry_field+i;
 				if (target.local_textures.entry_field[i].face_field.GetLength())
-					logMessage(target.local_textures.entry_field[i].face_field[0].size());
+					LogSize(target.local_textures.entry_field[i].face_field[0].size());
 				CGS_POINT
 			}
 		
@@ -1273,7 +1273,7 @@ namespace DeltaWorks
 			sendMessage("Creating geometric hull");
 			for (index_t i = 0; i < group_buffer.Count(); i++)
 			{
-				logMessage(__LINE__);
+				LogLine(__LINE__);
 				CGS::SubGeometryA<>&child = target.object_field[i];
 		
 				history.Fill(invalid_index);
@@ -1283,7 +1283,7 @@ namespace DeltaWorks
 				VertexHashTable<PoolVertex>	pool;
 
 				//Sorted<List::M::Vector3<PoolVertex>,OperatorSort>	pool;
-				logMessage(__LINE__);
+				LogLine(__LINE__);
 			
 
 				PObjFaceGroup group = group_buffer[i];
@@ -1320,7 +1320,7 @@ namespace DeltaWorks
 					}
 				}
 			
-				logMessage(__LINE__);
+				LogLine(__LINE__);
 			
 			
 				child.vs_hull_field.SetSize(1);
@@ -1331,7 +1331,7 @@ namespace DeltaWorks
 				child.meta.volume = 1.0;
 				child.meta.density = 1.0;
 				M::Vec::clear(child.meta.center);
-				logMessage(__LINE__);
+				LogLine(__LINE__);
 
 				Ctr::Array<PoolVertex>	vertex_field;
 				pool.exportToField(vertex_field);
@@ -1362,7 +1362,7 @@ namespace DeltaWorks
 						dim.GetCenter(child.meta.center);
 					
 				}
-				logMessage(__LINE__);
+				LogLine(__LINE__);
 			
 				vs_hull.triangle_field.SetSize(triangle_buffer.Count());
 				for (index_t j = 0; j < triangle_buffer.Count(); j++)
@@ -1372,7 +1372,7 @@ namespace DeltaWorks
 					vs_hull.triangle_field[j].v1 = vs_hull.vertex_field+t.v[1];
 					vs_hull.triangle_field[j].v2 = vs_hull.vertex_field+t.v[2];
 				}
-				logMessage(__LINE__);
+				LogLine(__LINE__);
 			
 				vs_hull.quad_field.SetSize(quad_buffer.Count());
 				for (index_t j = 0; j < quad_buffer.Count(); j++)
@@ -1387,7 +1387,7 @@ namespace DeltaWorks
 					vs_hull.quad_field[j].v2 = vs_hull.vertex_field+q.v[2];
 					vs_hull.quad_field[j].v3 = vs_hull.vertex_field+q.v[3];
 				}
-				logMessage(__LINE__);
+				LogLine(__LINE__);
 			
 				//vs_hull.generateEdges();
 				if (!vs_hull.valid())
@@ -1405,7 +1405,7 @@ namespace DeltaWorks
 					//vs_hull.invert();				//<- no good. volume calculation failes sometimes if hull is not closed
 					//inversion_field.Set(&child,true);
 				}
-				logMessage(__LINE__);
+				LogLine(__LINE__);
 			
 			}
 		
@@ -1519,13 +1519,13 @@ namespace DeltaWorks
 				out.ExtractChannels(3,1,alpha);
 				try
 				{
-					bitmap.SaveToFile(alpha,base_name+".alpha.bmp");
-					sendMessage("  Alpha component of '"+tex_name+"' written to '"+base_name+".alpha.bmp'");
+					bitmap.SaveToFile(alpha,base_name+StringType::Cast(".alpha.bmp"));
+					sendMessage("  Alpha component of '"+tex_name+"' written to '"+ FileSystem::PathToString(base_name)+".alpha.bmp'");
 					fout << "map_d " <<  tex_name<<".alpha.bmp"<<nl;
 				}
 				catch (...)
 				{
-					sendMessage("  Failed to write alpha of '"+tex_name+"' to '"+base_name+".alpha.bmp'");
+					sendMessage("  Failed to write alpha of '"+tex_name+"' to '"+FileSystem::PathToString(base_name)+".alpha.bmp'");
 				}
 			}
 			if (out.GetChannels() != 3)
@@ -1546,26 +1546,26 @@ namespace DeltaWorks
 		
 			try
 			{
-				bitmap.SaveToFile(out,base_name+".bmp");
+				bitmap.SaveToFile(out,base_name+StringType::Cast(".bmp"));
 				texture_names.Set(texture,tex_name+".bmp");
 				if (out.GetContentType() == PixelType::Color)
 				{
-					sendMessage("  Color component of '"+tex_name+"' written to '"+base_name+".bmp'");
+					sendMessage("  Color component of '"+tex_name+"' written to '"+FileSystem::PathToString(base_name)+".bmp'");
 					fout << "map_Kd "<<tex_name<<".bmp"<<nl;
 				}
 				else
 				{
-					sendMessage("  Normal map '"+tex_name+"' written to '"+base_name+".bmp'");
+					sendMessage("  Normal map '"+tex_name+"' written to '"+FileSystem::PathToString(base_name)+".bmp'");
 					fout << "bump "<<tex_name<<".bmp"<<nl;
 				}
 			}
 			catch (const std::exception&except)
 			{
-				sendMessage("  Failed to write texture '"+tex_name+"' to '"+base_name+".bmp' ("+except.what()+")");
+				sendMessage("  Failed to write texture '"+tex_name+"' to '"+FileSystem::PathToString(base_name)+".bmp' ("+except.what()+")");
 			}
 			catch (...)
 			{
-				sendMessage("  Failed to write texture '"+tex_name+"' to '"+base_name+".bmp'");
+				sendMessage("  Failed to write texture '"+tex_name+"' to '"+FileSystem::PathToString(base_name)+".bmp'");
 			}
 		}
 		else
@@ -1580,12 +1580,12 @@ namespace DeltaWorks
 					out.ExtractChannels(3,1,alpha);
 					try
 					{
-						bitmap.SaveToFile(alpha,base_name+String(j)+".alpha.bmp");
-						sendMessage("  Alpha component of layer "+String(j)+" '"+tex_name+"' written to '"+base_name+String(j)+".alpha.bmp'");
+						bitmap.SaveToFile(alpha,base_name+PathString(j)+StringType::Cast(".alpha.bmp"));
+						sendMessage("  Alpha component of layer "+String(j)+" '"+tex_name+"' written to '"+FileSystem::PathToString(base_name)+String(j)+".alpha.bmp'");
 					}
 					catch (...)
 					{
-						sendMessage("  Failed to write alpha layer "+String(j)+" '"+tex_name+"' to '"+base_name+String(j)+".alpha.bmp'");
+						sendMessage("  Failed to write alpha layer "+String(j)+" '"+tex_name+"' to '"+FileSystem::PathToString(base_name)+String(j)+".alpha.bmp'");
 					}
 				}
 				if (out.GetChannels() != 3)
@@ -1605,12 +1605,12 @@ namespace DeltaWorks
 			
 				try
 				{
-					bitmap.SaveToFile(out,base_name+String(j)+".bmp");
-					sendMessage("  Color component of layer "+String(j)+" '"+tex_name+"' written to '"+base_name+String(j)+".bmp'");
+					bitmap.SaveToFile(out,base_name+PathString(j)+StringType::Cast(".bmp"));
+					sendMessage("  Color component of layer "+String(j)+" '"+tex_name+"' written to '"+FileSystem::PathToString(base_name)+String(j)+".bmp'");
 				}
 				catch (...)
 				{
-					sendMessage("  Failed to write color layer "+String(j)+" '"+tex_name+"' to '"+base_name+String(j)+".bmp'");
+					sendMessage("  Failed to write color layer "+String(j)+" '"+tex_name+"' to '"+FileSystem::PathToString(base_name)+String(j)+".bmp'");
 				}
 			}
 			else
@@ -1654,11 +1654,12 @@ namespace DeltaWorks
 		{
 	#if 1
 			PathString filename = parameter;
-			if (!filename.EndsWith(".obj"))
-				filename+=".obj";
+			const PathString ext = FileSystem::StringToPath(".obj");
+			if (!filename.EndsWith(ext))
+				filename+= ext;
 			
 		
-			PathString material_lib_file = FileSystem::ExtractFileDirName(filename)+".mtl";
+			PathString material_lib_file = FileSystem::ExtractFileDirName(filename)+StringType::Cast(".mtl");
 		
 			StringFile	out;
 		

@@ -2111,7 +2111,7 @@ namespace Engine
 				Array<String,Adopt>	lines;
 		
 				bool inComment = false;
-				explode('\n',source,lines);
+				Explode('\n',source,lines);
 		
 		
 		
@@ -2141,7 +2141,7 @@ namespace Engine
 							return false;
 						}
 						Array<String,AdoptStrategy>	temp;
-						explode('\n',*include,temp);
+						Explode('\n',*include,temp);
 						lines.Erase(i);
 						lines.insertImport(i,temp);
 					}
@@ -2177,7 +2177,7 @@ namespace Engine
 					target.SetSize(i-blockBegin);
 					for (index_t j = 0; j < target.size(); j++)
 					{
-						explode(current->lightLoopConstant,lines[blockBegin+j],target[j].segments);
+						Explode(current->lightLoopConstant,lines[blockBegin+j],target[j].segments);
 		/* 				if (current->children)
 							cout << "  "<<lines[blockBegin+j]<<endl; */
 					}
@@ -2333,7 +2333,7 @@ namespace Engine
 					target.SetSize(lines.Count()-blockBegin);
 					for (index_t j = 0; j < target.size(); j++)
 					{
-						explode(current->lightLoopConstant,lines[blockBegin+j],target[j].segments);
+						Explode(current->lightLoopConstant,lines[blockBegin+j],target[j].segments);
 					}
 				}
 		

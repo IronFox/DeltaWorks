@@ -340,20 +340,15 @@ namespace CharFunctions
 			{
 				T0	c0 = chrlwr(*string0);
 				T1	c1 = chrlwr(*string1);
-				if (c0 < c1)
-					return -1;
-				if (c0 > c1)
-					return 1;
+				int delta = int(c0) - int(c1);
+				if (delta != 0)
+					return delta;
 				string0++;
 				string1++;
 			}
 			T0	c0 = chrlwr(*string0);
 			T1	c1 = chrlwr(*string1);
-			if (c0 < c1)
-				return -1;
-			if (c0 > c1)
-				return 1;
-			return 0;			
+			return int(c0) - int(c1);
 		}	
 
 	template <typename T>

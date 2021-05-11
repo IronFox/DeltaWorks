@@ -105,195 +105,172 @@ template <typename T>
 
 #endif
 
-template <typename T0, typename T1, typename T2>
-	void	explode(const T0*delimiter, size_t delimiter_length, const T1*string, Ctr::ArrayData<T2>&result)
+	namespace ExplodeDetails
 	{
-		if (!string)
-			return;
-		explode(delimiter, delimiter_length,ReferenceExpression<T1>(string,CharFunctions::strlen(string)),result);
-	}
 
-	
-template <typename T0, typename T1, typename T2>
-	void	explode(const T0*delimiter, size_t delimiter_length, const StringType::ReferenceExpression<T1>&string, Ctr::ArrayData<T2>&result)
-	{
-		if (!delimiter || !delimiter_length)
-			return;
-		if (!string.GetLength())
-		{
-			result.SetSize(1);
-			result[0] = string;
-			return;
-		}
-		const T0*const delimiterEnd = delimiter+delimiter_length;
+		template <typename T0, typename T1>
+			void	Explode(const StringType::Sequence<T0>&delimiterRef, const StringType::Sequence<T0>&string, Ctr::ArrayData<T1>&result)
+			{
+				if (delimiterRef.IsEmpty())
+					return;
+				if (string.IsEmpty())
+				{
+					result.SetSize(1);
+					result[0] = string;
+					return;
+				}
+				const T0*const delimiter = delimiterRef.GetPointer();
+				const T0*const delimiterEnd = delimiter+delimiterRef.GetLength();
+				const auto delimiter_length = delimiterRef.GetLength();
 		
-		//Ctr::ArrayData<T1>	buffer(string);
-		const T1*at = string.pointer();
-		const T1*const end = at+string.GetLength();
-		size_t count = 0;
-		while (at != end)
+				//Ctr::ArrayData<T1>	buffer(string);
+				const T0*at = string.GetPointer();
+				const T0*const end = at+string.GetLength();
+				count_t count = 0;
+				while (at != end)
+				{
+					count ++;
+					if (const T0*found = CharFunctions::strstr<T0,T0>(at,end,delimiter,delimiterEnd))
+					{
+						at = found + delimiter_length;
+					}
+					else
+						break;
+				}
+				result.SetSize(count);
+				at = string.GetPointer();
+				count = 0;
+				while (at != end)
+				{
+					if (const T0*found = CharFunctions::strstr<T0,T0>(at,end,delimiter,delimiterEnd))
+					{
+						result[count++] = T1(at,found-at);
+						/*(*found) = 0;
+						result[count++] = at;*/
+						at = found + delimiter_length;
+					}
+					else
+					{
+						result[count++] = T1(at,end-at);
+						return;
+					}
+				}
+			}
+
+
+
+		template <typename T0, typename T1>
+			void	Explode(T0 delimiter, const StringType::Sequence<T0>&string, Ctr::ArrayData<T1>&result)
+			{
+				const T0*at = string.GetPointer();
+				const T0*const end = at + string.GetLength();
+				size_t count = 0;
+				while (at != end)
+				{
+					count ++;
+					if (const T0*found = CharFunctions::strchr(at,end,delimiter))
+					{
+						at = found +1;
+					}
+					else
+						break;
+				}
+				result.SetSize(count);
+				at = string.GetPointer();
+				count = 0;
+				while (at != end)
+				{
+					if (const T0*found = CharFunctions::strchr(at,end,delimiter))
+					{
+						/*(*found) = 0;
+						result[count++] = at;*/
+						result[count++] = T1(at,found-at);
+						at = found + 1;
+					}
+					else
+					{
+						result[count++] = T1(at,end-at);
+						return;
+					}
+				}
+			}
+
+
+		template <typename T0, typename T1>
+			void	ExplodeCallback(bool isDelimiter(T0), const StringType::Sequence<T0>&string, Ctr::ArrayData<T1>&result)
+			{
+				const T0*at = string.GetPointer();
+				const T0*const end = at + string.GetLength();
+				size_t count = 0;
+				while (at!=end)
+				{
+					count ++;
+					if (const T0*found = CharFunctions::strchr(at,end,isDelimiter))
+					{
+						at = found +1;
+					}
+					else
+						break;
+				}
+				result.SetSize(count);
+				at = string.GetPointer();
+				count = 0;
+				while (*at)
+				{
+					if (const T0*found = CharFunctions::strchr(at,end,isDelimiter))
+					{
+						/*(*found) = 0;
+						result[count++] = at;*/
+						result[count++] = T1(at,found-at);
+						at = found + 1;
+					}
+					else
+					{
+						result[count++] = T1(at,end-at);
+						return;
+					}
+				}
+			}
+
+	}
+
+
+	template <typename T>
+		void	Explode(const StringType::Sequence<T>&delimiter, const StringType::Sequence<T>&string, Ctr::ArrayData<StringType::ReferenceExpression<T> >&result)
 		{
-			count ++;
-			if (const T1*found = CharFunctions::strstr<T1,T0>(at,end,delimiter,delimiterEnd))
-			{
-				at = found + delimiter_length;
-			}
-			else
-				break;
+			ExplodeDetails::Explode(delimiter,string,result);
 		}
-		result.SetSize(count);
-		at = string.pointer();
-		count = 0;
-		while (at != end)
+
+	template <typename T>
+		void	Explode(const StringType::Sequence<T>&delimiter, const StringType::Sequence<T>&string, Ctr::ArrayData<StringType::Template<T> >&result)
 		{
-			if (const T1*found = CharFunctions::strstr<T1,T0>(at,end,delimiter,delimiterEnd))
-			{
-				result[count++] = T2(at,found-at);
-				/*(*found) = 0;
-				result[count++] = at;*/
-				at = found + delimiter_length;
-			}
-			else
-			{
-				result[count++] = T2(at,end-at);
-				return;
-			}
+			ExplodeDetails::Explode(delimiter,string,result);
 		}
-	}
-
-template <typename T0, typename T1, typename T2>
-	void	explode(const T0*delimiter, size_t delimiter_length, const StringType::Template<T1>&string, Ctr::ArrayData<T2>&result)
-	{
-		explode(delimiter,delimiter_length,string.ref(),result);
-	}
 
 
-
-
-
-template <typename T0, typename T1, typename T2>
-	void	explode(const StringType::Template<T0>&delimiter, const StringType::Template<T1>&string, Ctr::ArrayData<T2>&result)
-	{
-		explode(delimiter.c_str(),delimiter.GetLength(),string,result);
-	}
-
-
-template <typename T0, typename T1, typename T2>
-	void	explode(const T0*delimiter, const StringType::Template<T1>&string, Ctr::ArrayData<T2>&result)
-	{
-		explode(delimiter,CharFunctions::strlen(delimiter),string,result);
-	}
-
-
-template <typename T0, typename T1, typename T2>
-	void	explode(const T0*delimiter, const T1*string, Ctr::ArrayData<T2>&result)
-	{
-		explode(delimiter,CharFunctions::strlen(delimiter),string,result);
-	}
-
-template <typename T0, typename T1>
-	void	explode(T0 delimiter, const T0*string, Ctr::ArrayData<T1>&result)
-	{
-		if (!string)
-			return;
-		explode(delimiter, StringType::ReferenceExpression<T0>(string,CharFunctions::strlen(string)),result);
-	}
-
-template <typename T0, typename T1>
-	void	explode(T0 delimiter, const StringType::ReferenceExpression<T0>&string, Ctr::ArrayData<T1>&result)
-	{
-		//Ctr::ArrayData<T0>	buffer(string);
-		const T0*at = string.pointer();
-		const T0*const end = at + string.GetLength();
-		size_t count = 0;
-		while (at != end)
+	template <typename T>
+		void	Explode(T delimiter, const StringType::Sequence<T>&string, Ctr::ArrayData<StringType::ReferenceExpression<T> >&result)
 		{
-			count ++;
-			if (const T0*found = CharFunctions::strchr(at,end,delimiter))
-			{
-				at = found +1;
-			}
-			else
-				break;
+			ExplodeDetails::Explode(delimiter,string,result);
 		}
-		result.SetSize(count);
-		at = string.pointer();
-		count = 0;
-		while (at != end)
+
+	template <typename T>
+		void	Explode(T delimiter, const StringType::Sequence<T>&string, Ctr::ArrayData<StringType::Template<T> >&result)
 		{
-			if (const T0*found = CharFunctions::strchr(at,end,delimiter))
-			{
-				/*(*found) = 0;
-				result[count++] = at;*/
-				result[count++] = T1(at,found-at);
-				at = found + 1;
-			}
-			else
-			{
-				result[count++] = T1(at,end-at);
-				return;
-			}
+			ExplodeDetails::Explode(delimiter,string,result);
 		}
-	}
 
-template <typename T0, typename T1>
-	void	explode(T0 delimiter, const StringType::Template<T0>&string, Ctr::ArrayData<T1>&result)
-	{
-		explode(delimiter,string.ref(),result);
-	}
-
-template <typename T0, typename T1>
-	void	explodeCallback(bool isDelimiter(T0), const T0*string, Ctr::ArrayData<T1>&result)
-	{
-		if (!string)
-			return;
-		explodeCallback(isDelimiter, StringType::ReferenceExpression<T0>(string,CharFunctions::strlen(string)),result);
-	}
-
-template <typename T0, typename T1>
-	void	explodeCallback(bool isDelimiter(T0), const StringType::ReferenceExpression<T0>&string, Ctr::ArrayData<T1>&result)
-	{
-		//Ctr::ArrayData<T0>	buffer(string);
-		const T0*at = string.pointer();
-		const T0*const end = at + string.GetLength();
-		size_t count = 0;
-		while (at!=end)
+	template <typename T>
+		void	ExplodeCallback(bool isDelimiter(T), const StringType::Sequence<T>&string, Ctr::ArrayData<StringType::ReferenceExpression<T> >&result)
 		{
-			count ++;
-			if (const T0*found = CharFunctions::strchr(at,end,isDelimiter))
-			{
-				at = found +1;
-			}
-			else
-				break;
+			ExplodeDetails::ExplodeCallback(isDelimiter,string,result);
 		}
-		result.SetSize(count);
-		at = string.pointer();
-		count = 0;
-		while (*at)
+
+	template <typename T>
+		void	ExplodeCallback(bool isDelimiter(T), const StringType::Sequence<T>&string, Ctr::ArrayData<StringType::Template<T> >&result)
 		{
-			if (const T0*found = CharFunctions::strchr(at,end,isDelimiter))
-			{
-				/*(*found) = 0;
-				result[count++] = at;*/
-				result[count++] = T1(at,found-at);
-				at = found + 1;
-			}
-			else
-			{
-				result[count++] = T1(at,end-at);
-				return;
-			}
+			ExplodeDetails::ExplodeCallback(isDelimiter,string,result);
 		}
-	}
-
-template <typename T0, typename T1>
-	void	explodeCallback(bool isDelimiter(T0), const StringType::Template<T0>&string, Ctr::ArrayData<T1>&result)
-	{
-		explodeCallback(isDelimiter,string.ref(),result);
-	}
-
-
 
 
 	
@@ -331,7 +308,7 @@ template <typename T>
 	StringType::Template<T>		implode(T glue, const StringType::ReferenceExpression<T>*pieces, count_t numPieces)
 	{
 		if (!numPieces)
-			return "";
+			return StringType::Template<T>();
 		size_t len = 0;
 		for (size_t i = 0; i < numPieces; i++)
 			len += pieces[i].GetLength();
@@ -411,7 +388,7 @@ template <typename T>
 	StringType::Template<T>		implode(T glue, const StringType::Template<T>*pieces, count_t numPieces)
 	{
 		if (!numPieces)
-			return "";
+			return StringType::Template<T>();
 		size_t len = 0;
 		for (size_t i = 0; i < numPieces; i++)
 			len += pieces[i].GetLength();
@@ -442,7 +419,7 @@ template <typename T0, typename T1>
 	StringType::Template<T1>		implode(const T0*glue_str, const StringType::Template<T1>*pieces, count_t numPieces)
 	{
 		if (!numPieces)
-			return "";
+			return StringType::Template<T1>();
 		size_t len = 0;
 		for (size_t i = 0; i < numPieces; i++)
 			len += pieces[i].GetLength();
@@ -468,7 +445,7 @@ template <typename T0, typename T1>
 	StringType::Template<T1>		implode(const StringType::Template<T0>&glue, const Ctr::ArrayRef<StringType::Template<T1> >&pieces)
 	{
 		if (!pieces.Count())
-			return "";
+			return StringType::Template<T1>();
 		size_t len = 0;
 		for (size_t i = 0; i < pieces.Count(); i++)
 			len += pieces[i].GetLength();
@@ -519,7 +496,7 @@ template <typename T0, typename T1>
 	StringType::Template<T1>		implode(const T0*glue_str, const Ctr::ArrayRef<StringType::Template<T1> >&pieces)
 	{
 		if (!pieces.Count())
-			return "";
+			return StringType::Template<T1>();
 		size_t len = 0;
 		for (size_t i = 0; i < pieces.Count(); i++)
 			len += pieces[i].GetLength();
@@ -541,171 +518,6 @@ template <typename T0, typename T1>
 		return result;
 	}
 	
-
-template <typename Char, typename Width>
-	class Wrapper
-	{
-	public:
-		typedef Width(*FCharWidth)(Char);
-
-		const FCharWidth	charWidth;
-		const Width			lineWidth;
-
-		/**/		Wrapper(const Width&lineWidth, const FCharWidth&charWidth):charWidth(charWidth),lineWidth(lineWidth)
-		{}
-
-		template <typename CallbackFunctor>
-			void	Scan(const ArrayRef<const Char>&line, const CallbackFunctor&callback)
-			{
-				if (line.IsEmpty())
-					return;
-				Width		lineWidthToCurrent = 0,	//effective width from firstLineChar to current
-							wordWithToCurrent = 0;	//effective width from firstWordChar to current
-				const Char	*current = line.begin(),
-							*firstWordChar = current,
-							*firstLineChar = current;
-				const Char*const end = line.end();
-
-				bool wordEnded = false;
-				bool forceNewlineAtNextChar = false;
-
-				while (current < end)
-				{
-					const Width charW = charWidth(*current);
-					lineWidthToCurrent += charW;
-					wordWithToCurrent += charW;
-					if (
-						firstWordChar < current	//have at least one char (otherwise: empty line)
-						&&
-						(
-							forceNewlineAtNextChar //encountered new line
-							|| 
-							lineWidthToCurrent >= lineWidth	//exceeded line width
-						)
-					)	
-					{
-						//const bool forcedBreak = lineWidthToCurrent < lineWidth;	//ONLY forceNewLineAtNextChar is true
-						if (forceNewlineAtNextChar)
-						{
-							firstWordChar = current-1;	//last char was newline. we don't pass that to the callback function, so reduce line limit (firstWordChar)
-						}
-						else
-						{
-							if (firstWordChar == firstLineChar)	//we are still inside the first word of this line, so we need to split the word
-							{
-								Width currentW = charWidth(*firstWordChar);
-								firstWordChar++;	//always include first char
-
-								for(;;)
-								{
-									ASSERT_LESS_OR_EQUAL__(firstWordChar,current);
-									const Width chrWidth = charWidth(*firstWordChar);
-									if (firstWordChar < current && (currentW + chrWidth <= lineWidth))	//this char still fits
-									{
-										firstWordChar++;
-										currentW += chrWidth;
-										wordWithToCurrent -= chrWidth;
-									}
-									else
-										break;
-								}
-								if (firstWordChar - firstLineChar > 1)
-									ASSERT_LESS__(currentW,lineWidth);	//one char may exceed limit (can't do anything here). but 2+ must never
-							}
-						}
-						callback(StringType::ReferenceExpression<Char>(firstLineChar,firstWordChar-firstLineChar));
-
-						if (forceNewlineAtNextChar)
-						{
-							firstWordChar = current;	//skip newline char
-							wordWithToCurrent = charW;
-						}
-						firstLineChar = firstWordChar;
-						lineWidthToCurrent = wordWithToCurrent;
-						forceNewlineAtNextChar = false;
-					}
-		
-		
-					if (IsWhitespace(*current))
-					{
-						if (IsNewline(*current))
-							forceNewlineAtNextChar = true;
-
-						if (firstLineChar == current && !forceNewlineAtNextChar)
-						{
-							firstLineChar++;	//auto-trim beginning
-							firstWordChar++;
-						}
-						wordEnded = true;
-					}
-					else
-						if (wordEnded)
-						{
-							wordEnded = false;
-							firstWordChar = current;
-							wordWithToCurrent = charW;
-						}
-					current++;
-				}
-				if (current > firstLineChar)	//some leftovers?
-				{
-					callback(StringType::ReferenceExpression<Char>(firstLineChar, current - firstLineChar));
-				}
-			}
-	};
-
-template <typename Char, typename Width>
-	static Wrapper<Char,Width> MakeWrapper(const Width&lineWidth, Width(*charWidthFunction)(Char))
-	{
-		return Wrapper<Char,Width>(lineWidth,charWidthFunction);
-	}
-	
-template <typename Char, typename Width>
-	void Wrap(const ArrayRef<const Char>&string, const Width&lineWidth, Width (*charWidthFunction)(Char),ArrayData<StringType::ReferenceExpression<Char> >&result)
-	{
-		auto wrapper = MakeWrapper(lineWidth,charWidthFunction);
-
-		count_t numLines=0;
-		wrapper.Scan(string,[&numLines](const StringType::ReferenceExpression<Char>&)	{numLines++;});
-
-		result.SetSize(numLines);
-		index_t at = 0;
-		wrapper.Scan(string,[&result,&at](const StringType::ReferenceExpression<Char>&exp)
-		{
-			result[at] = exp;
-			at++;
-		});
-		ASSERT_EQUAL__(at,numLines);
-	}	
-	
-	
-
-template <typename T>
-	static count_t	ConstantCharWidthFunction(T)
-	{
-		return 1;
-	}
-
-
-template <typename Char>
-	void 	Wrap(const ArrayRef<const Char>&string, count_t lineCharCount, ArrayData<StringType::ReferenceExpression<Char> >&result)
-	{
-		Wrap(string,lineCharCount,ConstantCharWidthFunction,result);
-	}
-
-template <typename Char>
-	void 	Wrap(const ArrayRef<Char>&string, count_t lineCharCount, ArrayData<StringType::ReferenceExpression<Char> >&result)
-	{
-		ArrayRef<const Char> cp = string.Const();
-		Wrap(cp,lineCharCount,ConstantCharWidthFunction,result);
-	}
-
-template <typename Char, typename Width>
-	void	Wrap(const ArrayRef<Char>&string, const Width&lineWidth, Width (*charWidthFunction)(Char),ArrayData<StringType::ReferenceExpression<Char> >&result)
-	{
-		ArrayRef<const Char> cp = string.Const();
-		Wrap(cp,lineWidth,charWidthFunction,result);
-	}
 
 
 
@@ -791,7 +603,7 @@ namespace StringType
 
 	
 	template <typename T>
-		T	Template<T>::zero	= 0;
+		T	Template<T>::zero	= (T)0;
 	template <typename T>
 		T	*Template<T>::sz		= &Template<T>::zero;
 
@@ -819,14 +631,6 @@ namespace StringType
 			makeFromExpression(expression);
 			//ASSERT_NOT_NULL__(Super::data);
 		}
-		
-	template <typename T>
-		template <class T0>
-			Template<T>::Template(const ReferenceExpression<T0>&expression)
-			{
-				makeFromExpression(expression);
-				//ASSERT_NOT_NULL__(Super::data);
-			}
 
 	template <typename T>
 		template <class T0>
@@ -901,15 +705,9 @@ namespace StringType
 				CharFunctions::Cast(string,Super::data,len);
 			}
 
-
-	template <>
-		inline	Template<char>::Template(const char*string)
-		{
-			SetupFromCharArray(string);
-		}
 	
 	template <typename T>
-		inline	Template<T>::Template(const char*string)
+		inline	Template<T>::Template(const T*string)
 		{
 			SetupFromCastCharArray(string);
 		}
@@ -947,18 +745,6 @@ namespace StringType
 			SetupFromCastCharArray(str.begin);
 		}
 
-	template <>
-		inline	Template<wchar_t>::Template(const wchar_t*string)
-		{
-			SetupFromCharArray(string);
-		}
-
-	template <typename T>
-		inline	Template<T>::Template(const wchar_t*string)
-		{
-			SetupFromCastCharArray(string);
-		}
-
 
 
 	template <typename T>
@@ -968,10 +754,12 @@ namespace StringType
 			while (value && end != first)
 			{
 				BYTE c = value & (0xF);
+				T chr;
 				if (c < 10)
-					(*--end) = (T)('0'+c);
+					chr = (T)('0'+c);
 				else
-					(*--end) = (T)('A'+c-10);
+					chr = (T)('A'+c-10);
+				(*--end) = chr;
 				value>>=4;
 				min_len--;
 			}
@@ -989,7 +777,7 @@ namespace StringType
 			size_t len = buffer+256-first;
 		
 			Super::data = allocate(len);
-			memcpy(Super::data,first,len);
+			memcpy(Super::data,first,len*sizeof(T));
 			Super::elements = len;
 			//ASSERT_NOT_NULL__(Super::data);
 		}
@@ -1019,24 +807,6 @@ namespace StringType
 			}
 		}
 
-	template <typename T>
-		Template<T>::Template(char c)
-		{
-			Super::elements = 1;
-			Super::data = allocate(1);
-			Super::data[0] = (T)c;
-			//ASSERT_NOT_NULL__(Super::data);
-		}
-
-	template <typename T>
-		Template<T>::Template(wchar_t c)
-		{
-			Super::elements = 1;
-			Super::data = allocate(1);
-			Super::data[0] = (T)c;
-			//ASSERT_NOT_NULL__(Super::data);
-		}
-	
 	
 	template <typename T>
 		Template<T>::Template(short value)
@@ -1554,7 +1324,7 @@ namespace StringType
 					)
 				{
 					STRING_DEBUG(" no re-allocation necessary. simply moving to front");
-					memcpy(Super::data, Super::data+count_,new_length);
+					memcpy(Super::data, Super::data+count_,new_length*sizeof(T));
 					Super::data[new_length] = 0;
 					Super::elements = new_length;
 				
@@ -1692,6 +1462,11 @@ namespace StringType
 
 
 	template <typename T>
+		ReferenceExpression<T>::ReferenceExpression(const Template<T>&source):Super(const_cast<T*>(source.GetPointer()),source.GetLength())
+		{}
+
+
+	template <typename T>
 		ReferenceExpression<T>				ReferenceExpression<T>::Trim()			const
 		{
 			if (!Super::elements)
@@ -1797,7 +1572,7 @@ namespace StringType
 
 
 	template <typename T>
-		Template<T>&				Template<T>::Insert(size_t index, const ReferenceExpression<T>&str)
+		Template<T>&				Template<T>::Insert(size_t index, const SequenceType&str)
 		{
 			if (str.IsEmpty())
 				return *this;
@@ -1818,7 +1593,7 @@ namespace StringType
 		}
 
 	template <typename T>
-		Template<T>&				Template<T>::ReplaceSubString(size_t index, size_t count, const ReferenceExpression<T>&str)
+		Template<T>&				Template<T>::ReplaceSubString(size_t index, size_t count, const SequenceType&str)
 		{
 			if (str.IsEmpty())
 				return Erase(index,count);
@@ -1898,26 +1673,53 @@ namespace StringType
 		}
 
 	template <typename T>
-		Template<T>				Template<T>::GetBetween(const Template<T>&left_delimiter, const Template<T>&right_delimiter)	const
+		Template<T>				Template<T>::GetBetween(T left_delimiter, T right_delimiter)	const
 		{
-			const T*begin = CharFunctions::strstr(Super::data,left_delimiter.Super::data);
+			const T*begin = CharFunctions::strchr(Super::data,left_delimiter);
 			if (!begin)
 				return Template<T>();
-			begin += left_delimiter.Super::elements;
-			const T*end = CharFunctions::strstr(begin,right_delimiter.Super::data);
+			begin ++;
+			const T*end = CharFunctions::strchr(begin,right_delimiter);
+			if (!end)
+				return Template<T>();
+			return Template<T>(begin,end-begin);
+
+		}
+
+	template <typename T>
+		Template<T>				Template<T>::GetBetween(const SequenceType&left_delimiter, const SequenceType&right_delimiter)	const
+		{
+			const T*begin = CharFunctions::strstr(Super::data,left_delimiter.GetPointer());
+			if (!begin)
+				return Template<T>();
+			begin += left_delimiter.GetLength();
+			const T*end = CharFunctions::strstr(begin,right_delimiter.GetPointer());
 			if (!end)
 				return Template<T>();
 			return Template<T>(begin,end-begin);
 		}
 
 	template <typename T>
-		ReferenceExpression<T>				Template<T>::GetBetweenRef(const Template<T>&left_delimiter, const Template<T>&right_delimiter)	const
+		ReferenceExpression<T>				Template<T>::GetBetweenRef(const SequenceType&left_delimiter, const SequenceType&right_delimiter)	const
 		{
-			const T*begin = CharFunctions::strstr(Super::data,left_delimiter.Super::data);
+			const T*begin = CharFunctions::strstr(Super::data,left_delimiter.GetPointer());
 			if (!begin)
 				return ReferenceExpression<T>(Super::data,0);
-			begin += left_delimiter.Super::elements;
-			const T*end = CharFunctions::strstr(begin,right_delimiter.Super::data);
+			begin += left_delimiter.GetLength();
+			const T*end = CharFunctions::strstr(begin,right_delimiter.GetPointer());
+			if (!end)
+				return ReferenceExpression<T>(Super::data,0);
+			return ReferenceExpression<T>(begin,end-begin);
+		}
+
+	template <typename T>
+		ReferenceExpression<T>				Template<T>::GetBetweenRef(T left_delimiter, T right_delimiter)	const
+		{
+			const T*begin = CharFunctions::strchr(Super::data,left_delimiter);
+			if (!begin)
+				return ReferenceExpression<T>(Super::data,0);
+			begin ++;
+			const T*end = CharFunctions::strchr(begin,right_delimiter);
 			if (!end)
 				return ReferenceExpression<T>(Super::data,0);
 			return ReferenceExpression<T>(begin,end-begin);
@@ -1981,7 +1783,7 @@ namespace StringType
 
 
 	template <typename T>
-		count_t				Template<T>::FindAndReplace(const ReferenceExpression<T>&needle, const ReferenceExpression<T>&replacement)
+		count_t				Template<T>::FindAndReplace(const SequenceType&needle, const SequenceType&replacement)
 		{
 			index_t at = 0;
 			count_t rs = 0;
@@ -1995,7 +1797,7 @@ namespace StringType
 		}
 
 	template <typename T>
-		count_t				Template<T>::FindAndReplaceIgnoreCase(const ReferenceExpression<T>&needle, const ReferenceExpression<T>&replacement)
+		count_t				Template<T>::FindAndReplaceIgnoreCase(const SequenceType&needle, const SequenceType&replacement)
 		{
 			index_t at = 0;
 			count_t rs = 0;
@@ -2009,7 +1811,7 @@ namespace StringType
 		}
 
 	template <typename T>
-		count_t				Template<T>::FindAndReplace(T needle, const ReferenceExpression<T>&replacement)
+		count_t				Template<T>::FindAndReplace(T needle, const SequenceType&replacement)
 		{
 			count_t rs = 0;
 			index_t at = 0;
@@ -2094,20 +1896,40 @@ namespace StringType
 	#endif
 
 	template <typename T>
-		void	Template<T>::operator+=(const Template<T>&other)
+		void	Template<T>::operator+=(const SequenceType&other)
 		{
-			if (!other.Super::elements)
+			if (other.IsEmpty())
 				return;
 			STRING_METHOD_BEGIN("(const Template<T>&other)",other);
-			size_t old_length = Super::elements;
-			size_t new_length = Super::elements + other.Super::elements;
-			resizeCopy(new_length);
-			if (&other != this)
-				memcpy(Super::data+old_length,other.Super::data,other.Super::elements*sizeof(T));
+			if (ContainsByPointer(other.GetPointer()))
+			{
+				operator+=(Self(other));
+			}
 			else
+			{
+				size_t old_length = Super::elements;
+				size_t new_length = Super::elements + other.GetLength();
+				resizeCopy(new_length);
 				memcpy(Super::data+old_length,Super::data,old_length*sizeof(T));
+			}
 			STRING_METHOD_END
 		}
+
+
+	template <typename T>
+		template <typename T1>
+			void	Template<T>::operator+=(const CastExpression<T1>&other)
+			{
+				if (!other.GetLength())
+					return;
+				STRING_METHOD_BEGIN("(const CastExpression<T1>&other)",other);
+				size_t old_length = Super::elements;
+				size_t new_length = Super::elements + other.GetLength();
+				resizeCopy(new_length);
+				for (index_t i = 0; i < other.GetLength(); i++)
+					Super::data[old_length+i] = other.GetChar<T>(i);
+				STRING_METHOD_END
+			}
 
 	template <typename T>	
 		void	Template<T>::operator+=(const T*string)
@@ -2181,13 +2003,6 @@ namespace StringType
 			{
 				appendExpression(expression);
 			}
-				
-	template <typename T>	
-		template <class T0>
-			void				Template<T>::operator+=(const ReferenceExpression<T0>&expression)
-			{
-				appendExpression(expression);
-			}
 		
 	template <typename T>
 		template <class T0>
@@ -2207,9 +2022,9 @@ namespace StringType
 		
 	template <typename T>	
 		template <class T0>
-			bool				Template<T>::operator<(const ReferenceExpression<T0>&expression)	const
+			bool				Template<T>::operator<(const CastExpression<T0>&expression)	const
 			{
-				return expression.CompareTo(Super::data,Super::elements)>0;
+				return expression.CompareTo(ToRef()) > 0;
 			}
 				
 	template <typename T>	
@@ -2224,7 +2039,12 @@ namespace StringType
 			bool				Template<T>::operator<(const StringExpression<T0>&expression)	const
 			{
 				return expression.CompareTo(Super::data,Super::elements)>0;
-			}
+			}		
+	template <typename T>
+		bool				Template<T>::operator<(const SequenceType&expression)	const
+		{
+			return expression.CompareTo(Super::data,Super::elements)>0;
+		}
 
 	template <typename T>	
 		template <typename T0, typename T1>
@@ -2241,10 +2061,16 @@ namespace StringType
 			}
 				
 	template <typename T>	
+		bool				Template<T>::operator<=(const SequenceType&expression)	const
+		{
+			return expression.CompareTo(Super::data,Super::elements)>=0;
+		}
+		
+	template <typename T>
 		template <class T0>
-			bool				Template<T>::operator<=(const ReferenceExpression<T0>&expression)	const
+			bool				Template<T>::operator<=(const CastExpression<T0>&expression)	const
 			{
-				return expression.CompareTo(Super::data,Super::elements)>=0;
+				return expression.CompareTo(ToRef())>=0;
 			}
 		
 	template <typename T>
@@ -2267,13 +2093,19 @@ namespace StringType
 			{
 				return expression.CompareTo(Super::data,Super::elements)<=0;
 			}
-		
+
 	template <typename T>	
 		template <class T0>
-			bool				Template<T>::operator>=(const ReferenceExpression<T0>&expression)	const
+			bool				Template<T>::operator>=(const CastExpression<T0>&expression)	const
 			{
-				return expression.CompareTo(Super::data,Super::elements)<=0;
+				return expression.CompareTo(ToRef())<=0;
 			}
+		
+	template <typename T>	
+		bool				Template<T>::operator>=(const SequenceType&expression)	const
+		{
+			return expression.CompareTo(Super::data,Super::elements)<=0;
+		}
 		
 	template <typename T>
 		template <class T0>
@@ -2290,10 +2122,16 @@ namespace StringType
 			}
 		
 	template <typename T>	
+		bool				Template<T>::operator>(const SequenceType&expression)	const
+		{
+			return expression.CompareTo(Super::data,Super::elements)<0;
+		}
+		
+	template <typename T>	
 		template <class T0>
-			bool				Template<T>::operator>(const ReferenceExpression<T0>&expression)	const
+			bool				Template<T>::operator>(const CastExpression<T0>&expression)	const
 			{
-				return expression.CompareTo(Super::data,Super::elements)<0;
+				return expression.CompareTo(ToRef())<0;
 			}
 		
 	template <typename T>	
@@ -2325,11 +2163,18 @@ namespace StringType
 			}
 		
 	template <typename T>	
+		bool				Template<T>::operator!=(const SequenceType&expression)	const
+		{
+			return expression.CompareTo(Super::data,Super::elements)!=0;
+		}
+		
+	template <typename T>
 		template <class T0>
-			bool				Template<T>::operator!=(const ReferenceExpression<T0>&expression)	const
+			bool				Template<T>::operator!=(const CastExpression<T0>&expression)	const
 			{
-				return expression.CompareTo(Super::data,Super::elements)!=0;
+				return expression.CompareTo(ToRef())!=0;
 			}
+
 		
 	template <typename T>
 		template <class T0>
@@ -2346,10 +2191,16 @@ namespace StringType
 			}
 		
 	template <typename T>	
+		bool				Template<T>::operator==(const SequenceType&expression)	const
+		{
+			return expression.CompareTo(Super::data,Super::elements)==0;
+		}
+				
+	template <typename T>	
 		template <class T0>
-			bool				Template<T>::operator==(const ReferenceExpression<T0>&expression)	const
+			bool				Template<T>::operator==(const CastExpression<T0>&expression)	const
 			{
-				return expression.CompareTo(Super::data,Super::elements)==0;
+				return expression.CompareTo(ToRef())==0;
 			}
 				
 	template <typename T>	
@@ -2374,10 +2225,16 @@ namespace StringType
 			}
 		
 	template <typename T>	
+		bool				Template<T>::Equals(const SequenceType&expression)	const
+		{
+			return expression.CompareTo(Super::data,Super::elements)==0;
+		}
+				
+	template <typename T>	
 		template <class T0>
-			bool				Template<T>::Equals(const ReferenceExpression<T0>&expression)	const
+			bool				Template<T>::Equals(const CastExpression<T0>&expression)	const
 			{
-				return expression.CompareTo(Super::data,Super::elements)==0;
+				return expression.CompareTo(ToRef())==0;
 			}
 				
 	template <typename T>	
@@ -2414,6 +2271,13 @@ namespace StringType
 			bool				Template<T>::EqualsIgnoreCase(const StringExpression<T0>&expression)	const
 			{
 				return expression.CompareToIgnoreCase(Super::data,Super::elements)==0;
+			}
+		
+	template <typename T>
+		template <class T0>
+			bool				Template<T>::EqualsIgnoreCase(const CastExpression<T0>&expression)	const
+			{
+				return expression.CompareToIgnoreCase(ToRef())==0;
 			}
 
 		
@@ -2470,42 +2334,6 @@ namespace StringType
 	
 
 	template <typename T>
-		bool				Template<T>::operator<(const Template<T>&string)		const
-		{
-			return CharFunctions::strcmp(Super::data,string.Super::data)<0;
-		}
-	
-	template <typename T>
-		bool				Template<T>::operator<=(const Template<T>&string)		const
-		{
-			return CharFunctions::strcmp(Super::data,string.Super::data)<=0;
-		}
-	
-	template <typename T>
-		bool				Template<T>::operator>(const Template<T>&string)		const
-		{
-			return CharFunctions::strcmp(Super::data,string.Super::data)>0;
-		}
-	
-	template <typename T>
-		bool				Template<T>::operator>=(const Template<T>&string)		const
-		{
-			return CharFunctions::strcmp(Super::data,string.Super::data)>=0;
-		}
-	
-	template <typename T>
-		bool				Template<T>::operator==(const Template<T>&string)		const
-		{
-			return CharFunctions::strcmp(Super::data,string.Super::data)==0;
-		}
-	
-	template <typename T>
-		bool				Template<T>::operator!=(const Template<T>&string)		const
-		{
-			return CharFunctions::strcmp(Super::data,string.Super::data)!=0;
-		}
-
-	template <typename T>
 		bool				Template<T>::operator<(const T*string)		const
 		{
 			return CharFunctions::strcmp(Super::data,string)<0;
@@ -2544,11 +2372,6 @@ namespace StringType
 		bool				Template<T>::Equals(T chr)		const
 		{
 			return Super::data[0] == chr && !Super::data[1];;
-		}
-	template <typename T>
-		bool				Template<T>::Equals(const Template<T>&string)		const
-		{
-			return CharFunctions::strcmp(Super::data,string.Super::data)==0;
 		}
 
 
@@ -2609,6 +2432,12 @@ namespace StringType
 			}
 	#endif
 	
+	template <typename T>
+		Template<T>&			Template<T>::operator=(const Template<T>&other)
+		{
+			return operator=((const ArrayRef<T>&)other);
+		}
+
 
 	template <typename T>
 		Template<T>&	Template<T>::operator=(const ArrayRef<T>&string)
@@ -2655,12 +2484,17 @@ namespace StringType
 
 
 	template <typename T>
-		Template<T>&	Template<T>::operator=(const Template<T>&string)
+		Template<T>&	Template<T>::operator=(const SequenceType&string)
 		{
 			//ASSERT_NOT_NULL__(Super::data);
 			STRING_METHOD_BEGIN("(const Template<T>&string)",string.c_str());
-			if (&string == this)
+			if (ContainsByPointer(string))
 			{
+				index_t offset = string.GetPointer() - c_str();
+				count_t len = string.GetLength();
+				EraseLeft(offset);
+				Truncate(len);
+
 				STRING_METHOD_END
 				return *this;
 			}
@@ -2671,8 +2505,8 @@ namespace StringType
 				if (Super::data != sz)
 					count(Super::data)++;
 			#else
-				Resize(string.Super::elements);
-				memcpy(Super::data,string.Super::data,Super::elements*sizeof(T));
+				Resize(string.GetLength());
+				memcpy(Super::data,string.GetPointer(),Super::elements*sizeof(T));
 			#endif
 			STRING_METHOD_END
 			return *this;
@@ -2680,18 +2514,20 @@ namespace StringType
 	
 	template <typename T>
 		template <typename T2>
-			Template<T>&	Template<T>::operator=(const T2*string)
+			Template<T>&	Template<T>::operator=(const CastExpression<T2>&string)
 			{
 				//ASSERT_NOT_NULL__(Super::data);
-				STRING_METHOD_BEGIN("(const T2*string)",string);
-				if (string == (const T2*)Super::data)
+				STRING_METHOD_BEGIN("(const CastExpression<T2>&string)",string);
+				if (string.Is(Super::data))
 				{
+					if (string.GetLength() < this->GetLength())
+						Truncate(string.GetLength());
 					STRING_METHOD_END
 					return *this;
 				}
-				Resize(CharFunctions::strlen(string));
+				Resize(string.GetLength());
 				for (size_t i = 0; i < Super::elements; i++)
-					Super::data[i] = (T)string[i];
+					Super::data[i] = string.GetChar<T>(i);
 				STRING_METHOD_END
 				return *this;
 			}	
@@ -2713,35 +2549,6 @@ namespace StringType
 			}
 			Resize(CharFunctions::strlen(string));
 			memcpy(Super::data,string,Super::elements*sizeof(T));
-			STRING_METHOD_END
-			return *this;
-		}
-
-	template <typename T>
-		Template<T>&	Template<T>::operator=(char c)
-		{
-			//ASSERT_NOT_NULL__(Super::data);
-			STRING_METHOD_BEGIN("(char c)",c);
-			STRING_DEBUG("resize to 1");
-		
-			Resize(1);
-		
-			STRING_DEBUG("write char");
-		
-			Super::data[0] = (T)c;
-		
-			STRING_DEBUG("done");
-			STRING_METHOD_END
-			return *this;
-		}
-
-	template <typename T>
-		Template<T>&	Template<T>::operator=(wchar_t c)
-		{
-			//ASSERT_NOT_NULL__(Super::data);
-			STRING_METHOD_BEGIN("(wchar_t c)",(char)c);		
-			Resize(1);
-			Super::data[0] = (T)c;
 			STRING_METHOD_END
 			return *this;
 		}
@@ -3114,13 +2921,6 @@ namespace StringType
 				return *this;
 			}
 		
-	template <typename T>
-		template <class T0>
-			Template<T>&	Template<T>::operator=(const ReferenceExpression<T0>&expression)
-			{
-				copyExpression(expression);
-				return *this;
-			}
 		
 	template <typename T>
 		template <class T0>
@@ -3212,23 +3012,7 @@ namespace StringType
 					memcpy(result.Super::data+Super::elements,string,len*sizeof(T));
 					return result;
 				}
-	
-		template <typename T>
-			template <typename T1>
-				Template<T>
-					Template<T>::operator+(const T1*string)	const
-					{
-						size_t len = CharFunctions::strlen(string);
-						if (!len)
-							return *this;
-						Template<T> result = Template<T>(TStringLength(Super::elements+len));
-						T*out = result.Super::data;
-						for (size_t i = 0; i < Super::elements; i++)
-							(*out++) = (T)Super::data[i];
-						for (size_t i = 0; i < len; i++)
-							(*out++) = (T)string[i];
-						return result;
-					}
+
 			
 		template <typename T>
 			Template<T>
@@ -3256,18 +3040,17 @@ namespace StringType
 					}
 					
 		template <typename T>
-			template <class T0>
-				Template<T>
-					Template<T>::operator+(const ReferenceExpression<T0>&expression)	const
-					{
-						size_t len = expression.GetLength();
-						if (!len)
-							return *this;
-						Template<T> result = Template<T>(TStringLength(Super::elements+len));
-						memcpy(result.Super::data,Super::data,Super::elements*sizeof(T));
-						expression.WriteTo(result.Super::data+Super::elements);
-						return result;
-					}
+			Template<T>
+				Template<T>::operator+(const SequenceType&expression)	const
+				{
+					size_t len = expression.GetLength();
+					if (!len)
+						return *this;
+					Template<T> result = Template<T>(TStringLength(Super::elements+len));
+					memcpy(result.Super::data,Super::data,Super::elements*sizeof(T));
+					expression.WriteTo(result.Super::data+Super::elements);
+					return result;
+				}
 				
 		template <typename T>
 			template <class T0>
@@ -3285,29 +3068,45 @@ namespace StringType
 				
 		template <typename T>
 			template <class T0>
-				Template<T>
-					Template<T>::operator+(const Template<T0>&expression)	const
-					{
-						size_t len = expression.GetLength();
-						if (!len)
-							return *this;
-						Template<T> result = Template<T>(TStringLength(Super::elements+len));
-						memcpy(result.Super::data,Super::data,Super::elements*sizeof(T));
-						expression.WriteTo(result.Super::data+Super::elements);
-						return result;
-					}
+			Template<T>
+				Template<T>::operator+(const CastExpression<T0>&expression)	const
+				{
+					size_t len = expression.GetLength();
+					if (!len)
+						return *this;
+					Template<T> result = Template<T>(TStringLength(Super::elements+len));
+					memcpy(result.Super::data,Super::data,Super::elements*sizeof(T));
+					for (index_t i = 0; i < len; i++)
+						result.Super::data[Super::elements+i] = expression.GetChar<T>(i);
+					return result;
+				}
 
 
-		template <typename T0, typename T1>
-			Template<T1> inline operator+(const T0*c, const Template<T1>& string)
+		template <typename T>
+			Template<T> inline operator+(const T*c, const Template<T>& string)
 			{
 				size_t len = CharFunctions::strlen(c);
+				if (!len)
+					return string;
+				Template<T> result = Template<T>(TStringLength(string.Super::elements+len));
+				T*out = result.Super::data;
+				for (size_t i = 0; i < len; i++)
+					(*out++) = c[i];
+				for (size_t i = 0; i < string.Super::elements; i++)
+					(*out++) = string.Super::data[i];
+				return result;
+			}
+
+		template <typename T0, typename T1>
+			Template<T1> inline operator+(const CastExpression<T0>&c, const Template<T1>& string)
+			{
+				size_t len = c.GetLength();
 				if (!len)
 					return string;
 				Template<T1> result = Template<T1>(TStringLength(string.Super::elements+len));
 				T1*out = result.Super::data;
 				for (size_t i = 0; i < len; i++)
-					(*out++) = c[i];
+					(*out++) = c.GetChar<T1>(i);
 				for (size_t i = 0; i < string.Super::elements; i++)
 					(*out++) = string.Super::data[i];
 				return result;
@@ -3338,17 +3137,7 @@ namespace StringType
 			}
 	*/
 		template <typename T>
-			Template<T> inline operator+(char c, const Template<T>& string)
-			{
-				Template<T> result = Template<T>(TStringLength(string.Super::elements+1));
-				memcpy(result.Super::data+1,string.Super::data,string.Super::elements*sizeof(T));
-				result.Super::data[0] = (T)c;
-				return result;
-			}
-
-
-		template <typename T>
-			Template<T> inline operator+(wchar_t c, const Template<T>& string)
+			Template<T> inline operator+(T c, const Template<T>& string)
 			{
 				Template<T> result = Template<T>(TStringLength(string.Super::elements+1));
 				memcpy(result.Super::data+1,string.Super::data,string.Super::elements*sizeof(T));
@@ -3510,35 +3299,35 @@ namespace StringType
 
 	template <typename E0, typename E1>
 		template <typename T2>
-			bool			ConcatExpression<E0, E1>::operator<(const StringType::Template<T2>&other)	const
+			bool			ConcatExpression<E0, E1>::operator<(const StringType::Sequence<T2>&other)	const
 			{
 				return CompareTo(other.c_str(),other.GetLength())<0;
 			}
 		
 	template <typename E0, typename E1>
 		template <typename T2>
-			bool			ConcatExpression<E0, E1>::operator<=(const StringType::Template<T2>&other)	const
+			bool			ConcatExpression<E0, E1>::operator<=(const StringType::Sequence<T2>&other)	const
 			{
 				return CompareTo(other.c_str(),other.GetLength())<=0;
 			}
 		
 	template <typename E0, typename E1>
 		template <typename T2>
-			bool			ConcatExpression<E0, E1>::operator>(const StringType::Template<T2>&other)	const
+			bool			ConcatExpression<E0, E1>::operator>(const StringType::Sequence<T2>&other)	const
 			{
 				return CompareTo(other.c_str(),other.GetLength())>0;
 			}
 		
 	template <typename E0, typename E1>
 		template <typename T2>
-			bool			ConcatExpression<E0, E1>::operator>=(const StringType::Template<T2>&other)	const
+			bool			ConcatExpression<E0, E1>::operator>=(const StringType::Sequence<T2>&other)	const
 			{
 				return CompareTo(other.c_str(),other.GetLength())>=0;
 			}
 		
 	template <typename E0, typename E1>
 		template <typename T2>
-			bool			ConcatExpression<E0, E1>::operator!=(const StringType::Template<T2>&other)	const
+			bool			ConcatExpression<E0, E1>::operator!=(const StringType::Sequence<T2>&other)	const
 			{
 				return CompareTo(other.c_str(),other.GetLength())!=0;
 			}
@@ -3546,7 +3335,7 @@ namespace StringType
 		
 	template <typename E0, typename E1>
 		template <typename T2>
-			bool			ConcatExpression<E0, E1>::operator==(const StringType::Template<T2>&other)	const
+			bool			ConcatExpression<E0, E1>::operator==(const StringType::Sequence<T2>&other)	const
 			{
 				return CompareTo(other.c_str(),other.GetLength())==0;
 			}
@@ -3641,63 +3430,43 @@ namespace StringType
 	
 
 #define DEFINE_COMPARE_OPERATORS(_OPERATOR_,_REVERSE_OPERATOR_)\
-	template <typename T0, typename T1>\
-		inline bool operator _OPERATOR_(const T0*a, const StringType::Template<T1>&b)\
+	template <typename T>\
+		inline bool operator _OPERATOR_(const T*a, const StringType::Template<T>&b)\
 		{\
 			return !(b.operator _REVERSE_OPERATOR_(a));\
 		}\
 	template <typename T>\
-		inline bool operator _OPERATOR_(char a, const StringType::Template<T>& b)\
+		inline bool operator _OPERATOR_(T a, const StringType::Template<T>& b)\
 		{\
 			return !(b.operator _REVERSE_OPERATOR_ (a));\
 		}\
 	template <typename T>\
-		inline bool operator _OPERATOR_(wchar_t a, const StringType::Template<T>& b)\
-		{\
-			return !(b.operator _REVERSE_OPERATOR_ (a));\
-		}\
-	template <typename T0, typename T1>\
-		inline bool operator _OPERATOR_(const T0*a, const StringType::ReferenceExpression<T1>&b)\
+		inline bool operator _OPERATOR_(const T*a, const StringType::ReferenceExpression<T>&b)\
 		{\
 			return !(b.operator _REVERSE_OPERATOR_(a));\
 		}\
 	template <typename T>\
-		inline bool operator _OPERATOR_(char a, const StringType::ReferenceExpression<T>& b)\
+		inline bool operator _OPERATOR_(T a, const StringType::ReferenceExpression<T>& b)\
 		{\
 			return !(b.operator _REVERSE_OPERATOR_ (a));\
 		}\
 	template <typename T>\
-		inline bool operator _OPERATOR_(wchar_t a, const StringType::ReferenceExpression<T>& b)\
-		{\
-			return !(b.operator _REVERSE_OPERATOR_ (a));\
-		}\
-	template <typename T0, typename T1>\
-		inline bool operator _OPERATOR_(const T0*a, const StringType::CharacterExpression<T1>&b)\
+		inline bool operator _OPERATOR_(const T*a, const StringType::CharacterExpression<T>&b)\
 		{\
 			return !(b.operator _REVERSE_OPERATOR_ (a));\
 		}\
 	template <typename T>\
-		inline bool operator _OPERATOR_(char a, const StringType::CharacterExpression<T>& b)\
+		inline bool operator _OPERATOR_(T a, const StringType::CharacterExpression<T>& b)\
 		{\
 			return !(b.operator _REVERSE_OPERATOR_(a));\
 		}\
 	template <typename T>\
-		inline bool operator _OPERATOR_(wchar_t a, const StringType::CharacterExpression<T>& b)\
-		{\
-			return !(b.operator _REVERSE_OPERATOR_(a));\
-		}\
-	template <typename T0, typename T1>\
-		inline bool operator _OPERATOR_(const T0*a, const StringType::StringExpression<T1>&b)\
+		inline bool operator _OPERATOR_(const T*a, const StringType::StringExpression<T>&b)\
 		{\
 			return !(b.operator _REVERSE_OPERATOR_ (a));\
 		}\
 	template <typename T>\
-		inline bool operator _OPERATOR_(char a, const StringType::StringExpression<T>& b)\
-		{\
-			return !(b.operator _REVERSE_OPERATOR_ (a));\
-		}\
-	template <typename T>\
-		inline bool operator _OPERATOR_(wchar_t a, const StringType::StringExpression<T>& b)\
+		inline bool operator _OPERATOR_(T a, const StringType::StringExpression<T>& b)\
 		{\
 			return !(b.operator _REVERSE_OPERATOR_ (a));\
 		}\

@@ -399,11 +399,11 @@ namespace DeltaWorks
 			{
 				const String&spoints = node.attributes.Require("points");
 				Ctr::Array<StringRef> points,coords;
-				explode(' ',spoints,points);
+				Explode(' ',spoints,points);
 				M::Rect<> primitive = M::Rect<>::Invalid;
 				foreach (points,p)
 				{
-					explode(',',*p,coords);
+					Explode(',',*p,coords);
 					ASSERT_EQUAL__(coords.Count(),2);
 					M::TVec2<> p2;
 					ASSERT1__(Convert(coords[0],p2.x),coords[0]);

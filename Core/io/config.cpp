@@ -1,5 +1,7 @@
 #include "../global_root.h"
 #include "config.h"
+#include "../string/lineWrap.h"
+#include "file_system.h"
 
 /******************************************************************
 
@@ -73,7 +75,7 @@ namespace DeltaWorks
 				return protectedDefine(name.Trim(),value);
 
 			Ctr::Array<String>	components;
-			explode('/',name,components);
+			Explode('/',name,components);
 			return protectedDefineContext(components.pointer(),components.Count()-1).protectedDefine(components.Last().Trim(),value);
 		}
 
@@ -105,7 +107,7 @@ namespace DeltaWorks
 				return protectedDefineContext(name.Trim());
 
 			Ctr::Array<String>	components;
-			explode('/',name,components);
+			Explode('/',name,components);
 			return protectedDefineContext(components.pointer(),components.Count());
 		}
 		
@@ -200,7 +202,7 @@ namespace DeltaWorks
 		Context::Attribute*					Context::GetAttrib(const String&path)
 		{
 			Ctr::Array<String,Adopt>	segments;
-			explode('/',path,segments);
+			Explode('/',path,segments);
 			if (!segments.Count())
 				return nullptr;
 			String mode;
@@ -239,7 +241,7 @@ namespace DeltaWorks
 		const Context::Attribute*				Context::GetAttrib(const String&path)						const
 		{
 			Ctr::Array<String,Adopt>	segments;
-			explode('/',path,segments);
+			Explode('/',path,segments);
 			if (!segments.Count())
 				return nullptr;
 			String mode;
@@ -397,7 +399,7 @@ namespace DeltaWorks
 		Context*					Context::GetContext(const String&path)
 		{
 			Ctr::Array<String,Adopt>	segments;
-			explode('/',path,segments);
+			Explode('/',path,segments);
 			if (!segments.Count())
 				return NULL;
 			String mode;
@@ -424,7 +426,7 @@ namespace DeltaWorks
 		const Context*					Context::GetContext(const String&path) const
 		{
 			Ctr::Array<String,Adopt>	segments;
-			explode('/',path,segments);
+			Explode('/',path,segments);
 			if (!segments.Count())
 				return nullptr;
 			String mode;
@@ -523,7 +525,7 @@ namespace DeltaWorks
 					//	buffer << '\t';
 					Array<StringRef>	lines;
 					String fullLine = attrib->name+": "+ attrib->comment.TrimRef();
-					Wrap(fullLine,80,lines);
+					LineWrap::UTF8::Wrap(fullLine,80,lines);
 					foreach (lines,line)
 						buffer << indent << ";"<<*line<<nl;
 				}
@@ -577,7 +579,7 @@ namespace DeltaWorks
 				{
 					Array<StringRef>	lines;
 					String fullLine = child->name+": "+child->comment.TrimRef();
-					Wrap(fullLine,80,lines);
+					LineWrap::UTF8::Wrap(fullLine,80,lines);
 					foreach (lines,line)
 						buffer << indent << ";"<<*line<<nl;
 				}
@@ -639,7 +641,7 @@ namespace DeltaWorks
 			error = "";
 		}
 	
-		LogFile	logfile("configuration.log",true);
+		LogFile	logfile(FileSystem::StringToPath("configuration.log"),true);
 	
 		bool	Container::LoadFromFile(const PathString&filename)
 		{

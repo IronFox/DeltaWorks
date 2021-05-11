@@ -42,6 +42,7 @@ namespace DeltaWorks
 		bool			begin();
 		void			timeStamp();            //!< Writes a time stamp to the file
 		void			end();
+		bool			WriteIndent();
 	public:
 		String			format;                 //!< Time stamp format
         
@@ -64,6 +65,17 @@ namespace DeltaWorks
 		LogFile&		operator<<(const TNewLine&);
 		LogFile&		operator<<(const TEndLine&);
 		LogFile&		operator<<(const TLogIndent&indent);
+		LogFile&		operator<<(short v);
+		LogFile&		operator<<(unsigned short v);
+		LogFile&		operator<<(int v);
+		LogFile&		operator<<(unsigned v);
+		LogFile&		operator<<(long long v);
+		LogFile&		operator<<(unsigned long long v);
+		LogFile&		operator<<(long v);
+		LogFile&		operator<<(unsigned long v);
+		LogFile&		operator<<(float v);
+		LogFile&		operator<<(double v);
+		LogFile&		operator<<(bool v);
 		void			Indent();
 		void			Outdent();
 	};

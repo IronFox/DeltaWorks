@@ -14,7 +14,7 @@ namespace DeltaWorks
 	{
 		static bool					net_initialized(false);
 
-		static SynchronizedLogFile			log_file("net.log",true);
+		static SynchronizedLogFile			log_file( StringType::Cast("net.log"),true);
 
 			/* initNet *
 		Used to initialize network and check versions.

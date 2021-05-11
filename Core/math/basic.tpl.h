@@ -598,7 +598,7 @@ namespace Math
         }
         if (c == end)
             (*--c) = '0';
-        return c;
+        return String(c);
     }
 
 
@@ -610,13 +610,13 @@ namespace Math
 	
 	MF_SPECIALIZED	(String) v2str<bool>(const bool&value)
 	{
-		return value?"true":"false";
+		return String(value?"true":"false");
 	
 	}
 
     MFUNC	(String) v2str(const C&value)
     {
-        return value;
+        return String(value);
     }
 
 

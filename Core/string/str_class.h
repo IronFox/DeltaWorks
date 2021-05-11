@@ -202,19 +202,27 @@ namespace DeltaWorks
 		Used to reference a character array segment without copying
 		*/
 		template <typename T>
-			class ReferenceExpression : public Sequence<const T>
+			class ReferenceExpression : public Sequence<T>
 			{
 			public:
-				typedef Sequence<const T>	Super;
+				typedef Sequence<T>	Super;
 				typedef ReferenceExpression<T> Self;
 
 				/**/			ReferenceExpression() {}
-				/**/			ReferenceExpression(const T*str):Super(str) {}
-				/**/			ReferenceExpression(const T*str, size_t length):Super(str,length)
+				/**/			ReferenceExpression(const T*str):Super(const_cast<T*>(str)) {}
+				/**/			ReferenceExpression(const T*str, size_t length):Super(const_cast<T*>(str),length)
 				{
 					while (Super::elements > 0 && Super::data[Super::elements-1] == 0)
 						Super::elements--;
 				}
+				#if 0
+				/**/			ReferenceExpression(const Sequence<typename std::remove_const<T>::type>&source):Super(source.GetPointer(),source.GetLength())
+				{}
+				/**/			ReferenceExpression(const Sequence<const T>&source):Super(source.GetPointer(),source.GetLength())
+				{}
+				#endif
+				/**/			ReferenceExpression(const Template<T>&source);
+
 				inline bool		DropLastChar()
 								{
 									if (!Super::elements)
@@ -387,18 +395,12 @@ namespace DeltaWorks
 				inline ConcatExpression<CharacterExpression<T>,ConcatExpression<T2,T3> >
 								operator+(const ConcatExpression<T2,T3>&expression)	const;
 	
-			template <typename T2>
-				bool			operator<(const Template<T2>&other)	const;
-			template <typename T2>
-				bool			operator<=(const Template<T2>&other)	const;
-			template <typename T2>
-				bool			operator>(const Template<T2>&other)	const;
-			template <typename T2>
-				bool			operator>=(const Template<T2>&other)	const;
-			template <typename T2>
-				bool			operator!=(const Template<T2>&other)	const;
-			template <typename T2>
-				bool			operator==(const Template<T2>&other)	const;
+				bool			operator<(const Sequence<T>&other)	const;
+				bool			operator<=(const Sequence<T>&other)	const;
+				bool			operator>(const Sequence<T>&other)	const;
+				bool			operator>=(const Sequence<T>&other)	const;
+				bool			operator!=(const Sequence<T>&other)	const;
+				bool			operator==(const Sequence<T>&other)	const;
 						
 			};
 
@@ -613,19 +615,18 @@ namespace DeltaWorks
 									return exp0.References(cmp) || exp1.References(cmp);
 								}
 		
-		
 			template <typename T2>
-				bool			operator<(const Template<T2>&other)	const;
+				bool			operator<(const Sequence<T2>&other)	const;
 			template <typename T2>
-				bool			operator<=(const Template<T2>&other)	const;
+				bool			operator<=(const Sequence<T2>&other)	const;
 			template <typename T2>
-				bool			operator>(const Template<T2>&other)	const;
+				bool			operator>(const Sequence<T2>&other)	const;
 			template <typename T2>
-				bool			operator>=(const Template<T2>&other)	const;
+				bool			operator>=(const Sequence<T2>&other)	const;
 			template <typename T2>
-				bool			operator!=(const Template<T2>&other)	const;
+				bool			operator!=(const Sequence<T2>&other)	const;
 			template <typename T2>
-				bool			operator==(const Template<T2>&other)	const;
+				bool			operator==(const Sequence<T2>&other)	const;
 						
 			};
 
@@ -640,14 +641,85 @@ namespace DeltaWorks
 
 
 
+
+
+		template <typename T>
+			class CastExpression
+			{
+			public:
+				/**/		CastExpression(const ReferenceExpression<T>&source)
+				{
+					this->source = source;
+				}
+
+				count_t		GetLength() const
+				{
+					return source.GetLength();
+				}
+
+				template <typename T1>
+				T1			GetChar(index_t idx) const
+				{
+					return (T1)source.GetChar(idx);
+				}
+
+				template <typename T1>
+				bool CompareTo(const Sequence<T1>&other) const
+				{
+					for (index_t i = 0; i < source.GetLength() && i < other.GetLength(); i++)
+					{
+						auto chr0 = source.GetChar(i);
+						auto chr1 = other.GetChar(i);
+						int delta = (int)chr0 - (int)chr1;
+						if (delta != 0)
+							return delta;
+					}
+					if (source.GetLength() > other.GetLength())
+						return 1;
+					if (source.GetLength() < other.GetLength())
+						return -1;
+					return 0;
+				}
+
+				template <typename T1>
+				bool CompareToIgnoreCase(const Sequence<T1>&other) const
+				{
+					for (index_t i = 0; i < source.GetLength() && i < other.GetLength(); i++)
+					{
+						auto chr0 = StringFunctions::tolower(source.GetChar(i));
+						auto chr1 = StringFunctions::tolower(other.GetChar(i));
+						int delta = (int)chr0 - (int)chr1;
+						if (delta != 0)
+							return delta;
+					}
+					if (source.GetLength() > other.GetLength())
+						return 1;
+					if (source.GetLength() < other.GetLength())
+						return -1;
+					return 0;
+				}
+
+				template <typename T1>
+				bool					Is(const T1*ptr) const
+				{
+					return (const void*)source.GetPointer() == (const void*)ptr;
+				}
+
+			private:
+				ReferenceExpression<T>	source;
+			};
+
+
+
 		#if !__STR_EXPRESSION_TMPLATES__
+			template <typename T>
+				inline Template<T> operator+(const T*c, const Template<T>&);
+			template <typename T>
+				inline Template<T> operator+(T c, const Template<T>&);
 			template <typename T0, typename T1>
-				inline Template<T1> operator+(const T0*c, const Template<T1>&);
-			template <typename T>
-				inline Template<T> operator+(char c, const Template<T>&);
-			template <typename T>
-				inline Template<T> operator+(wchar_t c, const Template<T>&);
+				inline Template<T1> operator+(const CastExpression<T0>&c, const Template<T1>&);
 		#endif
+
 
 		/**
 			@brief Base template string object
@@ -666,6 +738,7 @@ namespace DeltaWorks
 				typedef T		char_t;
 				static const count_t MaxLengthConst = std::numeric_limits<count_t>::max();
 				typedef ReferenceExpression<T>	ReferenceType;
+				typedef Sequence<T>	SequenceType;
 
 				using Super::Find;
 				using Super::FindIgnoreCase;
@@ -691,12 +764,12 @@ namespace DeltaWorks
 			#endif
 	
 			#if !__STR_EXPRESSION_TMPLATES__
+				template <typename T>
+					friend inline Template<T> operator+(const T*c, const Template<T>&);
+				template <typename T>
+					friend inline Template<T> operator+(T c, const Template<T>&);
 				template <typename T0, typename T1>
-					friend inline Template<T1> operator+(const T0*c, const Template<T1>&);
-				template <typename T0>
-					friend inline Template<T0> operator+(char c, const Template<T0>&);
-				template <typename T0>
-					friend inline Template<T0> operator+(wchar_t c, const Template<T0>&);
+					friend inline Template<T1> operator+(const CastExpression<T0>&c, const Template<T1>&);
 			#endif
 	
 			static inline char*	root(T*p)	//!< Retrieves a pointer to the actually allocated memory section. Retrieving this pointer is required only if it is about to be deleted
@@ -928,6 +1001,16 @@ namespace DeltaWorks
 			public:
 
 				template <typename T1>
+											Template(const CastExpression<T1>&other)
+											{
+												Super::elements = other.GetLength();
+												Super::data = allocate(Super::elements);
+												DBG_ASSERT_NOT_NULL__(Super::data);	//gonna crash with an access violation otherwise anyway
+												for (index_t i = 0; i < Super::elements; i++)
+													Super::data[i] = other.GetChar<T>(i);
+											}
+
+				template <typename T1>
 				explicit					Template(const Template<T1>&other)
 											{
 												Super::elements = other.Length();
@@ -988,25 +1071,22 @@ namespace DeltaWorks
 				/**/						Template(const T2*string, size_t length);
 			template <size_t MaxLength>
 				/**/						Template(const TFixedString<MaxLength>&string);
-			/**/							Template(const TCodeLocation&loc);
-			inline							Template(const char*string);
-			inline							Template(const wchar_t*string);
-											Template(bool);
-											Template(char);
-											Template(wchar_t);
-											Template(short);
-											Template(unsigned short);
-											Template(long);
-											Template(int);
-											Template(unsigned);
-											Template(unsigned long);
-											Template(float, unsigned char precision=5, bool force_trailing_zeros=false);
-											Template(double, unsigned char precision=8, bool force_trailing_zeros=false);
-											Template(long double, unsigned char precision=10, bool force_trailing_zeros=false);
-											Template(long long);
-											Template(unsigned long long);
-											Template(const ArrayRef<T>&array);
-											Template(const void*);
+				/**/						Template(const TCodeLocation&loc);
+				inline						Template(const T*string);
+				explicit					Template(bool);
+				explicit					Template(short);
+				explicit					Template(unsigned short);
+				explicit					Template(long);
+				explicit					Template(int);
+				explicit					Template(unsigned);
+				explicit					Template(unsigned long);
+				explicit					Template(float, unsigned char precision=5, bool force_trailing_zeros=false);
+				explicit					Template(double, unsigned char precision=8, bool force_trailing_zeros=false);
+				explicit					Template(long double, unsigned char precision=10, bool force_trailing_zeros=false);
+				explicit					Template(long long);
+				explicit					Template(unsigned long long);
+				explicit					Template(const ArrayRef<T>&array);
+				explicit					Template(const void*);
 											Template(const ReferenceExpression<T>&expression);
 											Template(const CharacterExpression<T>&expression);
 											Template(const StringExpression<T>&expression);
@@ -1016,8 +1096,6 @@ namespace DeltaWorks
 										#endif
 										template <typename T0, typename T1>
 											Template(const ConcatExpression<T0,T1>&expression);
-										template <class T0>
-				explicit					Template(const ReferenceExpression<T0>&expression);
 										template <class T0>
 				explicit					Template(const CharacterExpression<T0>&expression);
 										template <class T0>
@@ -1109,8 +1187,7 @@ namespace DeltaWorks
 				\return Reference to this string
 									
 				This method inserts the string \b before the specified character offset. Passing 0 as \b index would insert before the first character.*/
-				Template<T>&			Insert(size_t index, const Template<T>&str)	{return Insert(index,str.ToRef());}
-				Template<T>&			Insert(size_t index, const ReferenceType&str);
+				Template<T>&			Insert(size_t index, const SequenceType&str);
 		
 				/*!	\brief Inserts a character into the local string
 				\param index Character offset to insert before (in the range [0,GetLength()-1])
@@ -1137,36 +1214,34 @@ namespace DeltaWorks
 				String a = "abcdefghijklghi";<br />
 				a.GetBetween("cd","ghi") will return "ef"
 				*/
-				Template<T>				GetBetween(const Template<T>&left_delimiter, const Template<T>&right_delimiter)	const;
-				ReferenceType			GetBetweenRef(const Template<T>&left_delimiter, const Template<T>&right_delimiter)	const;		//!< Identical to the above but returns a reference instead
+				Template<T>				GetBetween(const SequenceType&left_delimiter, const SequenceType&right_delimiter)	const;
+				Template<T>				GetBetween(T left_delimiter, T right_delimiter)	const;
+				ReferenceType			GetBetweenRef(const SequenceType&left_delimiter, const SequenceType&right_delimiter)	const;		//!< Identical to the above but returns a reference instead
+				ReferenceType			GetBetweenRef(T left_delimiter, T right_delimiter)	const;		//!< Identical to the above but returns a reference instead
 				const T*				lastCharPointer()					const;		//!< Returns a pointer to the last character. The returned pointer points one before the trailing zero and is valid only if the local string is not empty.
 				Template<T>				GetFirstWord()							const;		//!< Retrieves the first word, either the full string or until the first whitespace character is encountered
 				ReferenceType			GetFirstWordRef()						const;		//!< Identical to the above but returns a reference instead
 				Template<T>				GetLastWord()							const;		//!< Retrieves the last word, either the full string or from where the last whitespace character is encountered. May require testing!
 				ReferenceType			GetLastWordRef()						const;		//!< Identical to the above but returns a reference instead
-				Template<T>&			ReplaceSubString(size_t offset, size_t count, const ReferenceType&replacement);	//!< Replaces a sub string section of the local string with the specified replacement @param offset Index of the first character to replace @param count Number of characters to replace. If this value is zero then the method effectively behaves like Insert() @param replacement String to replace the specified input section with @return Reference to @a this
-				Template<T>&			ReplaceSubString(size_t offset, size_t count, const Template<T>&replacement)	/**@copydoc ReplaceSubString() */ {return ReplaceSubString(offset,count,replacement.ToRef());}
+				Template<T>&			ReplaceSubString(size_t offset, size_t count, const SequenceType&replacement);	//!< Replaces a sub string section of the local string with the specified replacement @param offset Index of the first character to replace @param count Number of characters to replace. If this value is zero then the method effectively behaves like Insert() @param replacement String to replace the specified input section with @return Reference to @a this
 				/**
 				Replaces all occurrences of \b needle in the local string with \b replacement
 				@return Number of replacements
 				*/
-				count_t					FindAndReplace(const ReferenceType&needle, const ReferenceType&replacement);
-				count_t					FindAndReplace(const T*needle, const T*replacement)	/** @copydoc FindAndReplace(); */ {return FindAndReplace(ReferenceType(needle),ReferenceType(replacement));}
-				count_t					FindAndReplace(const Template<T>&needle, const Template<T>&replacement)	/** @copydoc FindAndReplace(); */ {return FindAndReplace(needle.ToRef(),replacement.ToRef());}
+				count_t					FindAndReplace(const SequenceType&needle, const SequenceType&replacement);
+				count_t					FindAndReplace(const T*needle, const T*replacement)	/** @copydoc FindAndReplace(); */ {return FindAndReplace(SequenceType(needle),SequenceType(replacement));}
 				/**
 				Replaces all occurrences of \b needle in the local string with \b replacement. Ignores case
 				@return Number of replacements
 				*/
-				count_t					FindAndReplaceIgnoreCase(const ReferenceType&needle, const ReferenceType&replacement);
-				count_t					FindAndReplaceIgnoreCase(const T*needle, const T*replacement)	/** @copydoc FindAndReplaceIgnoreCase(); */ {return FindAndReplaceIgnoreCase(ReferenceType(needle),ReferenceType(replacement));}
-				count_t					FindAndReplaceIgnoreCase(const Template<T>&needle, const Template<T>&replacement)	/** @copydoc FindAndReplaceIgnoreCase(); */ {return FindAndReplaceIgnoreCase(needle.ToRef(),replacement.ToRef());}
+				count_t					FindAndReplaceIgnoreCase(const SequenceType&needle, const SequenceType&replacement);
+				count_t					FindAndReplaceIgnoreCase(const T*needle, const T*replacement)	/** @copydoc FindAndReplaceIgnoreCase(); */ {return FindAndReplaceIgnoreCase(SequenceType(needle),SequenceType(replacement));}
 				/**
 				Replaces all occurrences of \b needle_char in the local string with \b replacement
 				@return Number of replacements
 				*/
-				count_t					FindAndReplace(T needle, const ReferenceType&replacement);
-				count_t					FindAndReplace(T needle, const T*replacement)	/** @copydoc FindAndReplace(); */ {return FindAndReplace(needle,ReferenceType(replacement));}
-				count_t					FindAndReplace(T needle, const Template<T>&replacement)	/** @copydoc FindAndReplace(); */ {return FindAndReplace(needle,replacement.ToRef());}
+				count_t					FindAndReplace(T needle, const SequenceType&replacement);
+				count_t					FindAndReplace(T needle, const T*replacement)	/** @copydoc FindAndReplace(); */ {return FindAndReplace(needle,SequenceType(replacement));}
 				count_t					FindAndReplace(T needle, T replacement);						//!< @copydoc FindAndReplace()
 
 				/**
@@ -1179,13 +1254,13 @@ namespace DeltaWorks
 
 				void					Set(size_t index, T c);
 			
-				void					operator+=(const Template<T>&other);			//!< Appends the specified string to the end of the local string. \param other String to append to the local string.
+				void					operator+=(const SequenceType&other);			//!< Appends the specified string to the end of the local string. \param other String to append to the local string.
 				void					operator+=(const T*string);				//!< Appends the specified string to the end of the local string. \param string String to append to the local string.
 				void					operator+=(T c);							//!< Appends the specified character to the end of the local string. \param c Character to append to the local string.
 				template <typename T0, typename T1>
 					void				operator+=(const ConcatExpression<T0,T1>&expression);
 				template <class T0>
-					void				operator+=(const ReferenceExpression<T0>&expression);
+					void				operator+=(const CastExpression<T0>&expression);
 				template <class T0>
 					void				operator+=(const CharacterExpression<T0>&expression);
 				template <class T0>
@@ -1193,30 +1268,30 @@ namespace DeltaWorks
 				#ifdef DSTRING_H
 					bool				operator<(const AnsiString&)	const;		//!< Tests if the specifed string object is alphabetically greater than the local string content. Comparison is case sensitive.
 				#endif
-				bool					operator<(const Template<T>&)		const;		//!< Tests if the local string content is alphabetically less compared to the content of the specified String object. Comparison is case sensitive.
 				bool					operator<(const T*)			const;		//!< Tests if the local string content is alphabetically less compared to the content of the specified const char array. Comparison is case sensitive.
 				bool					operator<(T)					const;		//!< Tests if the local string content is alphabetically less compared to the specified character. Comparison is case sensitive.
 				template <typename T0, typename T1>
 					bool				operator<(const ConcatExpression<T0,T1>&expression)	const;
-				template <class T0>
-					bool				operator<(const ReferenceExpression<T0>&expression)	const;
+				bool					operator<(const SequenceType&expression)	const;
 				template <class T0>
 					bool				operator<(const CharacterExpression<T0>&expression)	const;
 				template <class T0>
 					bool				operator<(const StringExpression<T0>&expression)	const;
+				template <class T0>
+					bool				operator<(const CastExpression<T0>&expression)	const;
 
 				#ifdef DSTRING_H
 					bool				operator<=(const AnsiString&)	const;		//!< Tests if the specifed string object is alphabetically greater than or identical to the local string content. Comparison is case sensitive.
 				#endif
-				bool					operator<=(const Template<T>&)		const;		//!< Tests if the local string content is alphabetically less or equal compared to the content of the specified String object. Comparison is case sensitive.
 				bool					operator<=(const T*) 		const;		//!< Tests if the local string content is alphabetically less or equal compared to the content of the specified const char array. Comparison is case sensitive.
 				bool					operator<=(T)				const;		//!< Tests if the local string content is alphabetically less or equal compared to the specified character. Comparison is case sensitive.
 				template <typename T0, typename T1>
 					bool				operator<=(const ConcatExpression<T0,T1>&expression)	const;
-				template <class T0>
-					bool				operator<=(const ReferenceExpression<T0>&expression)	const;
+				bool					operator<=(const SequenceType&expression)	const;
 				template <class T0>
 					bool				operator<=(const CharacterExpression<T0>&expression)	const;
+				template <class T0>
+					bool				operator<=(const CastExpression<T0>&expression)	const;
 				template <class T0>
 					bool				operator<=(const StringExpression<T0>&expression)	const;
 			
@@ -1225,17 +1300,12 @@ namespace DeltaWorks
 				#endif
 				template<typename Traits, typename Allocator>
 					Template<T>&		operator=(const std::basic_string<T,Traits,Allocator>&);
-				Template<T>&			operator=(const Template<T>&);					//!< Overwrites the local string content with the content of the specified Template object. \return Reference to the local string object.
 				#if __STR_RVALUE_REFERENCES__
 					Template<T>&		operator=(Template<T>&&);					//!< Overwrites the local string content with the content of the specified Template object. \return Reference to the local string object.
 				#endif
 				Template<T>&			operator=(const ArrayRef<T>&array);
-			
-				template <typename T2>
-					Template<T>&		operator=(const T2*);						//!< Overwrites the local string content with the content of the specified const char array. \return Reference to the local string object.
+				Template<T>&			operator=(const Template<T>&other);
 				Template<T>&			operator=(const T*);						//!< Overwrites the local string content with the content of the specified const char array. \return Reference to the local string object.
-				Template<T>&			operator=(char);								//!< Overwrites the local string content with the specified character. \return Reference to the local string object.
-				Template<T>&			operator=(wchar_t);								//!< Overwrites the local string content with the specified character. \return Reference to the local string object.
 				Template<T>&			operator=(short);							//!< Overwrites the local string content with the converted (decimal) number. \return Reference to the local string object.
 				Template<T>&			operator=(unsigned short);					//!< Overwrites the local string content with the converted (decimal) number. \return Reference to the local string object.
 				Template<T>&			operator=(long);							//!< Overwrites the local string content with the converted (decimal) number. \return Reference to the local string object.
@@ -1249,12 +1319,13 @@ namespace DeltaWorks
 				Template<T>&			operator=(unsigned long long);				//!< Overwrites the local string content with the converted (decimal) number. \return Reference to the local string object.
 				template <typename T0, typename T1>
 					Template<T>&		operator=(const ConcatExpression<T0,T1>&expression);
-				template <class T0>
-					Template<T>&		operator=(const ReferenceExpression<T0>&expression);
-				template <class T0>
-					Template<T>&		operator=(const CharacterExpression<T0>&expression);
+				//template <class T0>
+					//Template<T>&		operator=(const CharacterExpression<T0>&expression);
 				template <class T0>
 					Template<T>&		operator=(const StringExpression<T0>&expression);
+				template <class T0>
+					Template<T>&		operator=(const CastExpression<T0>&expression);
+				Template<T>&			operator=(const SequenceType&expression);
 
 				#if __STR_RVALUE_REFERENCES__
 					Template<T>&		operator=(StringExpression<T>&&expression);
@@ -1282,42 +1353,37 @@ namespace DeltaWorks
 						ConcatExpression<StringExpression<T>,CharacterExpression<T0> >
 											operator+(const CharacterExpression<T0>&expression)	const;
 				#else
-					template <typename T0>
-						Template<T>	operator+(const T0*string)								const;
 						Template<T>	operator+(const T*string)								const;
 						Template<T>	operator+(T)											const;
 					template <typename T0, typename T1>
 						Template<T>	operator+(const ConcatExpression<T0,T1>&expression)	const;
-					template <typename T0>
-						Template<T>	operator+(const ReferenceExpression<T0>&expression)	const;
-					template <typename T0>
-						Template<T>	operator+(const Template<T0>&expression)		const;
+						Template<T>	operator+(const SequenceType&expression)	const;
 					template <typename T0>
 						Template<T>	operator+(const StringExpression<T0>&expression)		const;
+					//Template<T>		operator+(const CharacterExpression<T>&expression)	const;
 					template <typename T0>
-						Template<T>	operator+(const CharacterExpression<T0>&expression)	const;
+						Template<T>	operator+(const CastExpression<T0>&expression)	const;
 				#endif
 			
 				#ifdef DSTRING_H
 					bool					Equals(const AnsiString&)	const;
 				#endif
-					bool					Equals(const Template<T>&)		const;		//!< Tests for case sensitive equality to another String object. \return true if the local and the remote string content are identical, false otherwise.
+					bool					Equals(const SequenceType&)		const;		//!< Tests for case sensitive equality to another String object. \return true if the local and the remote string content are identical, false otherwise.
 					bool					Equals(const T*)			const;		//!< Tests for case sensitive equality to a const char array. \return true if the local string content and the remote const char*array content are identical, false otherwise.
 					bool					Equals(T)					const;		//!< Tests for case sensitive equality to a character. \return true if the local string content matches the specified character, false otherwise.
 				template <typename T0, typename T1>
 					bool					Equals(const ConcatExpression<T0,T1>&expression)	const;
 				template <class T0>
-					bool					Equals(const ReferenceExpression<T0>&expression)	const;
-				template <class T0>
 					bool					Equals(const CharacterExpression<T0>&expression)	const;
 				template <class T0>
 					bool					Equals(const StringExpression<T0>&expression)	const;
+				template <class T0>
+					bool					Equals(const CastExpression<T0>&expression)	const;
 			
 				#ifdef DSTRING_H
 					bool					EqualsIgnoreCase(const AnsiString&)	const;
 				#endif
-				template <class T0>
-					bool					EqualsIgnoreCase(const ArrayRef<T0>&str)	const	{return Super::EqualsIgnoreCase(str);}
+					bool					EqualsIgnoreCase(const SequenceType&str)		const	{return Super::EqualsIgnoreCase(str);}
 					bool					EqualsIgnoreCase(const T*str)					const	{return Super::EqualsIgnoreCase(str);}
 					bool					EqualsIgnoreCase(T str)							const	{return Super::EqualsIgnoreCase(str);}
 				template <typename T0, typename T1>
@@ -1326,69 +1392,73 @@ namespace DeltaWorks
 					bool					EqualsIgnoreCase(const CharacterExpression<T0>&expression)	const;
 				template <class T0>
 					bool					EqualsIgnoreCase(const StringExpression<T0>&expression)	const;
+				template <class T0>
+					bool					EqualsIgnoreCase(const CastExpression<T0>&expression)	const;
 						
 				#ifdef DSTRING_H
 					bool					operator==(const AnsiString&)	const;
 				#endif
-					bool					operator==(const Template<T>&)		const;		//!< Tests for case sensitive equality to another String object. \return true if the local and the remote string content are identical, false otherwise.
 					bool					operator==(const T*)			const;		//!< Tests for case sensitive equality to a const char array. \return true if the local string content and the remote const char*array content are identical, false otherwise.
 					bool					operator==(T)					const;		//!< Tests for case sensitive equality to a character. \return true if the local string content matches the specified character, false otherwise.
 				template <typename T0, typename T1>
 					bool					operator==(const ConcatExpression<T0,T1>&expression)	const;
-				template <class T0>
-					bool					operator==(const ReferenceExpression<T0>&expression)	const;
+					bool					operator==(const SequenceType&expression)	const;
 				template <class T0>
 					bool					operator==(const CharacterExpression<T0>&expression)	const;
 				template <class T0>
 					bool					operator==(const StringExpression<T0>&expression)	const;
+				template <class T0>
+					bool					operator==(const CastExpression<T0>&expression)	const;
 			
 				#ifdef DSTRING_H
 					bool					operator!=(const AnsiString&)	const;
 				#endif
-					bool					operator!=(const Template<T>&)		const;		//!< Tests for case sensitive non-equality to another String object. \return true if the local and the remote string content are not identical, false otherwise.
 					bool					operator!=(const T*)			const;		//!< Tests for case sensitive non-equality to a const char array. \return true if the local string content and the remote const char*array content are not identical, false otherwise.
 					bool					operator!=(T)					const;		//!< Tests for case sensitive non-equality to a character. \return true if the local string content does not match the specified character, false otherwise.
 				template <typename T0, typename T1>
 					bool					operator!=(const ConcatExpression<T0,T1>&expression)	const;
-				template <class T0>
-					bool					operator!=(const ReferenceExpression<T0>&expression)	const;
+					bool					operator!=(const SequenceType&expression)	const;
 				template <class T0>
 					bool					operator!=(const CharacterExpression<T0>&expression)	const;
 				template <class T0>
 					bool					operator!=(const StringExpression<T0>&expression)	const;
+				template <class T0>
+					bool					operator!=(const CastExpression<T0>&expression)	const;
 			
 				#ifdef DSTRING_H
 					bool					operator>(const AnsiString&)	const;		//!< Tests if the specifed string object is alphabetically less than the local string content. Comparison is case sensitive.
 				#endif
-					bool					operator>(const Template<T>&)		const;		//!< Tests if the local string content is alphabetically greater compared to the content of the specified String object. Comparison is case sensitive.
 					bool					operator>(const T*)				const;		//!< Tests if the local string content is alphabetically greater compared to the content of the specified const char array. Comparison is case sensitive.
 					bool					operator>(T)					const;		//!< Tests if the local string content is alphabetically greater compared to the specified character. Comparison is case sensitive.
 				template <typename T0, typename T1>
 					bool					operator>(const ConcatExpression<T0,T1>&expression)	const;
-				template <class T0>
-					bool					operator>(const ReferenceExpression<T0>&expression)	const;
+					bool					operator>(const SequenceType&expression)	const;
 				template <class T0>
 					bool					operator>(const CharacterExpression<T0>&expression)	const;
 				template <class T0>
 					bool					operator>(const StringExpression<T0>&expression)	const;
+				template <class T0>
+					bool					operator>(const CastExpression<T0>&expression)	const;
 				#ifdef DSTRING_H
 					bool					operator>=(const AnsiString&)	const;		//!< Tests if the specifed string object is alphabetically less than or equal to the local string content. Comparison is case sensitive.
 				#endif
-					bool					operator>=(const Template<T>&)		const;		//!< Tests if the local string content is alphabetically greater or equal compared to the content of the specified String object. Comparison is case sensitive.
 					bool					operator>=(const T*)			const;		//!< Tests if the local string content is alphabetically greater or equal compared to the content of the specified const char array. Comparison is case sensitive.
 					bool					operator>=(T)					const;		//!< Tests if the local string content is alphabetically greater or equal compared to the specified character. Comparison is case sensitive.
 				template <typename T0, typename T1>
 					bool					operator>=(const ConcatExpression<T0,T1>&expression)	const;
-				template <class T0>
-					bool					operator>=(const ReferenceExpression<T0>&expression)	const;
+					bool					operator>=(const SequenceType&expression)	const;
 				template <class T0>
 					bool					operator>=(const CharacterExpression<T0>&expression)	const;
 				template <class T0>
 					bool					operator>=(const StringExpression<T0>&expression)	const;
+				template <class T0>
+					bool					operator>=(const CastExpression<T0>&expression)	const;
 				inline	void				Resize(size_t new_length);		//!< Resizes the local string length to match the specified number of characters (not including trailing zero). The resize operation leaves the local string content uninitialized save for an automatically set trailing zero. The string is duplicated even if the new size matches the existing one if it's not exclusively owned
 				inline	void				resizeCopy(size_t new_length);	//!< Resizes the local string length to match the specified number of characters (not including trailing zero). Any available string content is copied and the trailing zero set. If the local string length is increased then the new characters following the existing ones are left undefined.
 
 				virtual const T*			ToCString() const override {return Super::data;}	// IString::ToCString()
+
+				bool						ContainsByPointer(const SequenceType&t) const {return t.GetPointer() >= c_str() && t.GetPointer() < this->c_str() + this->GetLength();}
 
 
 				friend void					Serialize(IWriteStream&s, const Self&v)
@@ -1437,6 +1507,8 @@ namespace DeltaWorks
 
 
 
+		template <typename T>
+			inline CastExpression<T>	Cast(const T*rawPointer) {return CastExpression<T>(ReferenceExpression<T>(rawPointer));}
 
 
 
@@ -1450,6 +1522,7 @@ namespace DeltaWorks
 
 	typedef StringType::Template<char32_t>	UTF32String;
 	typedef StringType::Template<char16_t>	UTF16String;	//only one effective use for this kind of character
+	typedef StringType::ReferenceExpression<char16_t>	UTF16StringRef;
 	typedef StringType::ReferenceExpression<char32_t>	UTF32StringRef;
 
 
@@ -1556,68 +1629,43 @@ namespace DeltaWorks
 	String			binaryToHex(const void*data, size_t data_size);					//!< @overload
 
 
-	template <typename T0, typename T1, typename T2>
-		void	explode(const StringType::Template<T0>&delimiter, const StringType::Template<T1>&string, Ctr::ArrayData<T2>&result);
-	template <typename T0, typename T1, typename T2>
-		void	explode(const StringType::Template<T0>&delimiter, const StringType::ReferenceExpression<T1>&string, Ctr::ArrayData<T2>&result);
-	template <typename T0, typename T1, typename T2>
-		void	explode(const T0*delimiter, const StringType::Template<T1>&string, Ctr::ArrayData<T2>&result);
-	template <typename T0, typename T1, typename T2>
-		void	explode(const T0*delimiter, const StringType::ReferenceExpression<T1>&string, Ctr::ArrayData<T2>&result);
-	template <typename T0, typename T1, typename T2>
-		void	explode(const T0*delimiter, const T1*string, Ctr::ArrayData<T2>&result);
-	template <typename T0, typename T1>
-		void	explode(T0 delimiter, const T0*string, Ctr::ArrayData<T1>&result);
-	template <typename T0, typename T1>
-		void	explode(T0 delimiter, const StringType::Template<T0>&string, Ctr::ArrayData<T1>&result);
-	template <typename T0, typename T1>
-		void	explode(T0 delimiter, const StringType::ReferenceExpression<T0>&string, Ctr::ArrayData<T1>&result);
-	template <typename T0, typename T1>
-		void	explodeCallback(bool isDelimiter(T0), const T0*string, Ctr::ArrayData<T1>&result);
-	template <typename T0, typename T1>
-		void	explodeCallback(bool isDelimiter(T0), const StringType::Template<T0>&string, Ctr::ArrayData<T1>&result);
-	template <typename T0, typename T1>
-		void	explodeCallback(bool isDelimiter(T0), const StringType::ReferenceExpression<T0>&string, Ctr::ArrayData<T1>&result);
-
-
-
-
-	template <typename T0, typename T1>
-		StringType::Template<T1>		implode(const StringType::Template<T0>&glue, const Ctr::ArrayRef<StringType::ReferenceExpression<T1> >&pieces);
 	template <typename T>
-		StringType::Template<T>		implode(T glue, const Ctr::ArrayRef<StringType::ReferenceExpression<T> >&pieces);
+		void	Explode(const StringType::Sequence<T>&delimiter, const StringType::Sequence<T>&string, Ctr::ArrayData<StringType::ReferenceExpression<T> >&result);
+	template <typename T>
+		void	Explode(const StringType::Sequence<T>&delimiter, const StringType::Sequence<T>&string, Ctr::ArrayData<StringType::Template<T> >&result);
+
+	template <typename T>
+		void	Explode(T delimiter, const StringType::Sequence<T>&string, Ctr::ArrayData<StringType::ReferenceExpression<T> >&result);
+	template <typename T>
+		void	Explode(T delimiter, const StringType::Sequence<T>&string, Ctr::ArrayData<StringType::Template<T> >&result);
+
+	template <typename T>
+		void	ExplodeCallback(bool isDelimiter(T), const StringType::Sequence<T>&string, Ctr::ArrayData<StringType::ReferenceExpression<T> >&result);
+	template <typename T>
+		void	ExplodeCallback(bool isDelimiter(T), const StringType::Sequence<T>&string, Ctr::ArrayData<StringType::Template<T> >&result);
+
+
+
+
+	template <typename T0, typename T1>
+		StringType::Template<T1>		implode(const StringType::Sequence<T0>&glue, const Ctr::ArrayRef<StringType::ReferenceExpression<T1> >&pieces);
+	template <typename T>
+		StringType::Template<T>			implode(T glue, const Ctr::ArrayRef<StringType::ReferenceExpression<T> >&pieces);
 	template <typename T0, typename T1>
 		StringType::Template<T1>		implode(const T0*glue, const Ctr::ArrayRef<StringType::ReferenceExpression<T1> >&pieces);
 
 	template <typename T0, typename T1>
-		StringType::Template<T1>		implode(const StringType::Template<T0>&glue, const Ctr::ArrayRef<StringType::Template<T1> >&pieces);
+		StringType::Template<T1>		implode(const StringType::Sequence<T0>&glue, const Ctr::ArrayRef<StringType::Template<T1> >&pieces);
 	template <typename T>
-		StringType::Template<T>		implode(T glue, const Ctr::ArrayRef<StringType::Template<T> >&pieces);
+		StringType::Template<T>			implode(T glue, const Ctr::ArrayRef<StringType::Template<T> >&pieces);
 	template <typename T0, typename T1>
 		StringType::Template<T1>		implode(const T0*glue, const Ctr::ArrayRef<StringType::Template<T1> >&pieces);
 	template <typename T0, typename T1>
-		StringType::Template<T1>		implode(const StringType::Template<T0>&glue, const StringType::Template<T1>*pieces, count_t numPieces);
+		StringType::Template<T1>		implode(const StringType::Sequence<T0>&glue, const StringType::Template<T1>*pieces, count_t numPieces);
 	template <typename T>
-		StringType::Template<T>		implode(T glue, const StringType::Template<T>*pieces, count_t numPieces);
+		StringType::Template<T>			implode(T glue, const StringType::Template<T>*pieces, count_t numPieces);
 	template <typename T0, typename T1>
 		StringType::Template<T1>		implode(const T0*glue, const StringType::Template<T1>*pieces, count_t numPieces);
-
-
-	template <typename Char>
-		void 	Wrap(const ArrayRef<const Char>&string, count_t lineCharCount, ArrayData<StringType::ReferenceExpression<Char> >&result);
-	template <typename Char, typename Width>
-		void	Wrap(const ArrayRef<const Char>&string, const Width&lineWidth, Width (*charWidthFunction)(Char),ArrayData<StringType::ReferenceExpression<Char> >&result);
-	template <typename Char>
-		void 	Wrap(const ArrayRef<Char>&string, count_t lineCharCount, ArrayData<StringType::ReferenceExpression<Char> >&result);
-	template <typename Char, typename Width>
-		void	Wrap(const ArrayRef<Char>&string, const Width&lineWidth, Width (*charWidthFunction)(Char),ArrayData<StringType::ReferenceExpression<Char> >&result);
-
-	//these are really bad if allowed, because the string becomes invalid the moment the function returns. thus they are deleted:
-	template <typename Char>
-		void 	Wrap(StringType::Template<Char>&&, count_t lineCharCount, ArrayData<StringType::ReferenceExpression<Char> >&result)=delete;
-	template <typename Char, typename Width>
-		void	Wrap(StringType::Template<Char>&&, const Width&lineWidth, Width (*charWidthFunction)(Char),ArrayData<StringType::ReferenceExpression<Char> >&result)=delete;
-
 
 	void			ShowString(const String&line);
 
@@ -1663,7 +1711,8 @@ namespace DeltaWorks
 	#undef FOPEN
 	#if SYSTEM==WINDOWS
 		typedef StringW	PathString;
-		typedef StringRefW	PathStringRef;
+		//typedef StringType::Template<wchar_t>	PathString;
+		typedef StringType::ReferenceExpression<wchar_t>	PathStringRef;
 		#define FOPEN(_FILE_,_MODE_)	_wfopen((_FILE_),L##_MODE_)
 	#else
 		typedef String	PathString;	//uses UTF8

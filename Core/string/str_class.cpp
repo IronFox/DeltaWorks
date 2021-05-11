@@ -135,13 +135,6 @@ namespace DeltaWorks
 
 
 
-	static void	TestWrap()	//let compiler check this
-	{
-		String line = "ldskna kljh nalksj alks j";
-		Array<StringRef> wrapped;
-		Wrap(line,10,wrapped);
-	}
-
 
 
 	static unsigned	genericLengthFunction(const char*begin, const char*end)
@@ -334,26 +327,26 @@ namespace DeltaWorks
 
 			GetProgramFileName(  szFileName);
 
-			return StringType::Template<T>(FileSystem::ExtractFileName(PathString(szFileName))+": ");
+			return StringType::Template<T>(FileSystem::ExtractFileName(PathString(szFileName))+StringType::Cast(": "));
 		}
 
 
 	template <typename T0, typename T1>
-		static void _displayMessage(const T0*head_, const T1&line, bool prefixProgramName)
+		static void _displayMessage(const T0*head_, const StringType::Sequence<T1>&line, bool prefixProgramName)
 		{
-			Ctr::Array<StringType::Template<T0> >	lines;
-			explode((T0)'\n',line,lines);
+			Ctr::Array<StringType::Template<T1> >	lines;
+			Explode((T1)'\n',line,lines);
 			StringType::Template<T0> head = prefixProgramName ? _getApplicationName<T0>() + head_ : head_;
 			if (!lines.Count())
 				_msgBox(_empty<T0>(),head.c_str(),MB_OK);
-			StringType::Template<T0> sum;
+			StringType::Template<T1> sum;
 			head += (T0)' ';
 			count_t rounds = lines.Count() / 40;
 			if (lines.Count() % 40)
 				rounds ++;
 			for (index_t i = 0; i < lines.Count(); i+= 40)
 			{
-				sum = implode((T0)'\n',lines + i,std::min<count_t>(40,lines.Count() - i));
+				sum = implode((T1)'\n',lines + i,std::min<count_t>(40,lines.Count() - i));
 				if (lines.Count() > 40)
 				{
 					_msgBox(sum.c_str(),(head+ StringType::Template<T0>(i/40 +1)+(T0)'/'+ StringType::Template<T0>(rounds)).c_str(),MB_OK);
@@ -366,7 +359,7 @@ namespace DeltaWorks
 	void			DisplayMessage(const char*head, const char*line, bool prefixProgramName/*=true*/)
 	{
 		#if SYSTEM==WINDOWS
-			_displayMessage(head,line,prefixProgramName);
+			_displayMessage(head, StringRef(line),prefixProgramName);
 			//MessageBoxA (NULL,line,head?head:"message",MB_OK);
 		#elif SYSTEM==UNIX
 			if (head)
@@ -378,7 +371,7 @@ namespace DeltaWorks
 	void			DisplayMessage(const char*head, const String&line, bool prefixProgramName/*=true*/)
 	{
 		#if SYSTEM==WINDOWS
-			_displayMessage(head,line,prefixProgramName);
+			_displayMessage(head,line.ToRef(),prefixProgramName);
 			//MessageBoxA (NULL,line.c_str(),head?head:"message",MB_OK);
 		#elif SYSTEM==UNIX
 			if (head)
@@ -412,7 +405,7 @@ namespace DeltaWorks
 	void			DisplayMessageW(const wchar_t*head, const wchar_t*line, bool prefixProgramName/*=true*/)
 	{
 		#if SYSTEM==WINDOWS
-			_displayMessage(head,line,prefixProgramName);
+			_displayMessage(head,StringRefW(line),prefixProgramName);
 		#elif SYSTEM==UNIX
 			if (head)
 				std::wcout << head << ":"<<std::endl<<"  ";
@@ -423,7 +416,7 @@ namespace DeltaWorks
 	void			DisplayMessageW(const wchar_t*head, const StringW&line, bool prefixProgramName/*=true*/)
 	{
 		#if SYSTEM==WINDOWS
-			_displayMessage(head,line,prefixProgramName);
+			_displayMessage(head,line.ToRef(),prefixProgramName);
 		#elif SYSTEM==UNIX
 			if (head)
 				std::wcout << head << ":"<<std::endl<<"  ";

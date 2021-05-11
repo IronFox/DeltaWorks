@@ -36,7 +36,7 @@ namespace DeltaWorks
 	class JPEG:public ImageFormat
 	{
 	public:
-						JPEG():ImageFormat("JPEG","jpg jpeg")
+						JPEG():ImageFormat("JPEG",IEXT("jpg jpeg"))
 						{
 							magic_bytes.set4(0xff,0xd8,0xff,0xe0);
 						}

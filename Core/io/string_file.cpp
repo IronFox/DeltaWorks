@@ -134,7 +134,7 @@ namespace DeltaWorks
 	void StringFile::Assign(FILE*file)
 	{
 		Close();
-		filename = "Assign()";
+		filename = StringType::Cast("Assign()");
 		f = file;
 		active = f!=NULL;
 		write_mode = false;
@@ -195,7 +195,7 @@ namespace DeltaWorks
 		end = string;
 		f = NULL;
 		active = false;
-		this->filename = "";
+		this->filename.Clear();
 	}
 
 	bool StringFile::IsActive()

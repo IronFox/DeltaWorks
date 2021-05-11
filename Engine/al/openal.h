@@ -31,7 +31,7 @@ namespace Engine
 		{
 		protected:
 			ALuint				bufferHandle;
-			friend WaveBuffer	Load(const String&filename, String*);
+			friend WaveBuffer	Load(const PathString&filename, String*);
 			friend void			Discard(WaveBuffer&wbo);
 		public:
 			/**/				WaveBuffer():bufferHandle(0) {}
@@ -146,7 +146,7 @@ namespace Engine
 		*/
 		void				Shutdown();
 	
-		WaveBuffer			Load(const String&filename, String*error_out = NULL);
+		WaveBuffer			Load(const PathString&filename, String*error_out = NULL);
 		void				Discard(WaveBuffer&wbo);
 	
 		void				SetSpeedOfSound(float speed);

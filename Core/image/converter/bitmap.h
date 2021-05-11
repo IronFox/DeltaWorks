@@ -17,7 +17,7 @@ namespace DeltaWorks
 	class Bitmap:public ImageFormat
 	{
 	public:
-						Bitmap():ImageFormat("Windows Bitmap",L"bmp")
+						Bitmap():ImageFormat("Windows Bitmap",IEXT("bmp"))
 						{
 							magic_bytes.set2(0x42,0x4d);
 						}

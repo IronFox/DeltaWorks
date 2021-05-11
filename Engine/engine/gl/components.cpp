@@ -1,5 +1,6 @@
 #include "components.h"
 #include <string/encoding.h>
+#include <string/lineWrap.h>
 
 
 namespace Engine
@@ -1972,7 +1973,7 @@ namespace Engine
 				{
 					textChanged = false;
 					lastWidth = w;
-					Wrap(caption,w,_CharLen,lines);
+					LineWrap::UTF8::Wrap(caption,w,_CharLen,lines);
 					//for (index_t i = 0; i < lines.Count(); i++)
 					//	cout << "'"<<lines[i]<<"'"<<endl;
 					height = GetMinHeight(false);
@@ -2030,9 +2031,9 @@ namespace Engine
 			return this;
 		}
 
-		float		Label::_CharLen(char c)
+		float		Label::_CharLen(char32_t c)
 		{
-			return ColorRenderer::textout.GetUnscaledWidth(StringRef(&c,1));
+			return ColorRenderer::textout.GetUnscaledWidth(UTF32StringRef(&c,1));
 		}
 		
 		void			Label::OnColorPaint(ColorRenderer&renderer, bool parentIsEnabled)

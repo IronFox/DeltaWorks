@@ -104,16 +104,14 @@ namespace DeltaWorks
 			fflush(f);
 	}
 
-	bool LogFile::Log(const char*line, bool time_)
+	bool LogFile::WriteIndent()
 	{
-		if (!begin())
-			return false;
 		if (indent_)
 		{
 			for (unsigned i = 0; i < indentation; i++)
 			{
 				static const char c = '\t';
-				if (!fwrite(&c,1,1,f))
+				if (fwrite(&c,1,1,f)!=1)
 				{
 					end();
 					return false;
@@ -121,6 +119,14 @@ namespace DeltaWorks
 			}
 			indent_ = false;
 		}
+		return true;
+	}
+
+	bool LogFile::Log(const char*line, bool time_)
+	{
+		if (!begin() || !WriteIndent())
+			return false;
+
 		if (time_)
 			timeStamp();
 		const char*nl = strchr(line,'\n');
@@ -256,6 +262,111 @@ namespace DeltaWorks
 	{
 		if (indentation)
 			indentation--;
+	}
+
+	LogFile&		LogFile::operator<<(short v)
+	{
+		if (!begin() || !WriteIndent())
+			return *this;
+		Indent();
+		fprintf(f,"%d",v);
+		end();
+		return *this;
+	}
+
+	LogFile&		LogFile::operator<<(unsigned short v)
+	{
+		if (!begin() || !WriteIndent())
+			return *this;
+		Indent();
+		fprintf(f,"%u",v);
+		end();
+		return *this;
+	}
+
+	LogFile&		LogFile::operator<<(int v)
+	{
+		if (!begin() || !WriteIndent())
+			return *this;
+		Indent();
+		fprintf(f,"%d",v);
+		end();
+		return *this;
+	}
+
+	LogFile&		LogFile::operator<<(unsigned int v)
+	{
+		if (!begin() || !WriteIndent())
+			return *this;
+		Indent();
+		fprintf(f,"%u",v);
+		end();
+		return *this;
+	}
+
+	LogFile&		LogFile::operator<<(long long v)
+	{
+		if (!begin() || !WriteIndent())
+			return *this;
+		Indent();
+		fprintf(f,"%lld",v);
+		end();
+		return *this;
+	}
+
+	LogFile&		LogFile::operator<<(unsigned long long v)
+	{
+		if (!begin() || !WriteIndent())
+			return *this;
+		Indent();
+		fprintf(f,"%llu",v);
+		end();
+		return *this;
+	}
+
+	LogFile&		LogFile::operator<<(long v)
+	{
+		if (!begin() || !WriteIndent())
+			return *this;
+		Indent();
+		fprintf(f,"%ld",v);
+		end();
+		return *this;
+	}
+
+	LogFile&		LogFile::operator<<(unsigned long v)
+	{
+		if (!begin() || !WriteIndent())
+			return *this;
+		Indent();
+		fprintf(f,"%lu",v);
+		end();
+		return *this;
+	}
+
+	LogFile&		LogFile::operator<<(float v)
+	{
+		if (!begin() || !WriteIndent())
+			return *this;
+		Indent();
+		fprintf(f,"%f.3",v);
+		end();
+		return *this;
+	}
+
+	LogFile&		LogFile::operator<<(double v)
+	{
+		if (!begin() || !WriteIndent())
+			return *this;
+		Indent();
+		fprintf(f,"%f.8",v);
+		end();
+		return *this;
+	}
+
+	LogFile&		LogFile::operator<<(bool v)
+	{
+		return operator<<(v ? "true":"false");
 	}
 
         
