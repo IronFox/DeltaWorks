@@ -22,8 +22,8 @@ namespace Engine
 						timeReference;
 		Time::Delta		delta64;
 
-	    float   		delta;
-		double			now;
+	    float   		delta=1;
+		double			now=0;
 
 	    void    		Update();
 	    void    		Initialize();

@@ -16,7 +16,10 @@ namespace Engine
 	    delta64 = now64.Elapsed();
 	    now64 += delta64;
 	    delta = delta64.ToSeconds();
+		now += delta64.ToSecondsD();
 	}
+
+
 
 	void Timing::Initialize()
 	{
