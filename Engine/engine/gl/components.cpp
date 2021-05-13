@@ -2748,7 +2748,7 @@ namespace Engine
 			layout.override = NULL;
 			FileSystem::File	file;
 			if (node->Query("file",string))
-				if (folder.FindFile(PathString(string),file))
+				if (folder.FindFile(FileSystem::StringToPath(string),file))
 				{
 					layout.LoadFromFile(file.GetLocation(),scale*outer_scale);
 					return;
@@ -2786,7 +2786,7 @@ namespace Engine
 			
 			FileSystem::File	file;
 			if (node->Query("file",string))
-				if (folder.FindFile(PathString(string),file))
+				if (folder.FindFile(FileSystem::StringToPath(string),file))
 					layout.LoadFromFile(file.GetLocation(),scale*outer_scale);
 		}
 		
@@ -2802,7 +2802,7 @@ namespace Engine
 			
 			FileSystem::File	file;
 			if (node->Query("file",string))
-				if (folder.FindFile(PathString(string),file))
+				if (folder.FindFile(FileSystem::StringToPath(string),file))
 					layout.LoadFromFile(file.GetLocation(),scale*outer_scale);
 		}
 		
@@ -2815,13 +2815,13 @@ namespace Engine
 
 			FileSystem::File	file;
 			
-			if (node->Query("color",string) && folder.FindFile(PathString(string),file))
+			if (node->Query("color",string) && folder.FindFile(FileSystem::StringToPath(string),file))
 				LoadColor(file.GetLocation(),layout.boxColor);
-			if (node->Query("bump",string) && folder.FindFile(PathString(string),file))
+			if (node->Query("bump",string) && folder.FindFile(FileSystem::StringToPath(string),file))
 				LoadBump(file.GetLocation(),layout.boxNormal);
-			if (node->Query("check",string) && folder.FindFile(PathString(string),file))
+			if (node->Query("check",string) && folder.FindFile(FileSystem::StringToPath(string),file))
 				LoadColor(file.GetLocation(),layout.checkMark);
-			if (node->Query("highlight",string) && folder.FindFile(PathString(string),file))
+			if (node->Query("highlight",string) && folder.FindFile(FileSystem::StringToPath(string),file))
 				LoadColor(file.GetLocation(),layout.highlightMark);
 		}
 		
@@ -2844,7 +2844,7 @@ namespace Engine
 					convert(string.c_str(),scale);
 				if (!node->Query("file",string))
 					throw Except::IO::DriveAccess::FileFormatFault("XML Font node lacks file attribute");
-				if (folder.FindFile(PathString(string),file))
+				if (folder.FindFile(FileSystem::StringToPath(string),file))
 					ColorRenderer::textout.GetFont().LoadFromFile(file.GetLocation(),scale*outer_scale);
 						//FAIL("Failed to load font from font file '"+file.GetLocation()+"'");
 			}

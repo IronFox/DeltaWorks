@@ -1901,7 +1901,7 @@ namespace StringType
 			if (other.IsEmpty())
 				return;
 			STRING_METHOD_BEGIN("(const Template<T>&other)",other);
-			if (ContainsByPointer(other.GetPointer()))
+			if (Super::Addresses(other.GetPointer()))
 			{
 				operator+=(Self(other));
 			}
@@ -1910,7 +1910,7 @@ namespace StringType
 				size_t old_length = Super::elements;
 				size_t new_length = Super::elements + other.GetLength();
 				resizeCopy(new_length);
-				memcpy(Super::data+old_length,Super::data,old_length*sizeof(T));
+				memcpy(Super::data+old_length,other.GetPointer(),other.GetContentSize());
 			}
 			STRING_METHOD_END
 		}
@@ -2488,7 +2488,7 @@ namespace StringType
 		{
 			//ASSERT_NOT_NULL__(Super::data);
 			STRING_METHOD_BEGIN("(const Template<T>&string)",string.c_str());
-			if (ContainsByPointer(string))
+			if (Super::Addresses(string.GetPointer()))
 			{
 				index_t offset = string.GetPointer() - c_str();
 				count_t len = string.GetLength();

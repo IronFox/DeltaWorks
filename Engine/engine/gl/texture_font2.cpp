@@ -58,15 +58,15 @@ namespace Engine
 		FileSystem::Folder folder(FileSystem::ExtractFileDir(filename));
 		Image image;
 		FileSystem::File f;
-		if (!folder.FindFile(PathString(imagefile),f,true))
+		if (!folder.FindFile(FileSystem::StringToPath(imagefile),f,true))
 		{
-			throw Except::IO::DriveAccess::FileOpenFault("Font image file not found: "+imagefile);
+			throw Except::IO::DriveAccess::FileOpenFault(CLOCATION,"Font image file not found: "+imagefile);
 		}
 		Magic::LoadFromFile(image,  f.GetLocation());
 
 
 		if (image.channels() != 4)
-			throw Except::IO::DriveAccess::FileFormatFault("XML font file specifies unusable font image. Image must have 4 channels (RGBA) but has "+String(image.channels()));
+			throw Except::IO::DriveAccess::FileFormatFault(CLOCATION,"XML font file specifies unusable font image. Image must have 4 channels (RGBA) but has "+String(image.channels()));
 
 		clear();
 

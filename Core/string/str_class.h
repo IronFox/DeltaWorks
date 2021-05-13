@@ -1458,7 +1458,6 @@ namespace DeltaWorks
 
 				virtual const T*			ToCString() const override {return Super::data;}	// IString::ToCString()
 
-				bool						ContainsByPointer(const SequenceType&t) const {return t.GetPointer() >= c_str() && t.GetPointer() < this->c_str() + this->GetLength();}
 
 
 				friend void					Serialize(IWriteStream&s, const Self&v)

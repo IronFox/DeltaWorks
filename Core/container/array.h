@@ -625,6 +625,12 @@ namespace DeltaWorks
 					s.WriteSize(v.elements);
 					Serialization::SerializeArray(s,v.data,v.elements);
 				}
+
+				/**
+				Checks whether the given pointer lies within the locally referenced array segment
+				*/
+				bool				Addresses(const T*ptr) const {return ptr >= this->begin() && ptr < this->end();}
+
 			};
 
 

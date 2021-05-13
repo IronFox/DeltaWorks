@@ -88,7 +88,7 @@ namespace DeltaWorks
 			 return (isalpha(path.FirstChar()) && path.GetChar(1) == ':');
 		}
 
-		PathString		StringToPath(const UTF32StringRef&utf32Path)
+		PathString		StringToPath(const StringType::Sequence<char32_t>&utf32Path)
 		{
 			#if SYSTEM==WINDOWS
 				PathString rs;
@@ -112,19 +112,9 @@ namespace DeltaWorks
 			return StringToPath(utf32Path.ToRef());
 		}
 
-		PathString		StringToPath(const String&utf8Path)
-		{
-			return StringToPath(utf8Path.ToRef());
-		}
-		
-		PathString		StringToPath(const char*utf8Path)
-		{
-			return StringToPath(StringRef(utf8Path));
-		}
 
 
-
-		PathString		StringToPath(const StringRef&utf8Path)
+		PathString		StringToPath(const StringType::Sequence<char>&utf8Path)
 		{
 			#if SYSTEM==WINDOWS
 				PathString rs;
@@ -142,10 +132,10 @@ namespace DeltaWorks
 			#endif
 		}
 
-		String			PathToString(const PathString&path, bool replaceDetectedPrefixes/*=true*/)
+		String			PathToString(const PathString::SequenceType&path, bool replaceDetectedPrefixes/*=true*/)
 		{
 			String*caption = nullptr;
-			auto ref = path.ref();
+			auto ref = path;
 			String rs;
 			if (replaceDetectedPrefixes)
 			{
@@ -625,7 +615,7 @@ namespace DeltaWorks
 				if (at != InvalidIndex)
 				{
 					step = local.subString(0,at);
-					local.Erase(0,at+1);
+					local.EraseLeft(at+1);
 				}
 				else
 				{
@@ -2038,7 +2028,7 @@ namespace DeltaWorks
 						field[i] = 0;
 						if (IsSlash(field[i-1]))
 							field[i-1] = 0;
-						filename = PathString(segment_begin)+FOLDER_SLASH_STR+StringType::Cast(name);
+						filename = FileSystem::StringToPath(String(segment_begin)+FOLDER_SLASH+name);
 						if (folder.FindFile(filename,target))
 							return ResolveLink(target);
 						if (folder.FindFile(filename+StringType::Cast(".exe"),target))
@@ -2046,7 +2036,7 @@ namespace DeltaWorks
 						segment_begin = field+i+1;
 					}
 				{
-					filename = PathString(segment_begin)+FOLDER_SLASH_STR+StringType::Cast(name);
+					filename = FileSystem::StringToPath(String(segment_begin)+FOLDER_SLASH+name);
 					if (folder.FindFile(filename,target))
 						return ResolveLink(target);
 					if (folder.FindFile(filename+StringType::Cast(".exe"),target))

@@ -360,6 +360,9 @@ namespace DeltaWorks::StringType
 			count_t			CountCharactersIgnoreCase(const T* characters, bool count_matches=true)	const;											//!< Counts how often each of the characters in the specified string is contained in the local string; Case insensitive version	@param count_matches Set true to count matching characters, false to count non-matching characters
 			count_t			CountCharactersIgnoreCase(const T* characters, count_t character_count, bool count_matches=true)	const;							//!< Counts how often each of the characters in the specified string is contained in the local string; Case insensitive version	@param count_matches Set true to count matching characters, false to count non-matching characters
 
+			Self			SubStringRefS(sindex_t index, count_t count = (count_t)-1)	 const;
+			Self			SubStringRef(index_t index, count_t count = (count_t)-1) const	{return SubStringRefS((sindex_t)index,count);}
+
 
 			inline void		Print(std::ostream&stream)			const;	//!< Prints the local expression content to the specified stream @param stream Stream to print to
 			#ifdef WCOUT

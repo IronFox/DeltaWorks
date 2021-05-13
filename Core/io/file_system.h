@@ -140,12 +140,9 @@ namespace DeltaWorks
 		*/
 		void			ClearPathPrefixes();
 
-		String			PathToString(const PathString&path, bool replaceDetectedPrefixes=true);
-		PathString		StringToPath(const StringRef&utf8Path);
-		PathString		StringToPath(const String&utf8Path);
-		PathString		StringToPath(const char*utf8Path);
-		PathString		StringToPath(const UTF32StringRef&utf32Path);
-		PathString		StringToPath(const UTF32String&utf32Path);
+		String			PathToString(const PathString::SequenceType&path, bool replaceDetectedPrefixes=true);
+		PathString		StringToPath(const StringType::Sequence<char>&utf8Path);
+		PathString		StringToPath(const StringType::Sequence<char32_t>&utf32Path);
 
 
 		/**

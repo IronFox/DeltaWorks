@@ -434,14 +434,14 @@ namespace Engine
 			Image image;
 			out.width = 0;
 			out.height = 0;
-			if (folder.FindFile(PathString("color/"+attrib),file))
+			if (folder.FindFile(FileSystem::StringToPath("color/"+attrib),file))
 			{
 				Magic::LoadFromFile(image,file.GetLocation());
 				out.color.load(image,global_anisotropy,true);
 				out.width = image.GetWidth();
 				out.height = image.GetHeight();
 			}
-			if (folder.FindFile(PathString("bump/"+attrib),file))
+			if (folder.FindFile(FileSystem::StringToPath("bump/"+attrib),file))
 			{
 				LoadBump(file.GetLocation(),image);
 
@@ -859,13 +859,13 @@ namespace Engine
 							if (xcell.Query("background",attrib))
 							{
 								FileSystem::File	file;
-								if (folder.FindFile(PathString("bump/"+attrib),file))
+								if (folder.FindFile(FileSystem::StringToPath("bump/"+attrib),file))
 								{
 									LoadBump(file.GetLocation(),cell.normal);
 								}
 								else
 									ErrMessage("Failed to locate bump component of '"+attrib+"'");
-								if (folder.FindFile(PathString("color/"+attrib),file))
+								if (folder.FindFile(FileSystem::StringToPath("color/"+attrib),file))
 								{
 									Magic::LoadFromFile(cell.color,file.GetLocation());
 									if (cell.color.GetWidth() == 1)

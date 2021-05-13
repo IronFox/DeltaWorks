@@ -489,7 +489,7 @@ namespace DeltaWorks
 				}
 				else
 				{
-					const CFSFile*f = folder.FindFile(PathString(seg));
+					const CFSFile*f = folder.FindFile(FileSystem::StringToPath(seg));
 					if (f)
 					{
 						sendMessage("parsed map '"+String(f->GetLocation())+"'");
@@ -1507,7 +1507,7 @@ namespace DeltaWorks
 		PathString base_name = FileSystem::ExtractFileDir(outname);
 		if (base_name.GetLength())
 			base_name+=FOLDER_SLASH;
-		base_name+=PathString(tex_name);
+		base_name+=FileSystem::StringToPath(tex_name);
 	
 	
 		if (TextureCompression::decompress(texture->face_field[0].pointer(),texture->face_field[0].size(),out))	//that i would ever have to use const_cast... stupid bz2 lib :S

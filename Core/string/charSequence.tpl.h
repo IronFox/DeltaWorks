@@ -378,6 +378,24 @@ namespace DeltaWorks::StringType
 
 
 
+	template <typename T>
+		Sequence<T>				Sequence<T>::SubStringRefS(sindex_t index, count_t count /*= (count_t)-1*/)	 const
+		{
+			if (index<0)
+			{
+				count += index;
+				index=0;
+			}
+			if ((size_t)index >= Super::elements)
+				return Sequence<T>(Super::data,0);
+			if (count > Super::elements)
+				count = Super::elements;
+			if (index+count>Super::elements)
+				count = Super::elements-index;
+			return Sequence<T>(Super::data+index,count);
+		}
+
+
 	template <>
 		void		Sequence<char>::Print(std::ostream&stream)	const
 		{

@@ -293,9 +293,9 @@ namespace DeltaWorks::LineWrap
 									wordWithToCurrent = charW;
 								}
 						}
-						if (current > firstLineChar)	//some leftovers?
+						if (cursor > firstLineChar)	//some leftovers?
 						{
-							callback(StringRef(firstLineChar, current - firstLineChar));
+							callback(StringRef(firstLineChar, cursor - firstLineChar));
 						}
 					}
 			};
@@ -447,9 +447,9 @@ namespace DeltaWorks::LineWrap
 									wordWithToCurrent = charW;
 								}
 						}
-						if (current > firstLineChar)	//some leftovers?
+						if (cursor > firstLineChar)	//some leftovers?
 						{
-							callback(StringType::ReferenceExpression<Char>(firstLineChar, current - firstLineChar));
+							callback(StringType::ReferenceExpression<Char>(firstLineChar, cursor - firstLineChar));
 						}
 					}
 			};
