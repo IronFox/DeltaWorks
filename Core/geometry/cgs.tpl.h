@@ -4982,7 +4982,7 @@ template <class Def>
 		if (!GeometryInstance<Def>::target || !animator)
 			return NULL;
 		if (GeometryInstance<Def>::target->animator_field.Owns(animator))
-			return animator_field+GeometryInstance<Def>::target->animator_field.GetIndexOf(animator);
+			return animator_field+GeometryInstance<Def>::target->animator_field.GetIndexOfPointer(animator);
 		for (index_t i = 0; i < child_field.GetLength(); i++)
 			if (AnimatorInstanceA<Def>*rs = child_field[i].findInstanceOf(animator))
 				return rs;
@@ -5194,7 +5194,7 @@ template <class Def>
 	{
 		if (SubGeometryInstance<Def>::target->wheel_field.Owns(wheel))
 		{
-			return wheel_status+2*SubGeometryInstance<Def>::target->wheel_field.GetIndexOf(wheel);
+			return wheel_status+2*SubGeometryInstance<Def>::target->wheel_field.GetIndexOfPointer(wheel);
 		}
 		for (index_t i = 0; i < child_field.GetLength(); i++)
 		{
