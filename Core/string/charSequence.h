@@ -468,4 +468,10 @@ namespace DeltaWorks::StringType
 
 }
 
+namespace DeltaWorks
+{
+	typedef StringType::Sequence<char>	CharSequence;
+
+}
+
 #include "charSequence.tpl.h"
