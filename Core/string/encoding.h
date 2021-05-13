@@ -61,7 +61,7 @@ namespace DeltaWorks
 			class Scanner
 			{
 			public:
-				Scanner(const StringType::Sequence<char>&source):current(source.GetPointer()),end(source.GetPointer()+source.GetLength())
+				Scanner(const StringType::Sequence<char>&source):current(source.begin()),end(source.end())
 				{}
 
 				/**
