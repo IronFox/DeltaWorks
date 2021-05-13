@@ -830,7 +830,7 @@ namespace DeltaWorks
 			#if SYSTEM==WINDOWS
 				file.name = find_data.cFileName;
 				file.location = path;
-				if (IsSlash(file.location.LastChar()))
+				if (!IsSlash(file.location.LastChar()))
 					file.location+=FOLDER_SLASH;
 				file.location+= find_data.cFileName;
 				outIsDirectory = (find_data.dwFileAttributes&FILE_ATTRIBUTE_DIRECTORY)!=0;
