@@ -24,7 +24,7 @@
 
 #undef ASSERT_CONCLUSION
 #ifdef _DEBUG
-	#define ASSERT_CONCLUSION(array,pointer)	{if (!(array).IsConcludedBy(pointer)) FATAL__("Conclusion exception for array '" #array "', element '" #pointer "' ("+String((array).GetIndexOf(pointer))+"/"+String((array).GetLength())+")"); }
+	#define ASSERT_CONCLUSION(array,pointer)	{if (!(array).IsConcludedBy(pointer)) FATAL__("Conclusion exception for array '" #array "', element '" #pointer "' ("+String((array).GetIndexOfPointer(pointer))+"/"+String((array).GetLength())+")"); }
 #else
 	#define ASSERT_CONCLUSION(array,pointer)
 #endif
@@ -460,7 +460,7 @@ namespace DeltaWorks
 									{
 										return element >= data && element < data+elements;
 									}
-				inline index_t		GetIndexOf(const T*element)	const	//! Queries the index of the specifed element with 0 being the first element. To determine whether ot not the specified element is member of this array use the Owns() method.
+				inline index_t		GetIndexOfPointer(const T*element)	const	//! Queries the index of the specifed element with 0 being the first element. To determine whether ot not the specified element is member of this array use the Owns() method.
 									{
 										return element-data;
 									}				
