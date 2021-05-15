@@ -369,6 +369,7 @@ namespace DeltaWorks
 
 	typedef GenericStringBuffer<char>	StringBuffer;
 	typedef GenericStringBuffer<wchar_t>	StringBufferW;
+	typedef GenericStringBuffer<char32_t>	UTF32StringBuffer;
 
 
 
