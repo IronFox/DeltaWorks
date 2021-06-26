@@ -121,133 +121,8 @@ namespace DeltaWorks
 									return executing;
 								}
 		};	
-	
 
-		class Thread		   //! System independent thread handler
-		{
-		public:
-			#if SYSTEM==WINDOWS
-				typedef HANDLE	handle_t;
-		private:
-				typedef DWORD /*WINAPI*/ (*_threadPointer)(LPVOID);
-		static  DWORD WINAPI 	thread_exec(LPVOID self_);
-			#elif SYSTEM==UNIX
-				typedef thread_handle_t	handle_t;
-		private:
-				typedef void* (*_threadPointer)(void*);
-		static  void*	   		thread_exec(void*self_);
-			#endif
-				handle_t		handle;
-
-				void			cleanUp();
-		public:
-			typedef pThreadMethod	pMethod;
-
-			Operation			operation;		//!< operation to execute
-
-
-			/**/				Thread();
-			/**/				Thread(ThreadMainObject*object,pMethod method, bool start);   		//!< Creates the thread. The thread needs to be started manually using the start() method if \b start is set false \param object Base object to execute \param method Method pointer to execute on the specified object or NULL to execute ThreadMain() \param start Set true to execute immideately
-			/**/				Thread(ThreadMainObject&object,pMethod method, bool start);		//!< Creates the thread (using NULL as parameter). The thread needs to be started manually using the start() method if \b start is set false \param object Base object to execute \param method Method pointer to execute on the specified object or NULL to execute ThreadMain()  \param start Set true to execute immideately
-			/**/				Thread(ThreadMainObject*object, bool start);						//!< Create the thread using a thread object. The thread needs to be started manually using the start() method if \b start is set false \param object Thread object to execute \param start Set true to execute immideately
-			/**/				Thread(ThreadMainObject&object, bool start);						//!< Create the thread using a thread object. The thread needs to be started manually using the start() method if \b start is set false \param object Thread object to execute \param start Set true to execute immideately
-			virtual				~Thread();
-	
-			void				create(ThreadMainObject*object,pMethod method, bool start);   		//!< Creates the thread. The thread needs to be started manually using the start() method if \b start is set false \param object Base object to execute \param method Method pointer to execute on the specified object or NULL to execute ThreadMain() \param start Set true to execute immideately
-			void				create(ThreadMainObject&object,pMethod method, bool start);		//!< Creates the thread (using NULL as parameter). The thread needs to be started manually using the start() method if \b start is set false \param object Base object to execute \param method Method pointer to execute on the specified object or NULL to execute ThreadMain()  \param start Set true to execute immideately
-			void				create(ThreadMainObject*object, bool start);						//!< Create the thread using a thread object. The thread needs to be started manually using the start() method if \b start is set false \param object Thread object to execute \param start Set true to execute immideately
-			void				create(ThreadMainObject&object, bool start);						//!< Create the thread using a thread object. The thread needs to be started manually using the start() method if \b start is set false \param object Thread object to execute \param start Set true to execute immideately
-			void				start();														//!< Starts the created thread
-			inline void			Start()	{start();}
-			void				terminate();													//!< Terminates thread execution. A thread should rather return than self terminate
-			inline void			Terminate() {terminate();}
-			bool				AwaitCompletion(DWORD maxWaitMilliseconds=0xFFFFFFFF);		//!< Waits until thread has returned. Do not call from the thread itself
-			bool				isActive()	const;											//!< Query thread status \return true, if the thread is currently running
-			inline bool			IsActive() const {return isActive();}
-			bool				isSelf();													   //!< Checks if the calling thread matches the internal handle of the local object
-			inline bool			IsSelf() {return isSelf();}
-			handle_t			getHandle()	const	{return handle;}
-			handle_t			GetHandle() const {return handle;}
-			static void*		id();															//!< Retrieves the thread id of the active thread
-			static void*		GetID() {return id();}
-			
-			static  thread_handle_t	startAndForget(void (*func_pointer)(void*), void*parameter);	   //!< Creates and starts a new self-cleaning thread. No external holding structure necessary. \param func_pointer Function pointer to execute \param parameter Parameter handed to the function on execute
-		};
-	
-		class ThreadObject:public ThreadMainObject, protected Thread 	//! Abstract object passed to a thread handler instead of a thread function
-		{
-		public:
-			/**/				ThreadObject();
-			virtual				~ThreadObject()		{};
-			
-				using Thread::start;
-				using Thread::Start;
-				using Thread::isActive;
-				using Thread::IsActive;
-				using Thread::AwaitCompletion;
-				using Thread::terminate;
-				using Thread::Terminate;
-				using Thread::getHandle;
-				using Thread::GetHandle;
-			
-		};
-	
-
-	
-	
-		class Semaphore //! System independent semaphore handler
-		{
-		private:
-			#if SYSTEM==WINDOWS
-				HANDLE			handle;
-			#elif SYSTEM==UNIX
-				int				handle;
-			#endif
-		public:
-								Semaphore(long initial_value=0);   //!< Initial constructor \param initial_value Initial semaphore value
-		virtual					~Semaphore();
-	
-				void			enter();
-				bool			tryEnter();
-				void			leave();
-				void			release(unsigned inc_by=1);
-
-				void			request()	{enter();}	//!< Identical to enter()
-				void			grant()		{leave();}	//!< Identical to leave() or release(1)
-		};
-		typedef Semaphore  RestrictedArea;
-
-		/*!
-			\fn void Semaphore::enter()
-			\brief Attemps to enter the semaphore area
 		
-			Enters the semaphore area if the current semaphore value is 0 or greater.
-			If so, the semaphore value will be decremented by one and the method returns.
-			Otherwise the active thread will wait until the semaphore area can be entered.
-
-			\fn bool Semaphore::tryEnter()
-			\brief Attemps to enter the semaphore area
-			\return true if the semaphore could be locked
-
-			Enters the semaphore area if the current semaphore value is 0 or greater.
-			If so, the semaphore value will be decremented by one and the method returns
-			true. Otherwise the method returns false.
-
-			\fn void Semaphore::leave()
-			\brief Releases the lock on the semaphore
-
-			Leaves the semaphore area by increasing its value by 1. Any waiting thread
-			can now again enter the semaphore.
-
-			\fn void Semaphore::release(unsigned inc_by)
-			\brief Releases a number of slots on the semaphore
-
-			Releases the semaphore by increasing its value by \a inc_by. A number
-			of \a inc_by waiting threads may now again enter the semaphore area.
-		*/
-	
-
-
 
 		class Mutex //! System independent mutex handler
 		{
@@ -430,6 +305,166 @@ namespace DeltaWorks
 
 		};
 	
+		
+	
+	
+		class Semaphore //! System independent semaphore handler
+		{
+		private:
+			#if SYSTEM==WINDOWS
+				HANDLE			handle;
+			#elif SYSTEM==UNIX
+				int				handle;
+			#endif
+		public:
+								Semaphore(long initial_value=0);   //!< Initial constructor \param initial_value Initial semaphore value
+		virtual					~Semaphore();
+	
+				void			enter();
+				bool			tryEnter();
+				void			leave();
+				void			release(unsigned inc_by=1);
+
+				void			request()	{enter();}	//!< Identical to enter()
+				void			grant()		{leave();}	//!< Identical to leave() or release(1)
+		};
+		typedef Semaphore  RestrictedArea;
+
+		/*!
+			\fn void Semaphore::enter()
+			\brief Attemps to enter the semaphore area
+		
+			Enters the semaphore area if the current semaphore value is 0 or greater.
+			If so, the semaphore value will be decremented by one and the method returns.
+			Otherwise the active thread will wait until the semaphore area can be entered.
+
+			\fn bool Semaphore::tryEnter()
+			\brief Attemps to enter the semaphore area
+			\return true if the semaphore could be locked
+
+			Enters the semaphore area if the current semaphore value is 0 or greater.
+			If so, the semaphore value will be decremented by one and the method returns
+			true. Otherwise the method returns false.
+
+			\fn void Semaphore::leave()
+			\brief Releases the lock on the semaphore
+
+			Leaves the semaphore area by increasing its value by 1. Any waiting thread
+			can now again enter the semaphore.
+
+			\fn void Semaphore::release(unsigned inc_by)
+			\brief Releases a number of slots on the semaphore
+
+			Releases the semaphore by increasing its value by \a inc_by. A number
+			of \a inc_by waiting threads may now again enter the semaphore area.
+		*/
+	
+
+	
+
+		/**
+		Handler class for thread signal handling
+		*/
+		class ThreadWaitLock
+		{
+		public:
+			/**
+			Wakes all waiting threads.
+			New threads can no longer enter
+			and will immediately return upon calling Wait()
+			*/
+			void					Wake();
+			/**
+			Resets the lock for new signalling
+			*/
+			void					Reset();
+			/**
+			Waits for the signal. May return immediately if the signal was
+			already set
+			*/
+			void					Wait();
+		private:
+			RecursiveMutex			mutex;
+			Semaphore				wait = Semaphore(0);
+			std::atomic<count_t>	numWaiting = 0;
+			volatile bool			waking = false;
+		};
+
+
+		class Thread		   //! System independent thread handler
+		{
+		public:
+			#if SYSTEM==WINDOWS
+				typedef HANDLE	handle_t;
+		private:
+				typedef DWORD /*WINAPI*/ (*_threadPointer)(LPVOID);
+		static  DWORD WINAPI 	thread_exec(LPVOID self_);
+			#elif SYSTEM==UNIX
+				typedef thread_handle_t	handle_t;
+		private:
+				typedef void* (*_threadPointer)(void*);
+		static  void*	   		thread_exec(void*self_);
+			#endif
+				handle_t		handle;
+
+				void			cleanUp();
+		public:
+			typedef pThreadMethod	pMethod;
+
+			Operation			operation;		//!< operation to execute
+
+			ThreadWaitLock		onComplete;
+
+
+			/**/				Thread();
+			/**/				Thread(ThreadMainObject*object,pMethod method, bool start);   		//!< Creates the thread. The thread needs to be started manually using the start() method if \b start is set false \param object Base object to execute \param method Method pointer to execute on the specified object or NULL to execute ThreadMain() \param start Set true to execute immideately
+			/**/				Thread(ThreadMainObject&object,pMethod method, bool start);		//!< Creates the thread (using NULL as parameter). The thread needs to be started manually using the start() method if \b start is set false \param object Base object to execute \param method Method pointer to execute on the specified object or NULL to execute ThreadMain()  \param start Set true to execute immideately
+			/**/				Thread(ThreadMainObject*object, bool start);						//!< Create the thread using a thread object. The thread needs to be started manually using the start() method if \b start is set false \param object Thread object to execute \param start Set true to execute immideately
+			/**/				Thread(ThreadMainObject&object, bool start);						//!< Create the thread using a thread object. The thread needs to be started manually using the start() method if \b start is set false \param object Thread object to execute \param start Set true to execute immideately
+			virtual				~Thread();
+	
+			void				create(ThreadMainObject*object,pMethod method, bool start);   		//!< Creates the thread. The thread needs to be started manually using the start() method if \b start is set false \param object Base object to execute \param method Method pointer to execute on the specified object or NULL to execute ThreadMain() \param start Set true to execute immideately
+			void				create(ThreadMainObject&object,pMethod method, bool start);		//!< Creates the thread (using NULL as parameter). The thread needs to be started manually using the start() method if \b start is set false \param object Base object to execute \param method Method pointer to execute on the specified object or NULL to execute ThreadMain()  \param start Set true to execute immideately
+			void				create(ThreadMainObject*object, bool start);						//!< Create the thread using a thread object. The thread needs to be started manually using the start() method if \b start is set false \param object Thread object to execute \param start Set true to execute immideately
+			void				create(ThreadMainObject&object, bool start);						//!< Create the thread using a thread object. The thread needs to be started manually using the start() method if \b start is set false \param object Thread object to execute \param start Set true to execute immideately
+			void				start();														//!< Starts the created thread
+			inline void			Start()	{start();}
+			void				terminate();													//!< Terminates thread execution. A thread should rather return than self terminate
+			inline void			Terminate() {terminate();}
+			bool				AwaitCompletion(DWORD maxWaitMilliseconds=0xFFFFFFFF);		//!< Waits until thread has returned, then closes the local handle. Do not call from the thread itself
+			bool				isActive()	const;											//!< Query thread status \return true, if the thread is currently running
+			inline bool			IsActive() const {return isActive();}
+			bool				isSelf();													   //!< Checks if the calling thread matches the internal handle of the local object
+			inline bool			IsSelf() {return isSelf();}
+			handle_t			getHandle()	const	{return handle;}
+			handle_t			GetHandle() const {return handle;}
+			static void*		id();															//!< Retrieves the thread id of the active thread
+			static void*		GetID() {return id();}
+			
+			static  thread_handle_t	startAndForget(void (*func_pointer)(void*), void*parameter);	   //!< Creates and starts a new self-cleaning thread. No external holding structure necessary. \param func_pointer Function pointer to execute \param parameter Parameter handed to the function on execute
+		};
+	
+		class ThreadObject:public ThreadMainObject, protected Thread 	//! Abstract object passed to a thread handler instead of a thread function
+		{
+		public:
+			/**/				ThreadObject();
+			virtual				~ThreadObject()		{};
+			
+				using Thread::start;
+				using Thread::Start;
+				using Thread::isActive;
+				using Thread::IsActive;
+				using Thread::AwaitCompletion;
+				using Thread::terminate;
+				using Thread::Terminate;
+				using Thread::getHandle;
+				using Thread::GetHandle;
+				using Thread::onComplete;
+			
+		};
+	
+
+
 
 
 		template <typename Mutex>

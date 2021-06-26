@@ -203,6 +203,7 @@ namespace DeltaWorks
 		{
 			Thread*self = reinterpret_cast<Thread*>(self_);
 			self->operation.Execute();
+			self->onComplete.Wake();
 			return NULL;
 		}
 		#elif SYSTEM==WINDOWS
@@ -212,7 +213,7 @@ namespace DeltaWorks
 			self->operation.Execute();
 			if (cancelSynchronousIo)
 				cancelSynchronousIo(self->handle);
-
+			self->onComplete.Wake();
 			return (DWORD)0;
 		}
 		#endif
@@ -239,6 +240,7 @@ namespace DeltaWorks
 			terminate();
 			operation.object = object_;
 			operation.method_pointer = method;
+			onComplete.Reset();
 			#if SYSTEM==WINDOWS
 				if (start)
 				{
@@ -271,6 +273,7 @@ namespace DeltaWorks
 		{
 			if (operation.executing)
 				return;
+			onComplete.Reset();
 			#if SYSTEM==WINDOWS
 				if (handle != NULL)
 					CloseHandle(handle);
@@ -1763,6 +1766,38 @@ namespace DeltaWorks
 			}
 
 		/*static*/	ParallelLoop						ParallelLoop::globalInstance;
+
+
+
+		void	ThreadWaitLock::Wake()
+		{
+			RecursiveMutexLock lock(mutex);
+			waking = true;
+			wait.release(numWaiting);
+			numWaiting = 0;
+		}
+
+		void	ThreadWaitLock::Reset()
+		{
+			RecursiveMutexLock lock(mutex);
+			Wake();
+			waking = false;
+			numWaiting = 0;
+		}
+
+		void	ThreadWaitLock::Wait()
+		{
+			{
+				RecursiveMutexLock lock(mutex);
+
+				if (waking)
+					return;
+				numWaiting++;
+			}
+			wait.enter();
+
+		}
+
 
 	}
 }
