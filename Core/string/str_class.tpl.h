@@ -2655,7 +2655,7 @@ namespace StringType
 
 
 
-	
+	/*
 
 	template <typename T>
 		Template<T>&	Template<T>::operator=(short value)
@@ -2716,6 +2716,31 @@ namespace StringType
 			copyUnsigned<unsigned long long>(value);
 			return *this;
 		}
+
+
+	template <typename T>
+		Template<T>&	Template<T>::operator=(double value)
+		{
+			copyFloat(value);
+			return *this;
+		}
+
+	template <typename T>
+		Template<T>&	Template<T>::operator=(long double value)
+		{
+			copyFloat(value);
+			return *this;
+		}
+
+
+	template <typename T>
+		Template<T>&	Template<T>::operator=(float value)
+		{
+			copyFloat(value);
+			return *this;
+		}
+
+		*/
 
 	template <typename T>
 		template <class Type, class UType> 
@@ -2866,28 +2891,6 @@ namespace StringType
 				memcpy(Super::data,str,Super::elements*sizeof(T));
 			}
 		
-
-	template <typename T>
-		Template<T>&	Template<T>::operator=(double value)
-		{
-			copyFloat(value);
-			return *this;
-		}
-
-	template <typename T>
-		Template<T>&	Template<T>::operator=(long double value)
-		{
-			copyFloat(value);
-			return *this;
-		}
-
-
-	template <typename T>
-		Template<T>&	Template<T>::operator=(float value)
-		{
-			copyFloat(value);
-			return *this;
-		}
 
 	template <typename T>
 		template <typename Expression>

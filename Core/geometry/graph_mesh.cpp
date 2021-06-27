@@ -1042,7 +1042,7 @@ namespace DeltaWorks
 	{
 		//target.clear();
 		target.object_field.SetSize(1);
-		target.object_field[0].name = str2name("object");
+		target.object_field[0].name = String(str2name("object"));
 	
 		target.material_field.SetSize(1);
 		//target.material_field[0].data.object_field.Resize(detail_levels);
@@ -3553,7 +3553,7 @@ namespace DeltaWorks
 	/*static*/ void SurfaceNetwork::CompileFromDescriptions(CGS::Geometry<>&target, const Ctr::Array<SurfaceDescription>&lods, float shortest_edge, name64_t texture, name64_t normal_texture, CGS::TextureResource*resource /*=NULL*/)
 	{
 		target.object_field.SetSize(1);
-		target.object_field[0].name = str2name("object");
+		target.object_field[0].name = String(str2name("object"));
 	
 		target.material_field.SetSize(1);
 		//target.material_field[0].data.object_field.Resize(detail_levels);
@@ -3684,7 +3684,7 @@ namespace DeltaWorks
 	/*static*/ void SurfaceNetwork::CompileFromDescriptions(CGS::Geometry<>&target, const Ctr::Array<SurfaceDescription>&lods, const SurfaceDescription&phHull, float shortest_edge, name64_t texture, name64_t normal_texture, CGS::TextureResource*resource /*=NULL*/)
 	{
 		target.object_field.SetSize(1);
-		target.object_field[0].name = str2name("object");
+		target.object_field[0].name = String(str2name("object"));
 	
 		target.material_field.SetSize(1);
 		//target.material_field[0].data.object_field.Resize(detail_levels);

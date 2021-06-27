@@ -4402,7 +4402,7 @@ template <class Def> void Geometry<Def>::makeSimpleObject(const Float*vertex,cou
 	}
 	
 	
-	object_field[0].name = str2name("child");
+	object_field[0].name = String(str2name("child"));
 	M::Mat::Eye(object_field[0].meta.system);
 	M::Vec::clear(object_field[0].meta.center);
 	object_field[0].meta.radius = 1;

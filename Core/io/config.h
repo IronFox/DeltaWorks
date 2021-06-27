@@ -119,10 +119,12 @@ namespace DeltaWorks
 			Attribute&					Change(const String&path, int newValue)		{return Change(path,String(newValue));}
 			Attribute&					Change(const String&path, float newValue)	{return Change(path,String(newValue));}
 			Attribute&					Change(const String&path, bool newValue)	{return Change(path,String(newValue));}
+			Attribute&					Change(const String&path, const char*newValue)	{return Change(path,String(newValue));}
 			Attribute&					Define(const String&name, const String&value="");
 			Attribute&					Define(const String&name, int value)		{return Define(name,String(value));}
 			Attribute&					Define(const String&name, float value)		{return Define(name,String(value));}
 			Attribute&					Define(const String&name, bool value)		{return Define(name,String(value));}
+			Attribute&					Define(const String&name, const char*value)		{return Define(name,String(value));}
 			Context&					DefineContext(const String&name);	//!< Defines a new context within this one if one of the specified name does not already exist
 			Context&					CreateContext(const String&name);	//!< Defines a new context within this one even if one of the specified name already exists.
 			Context&					DefineModeContext(const String&mode_name, const String&context_name);

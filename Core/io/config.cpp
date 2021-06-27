@@ -54,7 +54,7 @@ namespace DeltaWorks
 			rs.name = name;
 			rs.value = value;
 			rs.commented = false;
-			rs.assignment_operator = '=';
+			rs.assignment_operator = "=";
 			attributeMap.Set(name,resultAt);
 			return rs;
 		}

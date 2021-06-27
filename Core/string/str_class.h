@@ -1306,6 +1306,7 @@ namespace DeltaWorks
 				Template<T>&			operator=(const ArrayRef<T>&array);
 				Template<T>&			operator=(const Template<T>&other);
 				Template<T>&			operator=(const T*);						//!< Overwrites the local string content with the content of the specified const char array. \return Reference to the local string object.
+				/*
 				Template<T>&			operator=(short);							//!< Overwrites the local string content with the converted (decimal) number. \return Reference to the local string object.
 				Template<T>&			operator=(unsigned short);					//!< Overwrites the local string content with the converted (decimal) number. \return Reference to the local string object.
 				Template<T>&			operator=(long);							//!< Overwrites the local string content with the converted (decimal) number. \return Reference to the local string object.
@@ -1317,6 +1318,7 @@ namespace DeltaWorks
 				Template<T>&			operator=(long double);						//!< Overwrites the local string content with the converted (decimal) floating point value. \return Reference to the local string object.
 				Template<T>&			operator=(long long);						//!< Overwrites the local string content with the converted (decimal) number. \return Reference to the local string object.
 				Template<T>&			operator=(unsigned long long);				//!< Overwrites the local string content with the converted (decimal) number. \return Reference to the local string object.
+				*/
 				template <typename T0, typename T1>
 					Template<T>&		operator=(const ConcatExpression<T0,T1>&expression);
 				//template <class T0>
