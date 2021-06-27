@@ -186,7 +186,7 @@ namespace DeltaWorks::Time
 	Stamp::Stamp(const Details::stamp_t&s, bool):internal(s)
 	{
 		DBG_ASSERT__(internal < Details::Now());
-		DBG_ASSERT__(internal > Details::Now() - TICKS_PER_SECONDS*1000);
+		DBG_ASSERT__(internal > Details::Now() - TICKS_PER_SECONDS*1000000);
 	}
 
 	Delta			Stamp::Elapsed() const
