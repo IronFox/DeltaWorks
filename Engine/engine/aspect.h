@@ -223,6 +223,15 @@ public:
 MF_CONSTRUCTOR				Camera();
 MF_DECLARE(void)			UpdateProjection(const C&pixelAspect, const C&zNear=0.1, const C&zFar=100, const C&vFov=45);	//!< Create the local projection matrix via aspect, znear, zfar and vertical field of view. Also updates the projection invert. \param pixelAspect Global pixel aspect. Should not contain the local region aspect. \param zNear Near z plane. \param zFar Far z plane. \param vFov Vertical field of view in degrees.
 MF_DECLARE(void)			UpdateProjection2(const C&pixelAspect, const C&zNear=0.1, const C&zFar=100, const C&vFov=45);	//!< Create the local projection matrix via aspect, znear, zfar and vertical field of view. Also updates the projection invert. \param pixelAspect Global pixel aspect. Should not contain the local region aspect. \param zNear Near z plane. \param zFar Far z plane. \param vFov Vertical field of view in degrees.
+/**
+Internally calls UpdateProjection2(), then modifies the resulting projection matrix such that only the specified window
+is actually rendered. This feature can be used to render extremely high resolution images in iterative segments
+@param left Left window edge coordinate in [0,1]
+@param bottom Bottom window edge coordinate in [0,1]
+@param width Horizontal window size in [0,1]
+@param height Vertical window size in [0,1]
+*/
+MF_DECLARE(void)			UpdateProjectionSegment(const C&pixelAspect, const C&left, const C&bottom, const C&width, const C&height, const C&zNear=0.1, const C&zFar=100, const C&vFov=45);
 MFUNC2	(void)				AlterDepthRange(const C0&zNear, const C1&zFar);											//!< Changes the depth range of the local projection matrix. Also updates the projection invert. \param zNear New near z plane. \param zFar New far z plane.
 MF_DECLARE(void)			UpdateView();																				//!< (Re)assembles the view matrix using the local orientation matrix. Also updates the view invert.
 MFUNC3	(void)				Translate(const C0&x, const C1&y, const C2&z);						//!< Moves the camera depending on its current orientation. Auto updates viewInvert. \param x Translation in X-direction (horizontal) \param y Translation in Y-direction (vertical) \param Translation in Z-direction (depth)

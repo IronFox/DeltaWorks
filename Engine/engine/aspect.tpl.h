@@ -791,6 +791,26 @@ template <class C> MF_DECLARE (void) Camera<C>::UpdateProjection(const C&aspect,
 	M::Mat::invert(projection,projectionInvert);
 }
 
+template <class C> MF_DECLARE (void) Camera<C>::UpdateProjectionSegment(const C&pixelAspect, const C&left, const C&bottom, const C&width, const C&height, const C&zNear, const C&zFar, const C&vFov)
+{
+	UpdateProjection2(pixelAspect, zNear, zFar, vFov);
+	float	xscale = 1.0f/width,
+			yscale = 1.0f/height,
+			xoffset = -(left*2-1+width)*xscale,
+			yoffset = -(bottom*2-1+height)*yscale;
+	M::TMatrix4<>	projection,temp;
+				
+
+	M::Vec::def(projection.x, xscale,0,0,0);
+	M::Vec::def(projection.y, 0,yscale,0,0);
+	M::Vec::def(projection.z, 0,0,1,0);
+	M::Vec::def(projection.w, xoffset,yoffset,0,1);
+		
+	M::Mat::Mult(projection,this->projection,temp);
+	this->projection = temp;
+	M::Mat::invert(this->projection,this->projectionInvert);
+}
+
 template <class C> MF_DECLARE (void) Camera<C>::UpdateProjection2(const C&aspect, const C&zNear, const C&zFar, const C&vFov)
 {
 	vfov = vFov;
