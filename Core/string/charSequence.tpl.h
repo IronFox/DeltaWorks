@@ -397,13 +397,13 @@ namespace DeltaWorks::StringType
 
 
 	template <>
-		void		Sequence<char>::Print(std::ostream&stream)	const
+		inline void		Sequence<char>::Print(std::ostream&stream)	const
 		{
 			stream.write(Super::data,Super::elements);
 		}
 						
 	template <typename T>
-		void		Sequence<T>::Print(std::ostream&stream)	const
+		inline void		Sequence<T>::Print(std::ostream&stream)	const
 		{
 			for (size_t i = 0; i < Super::elements; i++)
 				stream << (char)Super::data[i];

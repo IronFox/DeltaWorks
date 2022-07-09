@@ -40,7 +40,7 @@ namespace DeltaWorks
 
 	
 		class VertexMap;
-		template <unsigned,unsigned =0>
+		template <unsigned,unsigned /*=0*/>
 			class TemplateMap;
 	
 		class Geometry;
@@ -61,9 +61,9 @@ namespace DeltaWorks
 		public:
 			typedef M::TVec3<>	Vertex;
 
-			Ctr::Array<Vertex>			vertexField;	//!< Geometrical vertices
-			Ctr::Array<UINT32>			triangleField,	//!< Triangular index path. Each three indices form one triangle using the vertices stored in \b vertex_field
-									edgeField;		//!< Edge index path. Each two indices form one edge, using the vertices stored in @b vertexField
+			Ctr::Array<Vertex>	vertexField;	//!< Geometrical vertices
+			Ctr::Array<UINT32>	triangleField,	//!< Triangular index path. Each three indices form one triangle using the vertices stored in \b vertex_field
+								edgeField;		//!< Edge index path. Each two indices form one edge, using the vertices stored in @b vertexField
 		};
 
 	}

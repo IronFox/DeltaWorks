@@ -80,7 +80,7 @@ namespace DeltaWorks
 			{
 				if (string)
 				{
-					register const C*terminator(string);
+					const C*terminator(string);
 					while (*terminator++);
 					elements = terminator-string;
 				}
