@@ -1301,7 +1301,7 @@ namespace DeltaWorks
 				index_t at = filename.GetLength()-1;
 				while (!IsSlash(filename.GetChar(at)) && --at < filename.GetLength());
 				if (at >= filename.GetLength())
-					return StringType::Template<T>((T)'.');
+					return StringType::Template<T>(StringType::CharacterExpression('.'));
 				/*if (at)
 					at--;*/
 				return filename.subString(0,at);

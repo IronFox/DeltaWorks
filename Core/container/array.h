@@ -845,7 +845,7 @@ namespace DeltaWorks
 		/**
 		@brief Array data containment
 
-		ArrayData provides all non-strategy dependent functionality that array usage requires. Methods or functions that do not require strategy-dependent functionality may accept ArrayData instead.
+		ArrayData provides all non-strategy-dependent functionality that array usage requires. Methods or functions that do not require strategy-dependent functionality may accept ArrayData instead.
 		*/
 		template <class C>
 			class ArrayData: public MutableArrayRef<C>, public Arrays
