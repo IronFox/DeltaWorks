@@ -221,7 +221,7 @@ namespace Engine
 	        glScalef(state.x_scale,state.y_scale,1);
 	        glTranslatef(0,-1,0);
 	        glColor4fv(state.v);
-	        glPushAttrib(GL_LIST_BIT);
+	        glPushAttrib(GL_LIST_BIT | GL_TEXTURE_BIT);
 	    	glListBase(base);
 	    	glEnable(GL_TEXTURE_2D);
 	    	glBindTexture(GL_TEXTURE_2D,texture);
@@ -263,5 +263,6 @@ namespace Engine
 	{
 	        glPopAttrib();
 	    glPopMatrix();
+
 	}
 }
