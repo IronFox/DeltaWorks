@@ -327,6 +327,9 @@ namespace Engine
 	public:
 		#if SYSTEM==WINDOWS
 			typedef LRESULT (*EventHook)(HWND window, UINT Msg, WPARAM wParam,LPARAM lParam);
+			HINSTANCE	GetHInstance() const {
+				return hInstance;
+			}
 		#endif
 	private:
 			pEngineExec			exec_target;
