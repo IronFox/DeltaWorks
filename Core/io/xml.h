@@ -23,7 +23,6 @@ namespace DeltaWorks
 		class ScannerRule;
 		class Scanner;
 
-		using namespace DeltaWorks::Container;
 
 		enum class Encoding
 		{
