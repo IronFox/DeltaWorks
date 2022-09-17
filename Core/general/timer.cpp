@@ -94,6 +94,20 @@ namespace DeltaWorks::Time
 			#endif
 		}
 
+		
+		delta_t		MillisecondsToDelta(long long milliseconds)
+		{
+			#if TIME_IMPL == TIME_CHRONO
+				return std::chrono::milliseconds(milliseconds);
+			#endif
+			#if TIME_IMPL == TIME_WIN || TIME_IMPL == TIME_WIN_QUERY
+				return delta_t(milliseconds *TICKS_PER_SECONDS * 1000);
+			#endif
+			#if TIME_IMPL == TIME_SYS
+				return delta_t(milliseconds * 1e9l);
+			#endif
+		}
+
 
 		constexpr delta_t ZeroDelta()
 		{
@@ -118,8 +132,8 @@ namespace DeltaWorks::Time
 
 	Stamp::Stamp(const MicroStamp&micro):internal(Details::FromMicroSeconds(micro.GetTicks()))
 	{
-		DBG_ASSERT__(internal < Details::Now());
-		DBG_ASSERT__(internal > Details::Now() - TICKS_PER_SECONDS*1000);
+		//DBG_ASSERT__(internal < Details::Now());
+		//DBG_ASSERT__(internal > Details::Now() - TICKS_PER_SECONDS*1000);
 	}
 
 
@@ -148,8 +162,8 @@ namespace DeltaWorks::Time
 		#ifdef _DEBUG
 			const auto now = Details::Now();
 			const auto dt = Details::delta_t(now - internal);
-			ASSERT__(dt >= 0);
-			ASSERT__(dt < TICKS_PER_SECONDS*1000);
+			//ASSERT__(dt >= 0);
+			//ASSERT__(dt < TICKS_PER_SECONDS*1000);
 		#endif
 		return *this;
 	}
@@ -158,7 +172,7 @@ namespace DeltaWorks::Time
 	{
 		internal -= delta.internal;
 		DBG_ASSERT__(internal < Details::Now());
-		DBG_ASSERT__(internal > Details::Now() - TICKS_PER_SECONDS*1000);
+		//DBG_ASSERT__(internal > Details::Now() - TICKS_PER_SECONDS*1000);
 		return *this;
 	}
 
@@ -185,8 +199,8 @@ namespace DeltaWorks::Time
 
 	Stamp::Stamp(const Details::stamp_t&s, bool):internal(s)
 	{
-		DBG_ASSERT__(internal < Details::Now());
-		DBG_ASSERT__(internal > Details::Now() - TICKS_PER_SECONDS*1000000);
+		//DBG_ASSERT__(internal < Details::Now());
+		//DBG_ASSERT__(internal > Details::Now() - TICKS_PER_SECONDS*1000000);
 	}
 
 	Delta			Stamp::Elapsed() const
@@ -239,6 +253,16 @@ namespace DeltaWorks::Time
 	
 	Delta::Delta(long double seconds):internal(Details::SecondsToDelta(seconds))
 	{}
+
+	/*explicit			*/	Delta::Delta(Details::delta_t internal):internal(internal)
+	{}
+
+
+	/*static*/ Delta			Delta::FromMilliseconds(long long ms)
+	{
+		return Delta(Details::MillisecondsToDelta(ms));
+	}
+
 
 	float	Delta::ToSeconds() const
 	{

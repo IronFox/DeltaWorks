@@ -23,13 +23,15 @@ Plattform independent time-query-class.
 
 
 #ifdef __has_include
-	#if __has_include(<sys/time.h>)
-		#undef TIME_IMPL
-		#define TIME_IMPL	TIME_SYS
-	#endif
-	#if __has_include(<Windows.h>)
-		#undef TIME_IMPL
-		#define TIME_IMPL	TIME_WIN
+	#if !__has_include(<chrono>)
+		#if __has_include(<sys/time.h>)
+			#undef TIME_IMPL
+			#define TIME_IMPL	TIME_SYS
+		#endif
+		#if __has_include(<Windows.h>)
+			#undef TIME_IMPL
+			#define TIME_IMPL	TIME_WIN
+		#endif
 	#endif
 #endif
 
@@ -53,7 +55,10 @@ namespace DeltaWorks::Time
 	namespace Details
 	{
 		#if TIME_IMPL == TIME_CHRONO
-			typedef std::chrono::high_resolution_clock chrono_clock_t;
+			typedef typename std::conditional<std::chrono::high_resolution_clock::is_steady, std::chrono::high_resolution_clock, std::chrono::steady_clock>::type hr_steady_clock;
+
+
+			typedef hr_steady_clock chrono_clock_t;
 			typedef std::chrono::time_point<chrono_clock_t> stamp_t;
 			typedef stamp_t::duration delta_t;
 		#else
@@ -130,6 +135,8 @@ namespace DeltaWorks::Time
 	*/
 	class Delta
 	{
+	private:
+		explicit				Delta(Details::delta_t internal);
 	public:
 		static const Delta		Zero;
 
@@ -141,6 +148,8 @@ namespace DeltaWorks::Time
 
 		float					ToSeconds() const;
 		double					ToSecondsD() const;
+
+		static Delta			FromMilliseconds(long long ms);
 
 		bool					IsInRange(const Delta&min, const Delta&max) const;
 		Delta					operator+(const Delta&other) const;
@@ -159,6 +168,10 @@ namespace DeltaWorks::Time
 		bool					IsNegativeNonZero() const;
 		Delta					operator*(double factor) const;
 		Delta					operator-() const;
+
+		Details::delta_t		GetInternal() const {
+			return internal;
+		}
 	private:
 		friend class Stamp;
 
