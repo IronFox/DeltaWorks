@@ -2,6 +2,7 @@
 #define container_strategyH
 
 #include <cstring>
+#include <utility>
 #include "../general/typedefs.h"
 
 namespace DeltaWorks
@@ -831,5 +832,6 @@ DECLARE_PRIMITIVE_TYPE(void*)
 DECLARE_T__(std::shared_ptr,Swappable);
 DECLARE_T__(std::weak_ptr,Swappable);
 
+DECLARE_T2__(std::pair, typename, typename, Swappable);
 
 #endif
