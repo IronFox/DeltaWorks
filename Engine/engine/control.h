@@ -3,7 +3,7 @@
 
 #include "textout.h"
 #include "aspect.h"
-#include <container/buffer.h>
+#include <container/vectorList.h>
 #include <container/hashtable.h>
 #include <math/resolution.h>
 
@@ -42,7 +42,7 @@ namespace Engine
 	{
 		typedef RenderSequence	Self;
 	private:
-		typedef Buffer<RenderInstructionWrapper,0>	WrapperList;
+		typedef PreAllocVector<RenderInstructionWrapper,0>	WrapperList;
 		WrapperList			wrappers;
 		bool				isSealed;
 	public:
@@ -112,7 +112,7 @@ namespace Engine
 	class ControlCluster
 	{
 	private:
-		Buffer<Control*,0>	controlStack;
+		PreAllocVector<Control*,0>	controlStack;
 		float				accumulatedTime,
 							fixedFrameDelta;
 	public:

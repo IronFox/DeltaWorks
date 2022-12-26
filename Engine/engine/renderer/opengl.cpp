@@ -1464,7 +1464,7 @@ namespace Engine
 	//ModularDataTable<GLuint>		OpenGL::texture_table;
 	int								OpenGL::error_code;					//error-code from the last operation
 	OpenGL							*OpenGL::globalInstance(NULL);
-	/*static*/		Ctr::Buffer<OpenGL::GLBinding,4>	OpenGL::created_contexts;		//!< All created contexts
+	/*static*/		Ctr::PreAllocVector<OpenGL::GLBinding,4>	OpenGL::created_contexts;		//!< All created contexts
 	
 	//HashContainer<CGLShader>		OpenGL::shader_cache;
 

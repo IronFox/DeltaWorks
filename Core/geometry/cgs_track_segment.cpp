@@ -7,14 +7,14 @@ namespace DeltaWorks
 	namespace CGS
 	{
 
-		static void linearize(CGS::SubGeometryA<>&sub,Buffer<CGS::SubGeometryA<>*>&objects, bool visible_only)
+		static void linearize(CGS::SubGeometryA<>&sub,PreAllocVector<CGS::SubGeometryA<>*>&objects, bool visible_only)
 		{
 			if (!visible_only || (sub.vs_hull_field.GetLength() && sub.vs_hull_field.First().vertex_field.GetLength()))
 				objects << &sub;
 			for (index_t i = 0; i < sub.child_field.GetLength(); i++)
 				linearize(sub.child_field[i],objects,visible_only);
 		}
-		static void linearize(const CGS::SubGeometryA<>&sub,Buffer<const CGS::SubGeometryA<>*>&objects, bool visible_only)
+		static void linearize(const CGS::SubGeometryA<>&sub,PreAllocVector<const CGS::SubGeometryA<>*>&objects, bool visible_only)
 		{
 			if (!visible_only || (sub.vs_hull_field.GetLength() && sub.vs_hull_field.First().vertex_field.GetLength()))
 				objects << &sub;
@@ -931,8 +931,8 @@ namespace DeltaWorks
 			//now for ze object geometry
 		
 		
-			Buffer<const CGS::SubGeometryA<>*>source_objects;
-			Buffer<CGS::SubGeometryA<>*>objects;
+			PreAllocVector<const CGS::SubGeometryA<>*>source_objects;
+			PreAllocVector<CGS::SubGeometryA<>*>objects;
 			for (index_t i = 0; i < geometry.object_field.GetLength(); i++)
 			{
 				linearize(geometry.object_field[i],objects,false);

@@ -2,7 +2,7 @@
 #define tcpH
 
 #include "node.h"
-#include "../container/buffer.h"
+#include "../container/vectorList.h"
 #include "../io/byte_stream.h"
 #include "../container/production_pipe.h"
 
@@ -716,7 +716,7 @@ namespace DeltaWorks
 			Ctr::Queue<TCommonEvent>	queue;
 			volatile bool				anyEventsPending;	//low impact if not initialized properly. Self-managed after the first frame or so. Only used in synchronous mode. must be set true, if anything is filled into queue.
 
-			Ctr::Vector0<PPeer>			wasteBucket;
+			Ctr::Vector<PPeer>			wasteBucket;
 
 
 			Sys::Mutex					wasteMutex;
@@ -727,9 +727,9 @@ namespace DeltaWorks
 			Dispatcher*					relayTo=nullptr;
 
 			bool						resolving,terminateAfterResolve;
-			Ctr::Vector0<TCommonEvent>	resolutionBuffer;	//used as temporary storage by Resolve() for events taken out of queue prior to resolution.
+			Ctr::Vector<TCommonEvent>	resolutionBuffer;	//used as temporary storage by Resolve() for events taken out of queue prior to resolution.
 			Sys::SpinLock					postResolutionCallbackLock;
-			Ctr::Vector0<std::function<void()>,Swap>	postResolutionCallbacks;
+			Ctr::Vector<std::function<void()>,Swap>	postResolutionCallbacks;
 
 			
 			//friend class Peer;
@@ -1304,7 +1304,7 @@ namespace DeltaWorks
 
 		private:
 			Sys::ReadWriteMutex	clientMutex;	//!< Mutex to shield operations on the client list. This mutex should be locked before clients are queried
-			Ctr::Vector0<PPeer>	clientList;		//!< List of all currently connected clients
+			Ctr::Vector<PPeer>	clientList;		//!< List of all currently connected clients
 			USHORT				port;			//!< Read only variable which is updated during StartService()
 		public:
 

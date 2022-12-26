@@ -237,7 +237,7 @@ namespace DeltaWorks
 
 		static	void				DeserializeArray(Ctr::Array<Entity>&target, IReadStream&stream,LineCounter&lineCounter)
 		{
-			Container::Vector0<Entity,Swap> tmp;
+			Container::Vector<Entity,Swap> tmp;
 			char ch;
 			for (;;)
 			{

@@ -2,7 +2,7 @@
 #include "file_system.h"
 #include "../string/encoding.h"
 #include <algorithm>
-#include "../container/buffer.h"
+#include "../container/vectorList.h"
 
 /******************************************************************
 
@@ -71,7 +71,7 @@ namespace DeltaWorks
 			}
 
 
-		Ctr::Buffer0<std::pair<PathString,String> > prefixRules;
+		Ctr::Vector<std::pair<PathString,String> > prefixRules;
 
 		void			SetPathPrefix(const PathString&prefix, const String&replaceWithCaption)
 		{

@@ -3,7 +3,7 @@
 
 #include <string/keys.h>
 //#include "../../io/config.h"
-#include <container/buffer.h>
+#include <container/vectorList.h>
 #include <container/hashtable.h>
 #include <global_string.h>
 #include <string/string_converter.h>	//for string name lookup
@@ -149,15 +149,15 @@ namespace Engine
 		InputProfile			default_profile,
 								*active_profile;
 			
-		Ctr::Buffer<TKeyPreparation,0,Swap>	preparation;
+		Ctr::PreAllocVector<TKeyPreparation,0,Swap>	preparation;
 
-		Ctr::Vector0<InputProfile*>	binding_stack;
+		Ctr::Vector<InputProfile*>	binding_stack;
 		unsigned				//active_binding,
 								stack_forward_depth;
 			
 		Ctr::StringTable<TAnalogSource>	analog_sources;
 		TAnalogSource				empty_source;
-		Ctr::Buffer<TAnalogSource,0>		linear_analog_list;
+		Ctr::PreAllocVector<TAnalogSource,0>		linear_analog_list;
 
 	public:
 		bool				verbose;			//!< Set true to print input changes and events to the console. False by default

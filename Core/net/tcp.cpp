@@ -941,7 +941,7 @@ namespace DeltaWorks
 
 		void	PeerWriter::ThreadMain()
 		{
-			Ctr::Vector0<Ctr::Array<BYTE>,Swap>	storage;
+			Ctr::Vector<Ctr::Array<BYTE>,Swap>	storage;
 			for (;;)
 			{
 

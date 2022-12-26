@@ -14,7 +14,7 @@ namespace Engine
 		static OrthographicAspect<>		orthographic_aspect;
 		static Camera<>					projected_aspect;
 
-		Ctr::Vector0<Graph*>			orthographic_graphs, 
+		Ctr::Vector<Graph*>			orthographic_graphs, 
 										perspective_graphs;
 	
 		Data		time_data,
@@ -433,7 +433,7 @@ namespace Engine
 							return old_channel;
 						}
 		
-		static Ctr::Buffer<Channel*>	channel_stack;
+		static Ctr::PreAllocVector<Channel*>	channel_stack;
 		
 		Channel*		replace(unsigned major_channel, unsigned minor_channel)
 						{

@@ -2,7 +2,7 @@
 #define eventH
 
 #include "../global_string.h"
-#include "../container/buffer.h"
+#include "../container/vectorList.h"
 #include <functional>
 
 namespace DeltaWorks
@@ -55,7 +55,7 @@ namespace DeltaWorks
 				
 	
 		protected:
-			Ctr::Buffer0<Callback>	callbacks;
+			Ctr::Vector<Callback>	callbacks;
 		public:
 			void					operator+=(const Callback&callback)
 			{
@@ -90,7 +90,7 @@ namespace DeltaWorks
 		void			Clear()		{callbacks.Clear();}
 
 	private:
-		Ctr::Vector0<Callback,Swap>		callbacks;
+		Ctr::Vector<Callback,Swap>		callbacks;
 	};
 }
 

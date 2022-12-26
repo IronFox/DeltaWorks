@@ -129,7 +129,7 @@ namespace Engine
 		
 		struct TIORow	//!< Simplified io layout row used during layout loading
 		{
-			Ctr::Vector0<TIOCell,Swap>	cells;	//!< Cell container
+			Ctr::Vector<TIOCell,Swap>	cells;	//!< Cell container
 			bool					variableHeight;	//!< Row is of variable height
 			void					swap(TIORow&other)
 			{
@@ -235,7 +235,7 @@ namespace Engine
 		private:
 			static GLShader::Instance	layerMerger;
 			static GLShader::Variable	clearColorVariable;
-			Buffer<M::Rect<int>,0>		clipStack;
+			PreAllocVector<M::Rect<int>,0>		clipStack;
 			M::TVec3<>					clearColor;
 			Resolution				subRes;
 			TFrameBuffer			stackedTargets[2],
@@ -275,7 +275,7 @@ namespace Engine
 		{
 		private:
 			M::TVec4<>					color;
-			Buffer<M::TVec4<>,0>		colorStack;
+			PreAllocVector<M::TVec4<>,0>		colorStack;
 			void					_UpdateState();
 			void					_UpdateState(const GL::Texture::Reference&);
 			void					_UpdateState(const GL::Texture::Reference&,const GL::Texture::Reference&);
@@ -335,7 +335,7 @@ namespace Engine
 			static GLShader::Instance	normalRenderer;
 			static GLShader::Variable	normalSystemVariable;
 			M::TMatrix3<>				normalSystem;
-			Buffer<M::TMatrix3<>,0>	normalSystemStack;
+			PreAllocVector<M::TMatrix3<>,0>	normalSystemStack;
 
 			void					_UpdateState(const GL::Texture::Reference&);
 		public:
@@ -685,8 +685,8 @@ namespace Engine
 			mode_t						mode;
 			bool						created,
 										stack_changed;
-			Buffer<PWindow>				windowStack;
-			Buffer<std::weak_ptr<Window> >	menu_stack;
+			PreAllocVector<PWindow>				windowStack;
+			PreAllocVector<std::weak_ptr<Window> >	menu_stack;
 			OrthographicAspect<>		window_space;
 			Camera<>					projected_space;
 			GLuint						layer_texture;

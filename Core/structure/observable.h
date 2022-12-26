@@ -1,7 +1,7 @@
 #ifndef observableH
 #define observableH
 
-#include "../container/buffer.h"
+#include "../container/vectorList.h"
 #include "../container/hashtable.h"
 #include <functional>
 
@@ -176,9 +176,9 @@ namespace DeltaWorks
 				}
 			};
 
-			Ctr::Buffer0<index_t>		dropBuffer;
+			Ctr::Vector<index_t>		dropBuffer;
 			index_t						iterating = 0;
-			Ctr::Buffer0<TFunction,Swap>functions;
+			Ctr::Vector<TFunction,Swap>functions;
 			Ctr::IndexTable<index_t>	keyMap;
 			index_t						keyCounter = 0;
 		};

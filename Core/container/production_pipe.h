@@ -1,7 +1,7 @@
 #ifndef production_pipeH
 #define production_pipeH
 
-#include "buffer.h"
+#include "vectorList.h"
 #include "../general/thread_system.h"
 
 
@@ -21,9 +21,9 @@ namespace DeltaWorks
 		Copies objects as they are using the provided strategy
 		*/
 		template <typename T, typename MyStrategy=typename StrategySelector<T>::Default>
-			class WorkPipe : protected Buffer<T,0,MyStrategy>
+			class WorkPipe : protected PreAllocVector<T,0,MyStrategy>
 			{
-				typedef Buffer<T,0,MyStrategy>Super;
+				typedef PreAllocVector<T,0,MyStrategy>Super;
 				typedef WorkPipe<T,MyStrategy>Self;
 				volatile bool				locked;
 				//Mutex						mutex;
@@ -44,7 +44,7 @@ namespace DeltaWorks
 				#endif
 
 				inline  Self&				MoveAppend(T&);		//!< Similar to the << operator but uses strategy move, rather than forced copy
-				inline	Self&				MoveAppend(BasicBuffer<T>&buffer);
+				inline	Self&				MoveAppend(BasicVector<T>&buffer);
 				inline  void                clear();			//!< Erases each object and flushs the queue. This operation is mutex protected
 				inline	void				Clear() {clear();}
 				inline	void				WaitForContent()	{contentSignal.wait();}
@@ -67,7 +67,7 @@ namespace DeltaWorks
 				@return The number of appended elements
 				*/
 				template <typename Strategy>
-					count_t					FlushContentTo(BasicBuffer<T,Strategy>&destination);
+					count_t					FlushContentTo(BasicVector<T,Strategy>&destination);
 
 				//the following operations are provided for convenience. They are _not_ mutex protected and (except for Count() maybe) should be invoked only from inside a signalRead()/exitRead() block.
 				//Super::IsEmpty;

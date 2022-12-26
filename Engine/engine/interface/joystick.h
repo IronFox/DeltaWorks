@@ -43,7 +43,7 @@ namespace Engine
 			friend class Joystick;
 		};
 	private:
-		Ctr::Buffer<State,NumJoysticks>	active;
+		Ctr::PreAllocVector<State,NumJoysticks>	active;
 		bool			registered;
 	public:
 		count_t			CountActive()	const	{return active.Count();}

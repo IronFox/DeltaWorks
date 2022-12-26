@@ -3,7 +3,7 @@
 
 
 #include "../math/vector.h"
-#include "../container/buffer.h"
+#include "../container/vectorList.h"
 
 #undef GetObject
 
@@ -99,7 +99,7 @@ namespace DeltaWorks
 				return objects[object];
 			}
 
-			void			GetAll(Container::BasicBuffer<Object>&out) const
+			void			GetAll(Container::BasicVector<Object>&out) const
 			{
 				out.AppendAll(objects);
 			}
@@ -123,7 +123,7 @@ namespace DeltaWorks
 				DBG_ASSERT__(objectIndex == 0);
 				return object;
 			}
-			void			GetAll(Container::BasicBuffer<Object>&out) const
+			void			GetAll(Container::BasicVector<Object>&out) const
 			{
 				out << object;
 			}
@@ -193,7 +193,7 @@ namespace DeltaWorks
 			};
 
 			Node				*_root;
-			Container::Buffer<Entry>_allItems;
+			Container::PreAllocVector<Entry>_allItems;
 			bool				_locked;
 			count_t				_numBuckets;
 
@@ -481,7 +481,7 @@ namespace DeltaWorks
 			}
 
 
-			static void _WalkNode(Node*node, const Bounds&space, Container::BasicBuffer<Object>&found)
+			static void _WalkNode(Node*node, const Bounds&space, Container::BasicVector<Object>&found)
 			{
 				if (node->isLeaf)
 				{
@@ -522,7 +522,7 @@ namespace DeltaWorks
 				}
 				return 0;
 			}
-			static void _RecursivelyWalkNode(Node*node, const M::TVec<Float,Nature::NumAxes>&point, Container::BasicBuffer<Object>&found)
+			static void _RecursivelyWalkNode(Node*node, const M::TVec<Float,Nature::NumAxes>&point, Container::BasicVector<Object>&found)
 			{
 				if (node->isLeaf)
 				{
@@ -597,7 +597,7 @@ namespace DeltaWorks
 			bool	IsEmpty() const	{return _allItems.IsEmpty();}
 			bool	IsNotEmpty() const {return _allItems.IsNotEmpty();}
 
-			void Lookup(const Bounds&space, Container::BasicBuffer<Object>&found)	const
+			void Lookup(const Bounds&space, Container::BasicVector<Object>&found)	const
 			{
 				Node*root = _root;
 				if (!root)
@@ -611,7 +611,7 @@ namespace DeltaWorks
 					return 0;
 				return _WalkNode(root, space);
 			}
-			void Lookup(const M::TVec<Float,Nature::NumAxes>&position, Container::BasicBuffer<Object>&found)	const
+			void Lookup(const M::TVec<Float,Nature::NumAxes>&position, Container::BasicVector<Object>&found)	const
 			{
 				Node*root = _root;
 				if (!root)

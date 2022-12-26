@@ -75,9 +75,9 @@ namespace Engine
 		typedef char32_t	Character;
 		typedef StringType::Template<Character> BufferString;
 
-		class CharacterBuffer : private Ctr::Buffer0<Character,SecureStrategy>
+		class CharacterBuffer : private Ctr::Vector<Character,SecureStrategy>
 		{
-			typedef Ctr::Buffer0<Character,SecureStrategy>	Super;
+			typedef Ctr::Vector<Character,SecureStrategy>	Super;
 
 
 		public:

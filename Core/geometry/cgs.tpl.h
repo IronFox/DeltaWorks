@@ -1388,7 +1388,7 @@ template <class Def> void SubGeometryA<Def>::saveToRiff(Riff::Chunk*riff)	const
 		
 		if (accelerator_field.GetLength())
 		{
-			Buffer<BYTE>	write_buffer;
+			PreAllocVector<BYTE>	write_buffer;
 			ByteStreamBuffer	a;
 			for (index_t i = 0; i < accelerator_field.GetLength(); i++)
 			{
@@ -3307,10 +3307,10 @@ template <class Def> void Geometry<Def>::saveEmbedded(Riff::Chunk&riff, bool emb
 
 template <class Def> void Geometry<Def>::loadMaterials(Riff::File&riff)//, bool post_strip, unsigned min_strip)
 {
-	Buffer<MaterialA<Def>,0,AdoptStrategy>		mbuffer;
-	Buffer<RenderObjectA<Def>,0,AdoptStrategy>	obuffer;
+	PreAllocVector<MaterialA<Def>,0,AdoptStrategy>		mbuffer;
+	PreAllocVector<RenderObjectA<Def>,0,AdoptStrategy>	obuffer;
 	//M::Vector3<IndexContainer<Def> >		cbuffer;
-	Buffer<TLayer,0>							lbuffer;
+	PreAllocVector<TLayer,0>							lbuffer;
 
 	//TFMaterialInfo<Def> info;
 	//TFLayer				layr;
@@ -3663,7 +3663,7 @@ template <class Def> void Geometry<Def>::loadAnimators(Riff::File&riff)
 	while (riff.FindNext("ANIM"));
 	animator_field.SetSize(count);
 
-	Buffer<index_t>	path;	//empty path
+	PreAllocVector<index_t>	path;	//empty path
 
 	for (index_t i = 0; i < count; i++)
 		animator_field[i].loadFromRiff(riff,i);
@@ -4024,7 +4024,7 @@ template <class Def>
 			wheel_table.clear();
 
 
-		Buffer<index_t,4>	path;
+		PreAllocVector<index_t,4>	path;
 		for (index_t i = 0; i < object_field.GetLength(); i++)
 		{
 			path << i;

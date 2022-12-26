@@ -458,7 +458,7 @@ namespace DeltaWorks
 			M::Vec::mad(p1.position,zdir,-dist_z*curve_factor,z_control1);
 	
 	
-		static Container::Buffer<Node>	profile;
+		static Container::PreAllocVector<Node>	profile;
 		profile.reset();
 		for (unsigned i = 0; i < res_x; i++)
 		{
@@ -712,7 +712,7 @@ namespace DeltaWorks
 
 	}
 
-	/*static*/		UINT32	Graph::insertInterpolatedVertex(Container::Buffer<SurfaceDescription::TVertex,0,POD>&vout,UINT32 v0_i,UINT32 v1_i,float factor)
+	/*static*/		UINT32	Graph::insertInterpolatedVertex(Container::PreAllocVector<SurfaceDescription::TVertex,0,POD>&vout,UINT32 v0_i,UINT32 v1_i,float factor)
 	{
 		UINT32 result = (UINT32)vout.Count();
 		SurfaceDescription::TVertex&new_vtx = vout.Append();
@@ -747,7 +747,7 @@ namespace DeltaWorks
 
 	/*static*/	void									Graph::splitHull(SurfaceDescription&desc_out)
 	{
-			static Container::Buffer<UINT32> iout2;
+			static Container::PreAllocVector<UINT32> iout2;
 			iout2.reset();
 			for (index_t i = 0; i < desc_out.quadIndices.Count(); i+=4)
 			{
@@ -811,7 +811,7 @@ namespace DeltaWorks
 			desc_out.quadIndices.swap(iout2);
 			//iout.reset();	//temporarily disable quads
 
-			static Container::Buffer<SurfaceDescription::TVertex,0,POD>	vout2;
+			static Container::PreAllocVector<SurfaceDescription::TVertex,0,POD>	vout2;
 			vout2.reset();
 			for (index_t i = 0; i < desc_out.vertices.Count(); i++)
 			{
@@ -1088,7 +1088,7 @@ namespace DeltaWorks
 	
 	
 	
-		static Container::Buffer<Mesh<TDef<float> >,0>	caps;
+		static Container::PreAllocVector<Mesh<TDef<float> >,0>	caps;
 		caps.reset();
 	
 		//if (has_caps)
@@ -1097,14 +1097,14 @@ namespace DeltaWorks
 		//updateDirections()
 	
 
-		static Container::Buffer<SurfaceDescription,0,Swap>	visual_hulls;
+		static Container::PreAllocVector<SurfaceDescription,0,Swap>	visual_hulls;
 		static SurfaceDescription					physical_hull;
 		visual_hulls.reset();
 		physical_hull.Clear();
 
 	
 		//static Buffer<Graph::TVertex>			visual_vout,hull_vout;
-		static Container::Buffer<CGS::RenderObjectA<>,0>	robjs;
+		static Container::PreAllocVector<CGS::RenderObjectA<>,0>	robjs;
 		robjs.reset();
 	
 		float this_step = step;
@@ -1704,7 +1704,7 @@ namespace DeltaWorks
 	{
 		this->Clear();
 
-		Container::Buffer<InterpolatedSlice,256,POD>	steps;
+		Container::PreAllocVector<InterpolatedSlice,256,POD>	steps;
 		InterpolatedSlice	begin(begin_.state,0),
 							end(end_.state,1);
 		steps << begin;
@@ -1818,7 +1818,7 @@ namespace DeltaWorks
 
 	}
 
-	/*static*/	void				SurfaceDescription::Subdivide(const SurfaceDescription::TConnector&begin, const SurfaceDescription::TConnector&end,const SurfaceDescription::TControl control_points[2], float tolerance, const InterpolatedSlice&ref0, const InterpolatedSlice&ref1, float t0, float t1, Container::Buffer<InterpolatedSlice,256,POD>&outIntersections, int force)
+	/*static*/	void				SurfaceDescription::Subdivide(const SurfaceDescription::TConnector&begin, const SurfaceDescription::TConnector&end,const SurfaceDescription::TControl control_points[2], float tolerance, const InterpolatedSlice&ref0, const InterpolatedSlice&ref1, float t0, float t1, Container::PreAllocVector<InterpolatedSlice,256,POD>&outIntersections, int force)
 	{
 		bool subdiv;
 
@@ -2185,7 +2185,7 @@ namespace DeltaWorks
 	@param[out] removedSegments Optional outbuffer to catch any removed segments. Cleared automatically
 	@param[out] affectedSegments Optional outmap to catch any affected segments that still exist. Cleared automatically
 	*/
-	void		SurfaceNetwork::ManagedRemoveNode(index_t nodeIndex, bool updateConnectedSlopes, bool updateConnectedSegmentControls, bool build, Container::BasicBuffer<std::pair<index_t,PAttachment> >*removedSegments, Container::IndexSet*affectedSegments)
+	void		SurfaceNetwork::ManagedRemoveNode(index_t nodeIndex, bool updateConnectedSlopes, bool updateConnectedSegmentControls, bool build, Container::BasicVector<std::pair<index_t,PAttachment> >*removedSegments, Container::IndexSet*affectedSegments)
 	{
 		if (removedSegments)
 			removedSegments->clear();
@@ -2196,7 +2196,7 @@ namespace DeltaWorks
 
 		if (affectedSegments)
 			affectedSegments->clear();
-		static Container::Buffer<index_t>	affectedNodes;
+		static Container::PreAllocVector<index_t>	affectedNodes;
 		if (updateConnectedSlopes)
 			affectedNodes.clear();
 
@@ -2411,7 +2411,7 @@ namespace DeltaWorks
 	}
 
 
-	void							SurfaceNetwork::Node::BuildArc(Container::BasicBuffer<SurfaceDescription::TVertex>&arc_out, index_t lod, bool flipped, bool global)	const
+	void							SurfaceNetwork::Node::BuildArc(Container::BasicVector<SurfaceDescription::TVertex>&arc_out, index_t lod, bool flipped, bool global)	const
 	{
 		float tolerance = minTolerance*(1<<lod);
 		SurfaceDescription::BuildArc(arc_out,*this,tolerance,flipped, global);
@@ -2775,7 +2775,7 @@ namespace DeltaWorks
 			}
 	}
 
-	void SurfaceDescription::BuildRails(const SurfaceDescription&source, const Container::BasicBuffer<float2>&profile, const M::TVec3<>&relativeTo)
+	void SurfaceDescription::BuildRails(const SurfaceDescription&source, const Container::BasicVector<float2>&profile, const M::TVec3<>&relativeTo)
 	{
 		vertices.reset();
 		quadIndices.reset();
@@ -3483,7 +3483,7 @@ namespace DeltaWorks
 
 	}
 
-	/*static*/	void		SurfaceNetwork::CompileRailGeometry(CGS::Geometry<>&target, const Segment&segment, const Container::BasicBuffer<float2>&profile, name64_t texture, name64_t normal_texture, CGS::TextureResource*resource /*=NULL*/)
+	/*static*/	void		SurfaceNetwork::CompileRailGeometry(CGS::Geometry<>&target, const Segment&segment, const Container::BasicVector<float2>&profile, name64_t texture, name64_t normal_texture, CGS::TextureResource*resource /*=NULL*/)
 	{
 		if (segment.compiledSurfaces.Count() < 3*SurfaceNetwork::numLODs)
 		{
@@ -3514,7 +3514,7 @@ namespace DeltaWorks
 	/*static*/ void SurfaceNetwork::CompileArcGeometry(CGS::Geometry<>&target, const Node&node, float near_distance, float far_distance, float extend_along_track,name64_t texture, name64_t normal_texture, bool nodeIsFlipped, CGS::TextureResource*resource /*=NULL*/)
 	{
 
-		static Ctr::Array<Container::Buffer<SurfaceDescription::TVertex> >	arc_vertices;
+		static Ctr::Array<Container::PreAllocVector<SurfaceDescription::TVertex> >	arc_vertices;
 		static Ctr::Array<SurfaceDescription>					arc_descriptions;
 
 		arc_vertices.SetSize(SurfaceNetwork::numLODs);
@@ -3595,7 +3595,7 @@ namespace DeltaWorks
 
 
 	
-		static Container::Buffer<CGS::RenderObjectA<>,0>	robjs;
+		static Container::PreAllocVector<CGS::RenderObjectA<>,0>	robjs;
 		robjs.reset();
 
 
@@ -3726,7 +3726,7 @@ namespace DeltaWorks
 
 
 	
-		static Container::Buffer<CGS::RenderObjectA<>,0>	robjs;
+		static Container::PreAllocVector<CGS::RenderObjectA<>,0>	robjs;
 		robjs.reset();
 
 

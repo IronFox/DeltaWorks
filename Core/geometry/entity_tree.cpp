@@ -52,7 +52,7 @@ namespace DeltaWorks
 
 
 
-	void		CompositeEntityTree::recursiveRemap(const C::Buffer<Entity*>&source, float sector_size)
+	void		CompositeEntityTree::recursiveRemap(const C::PreAllocVector<Entity*>&source, float sector_size)
 	{
 		if (verbose)
 			std::cout << "now processing node on level "<<level<<" with "<<source.GetLength()<<" input entities"<<std::endl;
@@ -310,7 +310,7 @@ namespace DeltaWorks
 	}
 
 
-	count_t	CompositeEntityTree::recursiveLookup(const Composite::Coordinates&edge_point0, const Composite::Coordinates&edge_point1, C::Buffer<Entity*>&buffer, float sector_size)
+	count_t	CompositeEntityTree::recursiveLookup(const Composite::Coordinates&edge_point0, const Composite::Coordinates&edge_point1, C::PreAllocVector<Entity*>&buffer, float sector_size)
 	{
 		count_t cnt = entities.Count();
 		if (!cnt)
@@ -396,7 +396,7 @@ namespace DeltaWorks
 
 
 
-	count_t	CompositeEntityTree::recursiveLookup(const Volume&space, C::Buffer<Entity*>&buffer, float sector_size)
+	count_t	CompositeEntityTree::recursiveLookup(const Volume&space, C::PreAllocVector<Entity*>&buffer, float sector_size)
 	{
 		const count_t cnt = entities.Count();
 	
@@ -487,7 +487,7 @@ namespace DeltaWorks
 		has_children = false;
 	}
 
-	void		CompositeEntityTree::remap(const C::Buffer<Entity*>&source, float sector_size, unsigned depth)
+	void		CompositeEntityTree::remap(const C::PreAllocVector<Entity*>&source, float sector_size, unsigned depth)
 	{
 		this->sector_size = sector_size;
 
@@ -516,13 +516,13 @@ namespace DeltaWorks
 	}
 
 
-	void	CompositeEntityTree::lookup(const Composite::Coordinates&edge_point0, const Composite::Coordinates&edge_point1, C::Buffer<Entity*>&out)
+	void	CompositeEntityTree::lookup(const Composite::Coordinates&edge_point0, const Composite::Coordinates&edge_point1, C::PreAllocVector<Entity*>&out)
 	{
 		recursiveLookup(edge_point0, edge_point1, out,sector_size);
 	}
 
 
-	void	CompositeEntityTree::lookup(const Volume&space, C::Buffer<Entity*>&out)
+	void	CompositeEntityTree::lookup(const Volume&space, C::PreAllocVector<Entity*>&out)
 	{
 		recursiveLookup(space,out,sector_size);
 	
@@ -594,14 +594,14 @@ namespace DeltaWorks
 		return entities.Count();
 	}
 
-	void										CompositeEntityTree::getElements(C::Buffer<Entity*>&out)	const
+	void										CompositeEntityTree::getElements(C::PreAllocVector<Entity*>&out)	const
 	{
 		out.reset();
 		for (index_t i = 0; i < entities.Count(); i++)
 			out << entities[i];
 	}
 
-	const C::Buffer<CompositeEntityTree::Entity*>& 	CompositeEntityTree::getElementList() const
+	const C::PreAllocVector<CompositeEntityTree::Entity*>& 	CompositeEntityTree::getElementList() const
 	{
 		return entities;
 	}
@@ -624,7 +624,7 @@ namespace DeltaWorks
 
 
 
-	void		EntityTree::_RecursiveRemap(const C::Buffer<Entity*>&source)
+	void		EntityTree::_RecursiveRemap(const C::PreAllocVector<Entity*>&source)
 	{
 		if (verbose)
 			std::cout << "now processing node on level "<<level<<" with "<<source.GetLength()<<" input entities"<<std::endl;
@@ -874,7 +874,7 @@ namespace DeltaWorks
 		}
 	}
 
-	count_t EntityTree::_RecursionEnd(const M::TVec3<>&edge_point0, const M::TVec3<>&edge_point1, C::Buffer<Entity*>&buffer)
+	count_t EntityTree::_RecursionEnd(const M::TVec3<>&edge_point0, const M::TVec3<>&edge_point1, C::PreAllocVector<Entity*>&buffer)
 	{
 		count_t c = 0;
 		for (index_t i = 0; i < entities.Count(); i++)
@@ -889,7 +889,7 @@ namespace DeltaWorks
 		return c;
 	}
 
-	count_t	EntityTree::_RecursiveLookup(const M::TVec3<>&p0, const M::TVec3<>&p1, C::Buffer<Entity*>&buffer)
+	count_t	EntityTree::_RecursiveLookup(const M::TVec3<>&p0, const M::TVec3<>&p1, C::PreAllocVector<Entity*>&buffer)
 	{
 		const count_t cnt = entities.Count();
 		if (!cnt)
@@ -959,7 +959,7 @@ namespace DeltaWorks
 
 
 
-	count_t	EntityTree::_RecursiveLookup(const Volume&space, C::Buffer<Entity*>&buffer)
+	count_t	EntityTree::_RecursiveLookup(const Volume&space, C::PreAllocVector<Entity*>&buffer)
 	{
 		const count_t cnt = entities.Count();
 	
@@ -1050,7 +1050,7 @@ namespace DeltaWorks
 		hasChildren = false;
 	}
 
-	void		EntityTree::Remap(const C::Buffer<Entity*>&source, unsigned depth)
+	void		EntityTree::Remap(const C::PreAllocVector<Entity*>&source, unsigned depth)
 	{
 
 		Clear();
@@ -1073,13 +1073,13 @@ namespace DeltaWorks
 		_RecursiveRemap(source);
 	}
 
-	void	EntityTree::Lookup(const M::TVec3<>&edge_point0, const M::TVec3<>&edge_point1, C::Buffer<Entity*>&out)
+	void	EntityTree::Lookup(const M::TVec3<>&edge_point0, const M::TVec3<>&edge_point1, C::PreAllocVector<Entity*>&out)
 	{
 		_RecursiveLookup(edge_point0,edge_point1, out);
 	}
 
 
-	void	EntityTree::Lookup(const Volume&space, C::Buffer<Entity*>&out)
+	void	EntityTree::Lookup(const Volume&space, C::PreAllocVector<Entity*>&out)
 	{
 		_RecursiveLookup(space,out);
 	
@@ -1155,14 +1155,14 @@ namespace DeltaWorks
 		return entities.Count();
 	}
 
-	void										EntityTree::GetElements(C::Buffer<Entity*>&out)	const
+	void										EntityTree::GetElements(C::PreAllocVector<Entity*>&out)	const
 	{
 		out.reset();
 		for (index_t i = 0; i < entities.Count(); i++)
 			out << entities[i];
 	}
 
-	const C::Buffer<EntityTree::Entity*>& 	EntityTree::GetElementList() const
+	const C::PreAllocVector<EntityTree::Entity*>& 	EntityTree::GetElementList() const
 	{
 		return entities;
 	}

@@ -9,7 +9,7 @@ Language-independent simple geometry-container.
 
 
 #include <math/vector.h>
-#include <container/buffer.h>
+#include <container/vectorList.h>
 
 namespace Engine
 {
@@ -78,7 +78,7 @@ namespace Engine
 
 	public:
 
-			Ctr::Vector0<TColorVertex>	field[3];	//!< One colored vertex field for each lines, triangles and quads
+			Ctr::Vector<TColorVertex>	field[3];	//!< One colored vertex field for each lines, triangles and quads
 
 									SimpleGeometry();
 			void					compact();

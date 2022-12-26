@@ -1291,7 +1291,7 @@ template <class Def, class IndexType>
 	
 	
 	
-template <class Element> MF_DECLARE (count_t)	_oCountUnmarked(const Ctr::BasicBuffer<Element>&list)
+template <class Element> MF_DECLARE (count_t)	_oCountUnmarked(const Ctr::BasicVector<Element>&list)
 {
 	count_t count(0);
 	for (index_t i = 0; i < list.Count(); i++)
@@ -1316,7 +1316,7 @@ template <class Def> MF_DECLARE (String)	_oCheckNeighborIntegrity(const DynamicM
 namespace Obj
 {
 	template <typename F, typename I>
-	bool	TriangulateF( const count_t numVertices, const std::function<TVec2<F>(index_t)>&getVertex, BasicBuffer<I>&target )
+	bool	TriangulateF( const count_t numVertices, const std::function<TVec2<F>(index_t)>&getVertex, BasicVector<I>&target )
 	{
 		Array<TVec2<F> >temp(numVertices);	//this is likely the most efficient approach, what with the constant searching
 		for (index_t i = 0; i < numVertices; i++)
@@ -1325,12 +1325,12 @@ namespace Obj
 	}
 
 	template <typename F, typename I>
-	bool	Triangulate( const ArrayRef<TVec2<F> >&vertices, BasicBuffer<I>&target )
+	bool	Triangulate( const ArrayRef<TVec2<F> >&vertices, BasicVector<I>&target )
 	{
 		target.reset();
 		if (vertices.Count() < 3)
 			return false;
-		Buffer0<I>	indices;
+		Vector<I>	indices;
 		for (index_t i = 0; i < vertices.Count(); i++)
 			indices<<i;
 
@@ -1551,14 +1551,14 @@ MFUNC2 (bool)		_oTriangulate(const Ctr::ArrayData<M::TVec2<C0> >&vertex_field, M
 }
 
 template <typename ContainerT, typename Index>
-	MF_DECLARE	(bool)	_oTriangulate3(const ContainerT&vertex_field, Container::BasicBuffer<Index>&target)
+	MF_DECLARE	(bool)	_oTriangulate3(const ContainerT&vertex_field, Container::BasicVector<Index>&target)
 	{
 		target.reset();
 		if (vertex_field.size() < 3)
 			return false;
 		//ReferenceVector<MeshVertex<C1> >	triangles;
 
-		Container::Buffer<Index>	indices;
+		Container::PreAllocVector<Index>	indices;
 		/*target.Resize(vertices,0,0,0);*/
 		for (index_t i = 0; i < vertex_field.Count(); i++)
 		{
@@ -1645,8 +1645,8 @@ MFUNC2 (bool)		_oTriangulate(const M::TVec2<C0>*vertex, count_t vertices, Mesh<C
 	target.clear();
 	if (vertices < 3)
 		return false;
-	Container::Buffer<index_t>					indices;
-	Container::Buffer<MeshVertex<C1>*>		triangles;
+	Container::PreAllocVector<index_t>					indices;
+	Container::PreAllocVector<MeshVertex<C1>*>		triangles;
 
 	target.Resize(vertices,0,0,0);
 	for (index_t i = 0; i < vertices; i++)
@@ -4331,8 +4331,8 @@ template <class Def>
 			return;
 		//typedef TGraphDef<TDef<typename Def::Type> >	GraphDef;
 
-		Ctr::Array<Buffer<index_t,2>	>		vertex_edge_list(vertex_field.GetLength());
-		Buffer<MeshEdge<Def> >			edge_buffer;
+		Ctr::Array<PreAllocVector<index_t,2>	>		vertex_edge_list(vertex_field.GetLength());
+		PreAllocVector<MeshEdge<Def> >			edge_buffer;
 
 		/*Ctr::Array<MeshVertex<GraphDef> >	vtx(vertex_field.GetLength());
 		for (index_t i = 0; i < vertex_field.GetLength(); i++)
@@ -5743,7 +5743,7 @@ template <class Def>
 	}
 
 template <class Vertex, typename TX, typename TY, typename TZ>
-	static inline void _AddVertex(Container::Buffer<Vertex>&buffer, const TX&x, const TY&y, const TZ&z)
+	static inline void _AddVertex(Container::PreAllocVector<Vertex>&buffer, const TX&x, const TY&y, const TZ&z)
 	{
 		Vertex&v = buffer.Append();
 		v.index = buffer.Count()-1;
@@ -5758,8 +5758,8 @@ template <class Def>
 
 		flushMap();
 
-		Buffer<Vertex>	vertexBuffer;
-		Buffer<UINT32> triangleBuffer, quadBuffer;
+		PreAllocVector<Vertex>	vertexBuffer;
+		PreAllocVector<UINT32> triangleBuffer, quadBuffer;
 
 		count_t yres = std::max((count_t)1,resolution/2);
 			
@@ -5834,8 +5834,8 @@ template <class Def>
 
 		flushMap();
 
-		Buffer<Vertex>	vertexBuffer;
-		Buffer<UINT32> quadBuffer;
+		PreAllocVector<Vertex>	vertexBuffer;
+		PreAllocVector<UINT32> quadBuffer;
 
 		{
 			index_t offset = vertexBuffer.Count();
@@ -7346,7 +7346,7 @@ template <class Def>MF_DECLARE	(count_t) ObjMap<Def>::Count() const
 
 
 template <class Def>
-MF_DECLARE	(count_t) ObjMap<Def>::resolveTriangles(Container::Buffer<MeshTriangle<Def>*>&face_out)
+MF_DECLARE	(count_t) ObjMap<Def>::resolveTriangles(Container::PreAllocVector<MeshTriangle<Def>*>&face_out)
 {
 	#ifndef THROW_BUFFER_ERROR
 		overflow = false;
@@ -7375,7 +7375,7 @@ MF_DECLARE	(count_t) ObjMap<Def>::resolveTriangles(Container::Buffer<MeshTriangl
 }
 	
 template <class Def>
-MF_DECLARE	(count_t) ObjMap<Def>::resolveQuads(Container::Buffer<MeshQuad<Def>*>&face_out)
+MF_DECLARE	(count_t) ObjMap<Def>::resolveQuads(Container::PreAllocVector<MeshQuad<Def>*>&face_out)
 {
 	#ifndef THROW_BUFFER_ERROR
 		overflow = false;
@@ -7401,7 +7401,7 @@ MF_DECLARE	(count_t) ObjMap<Def>::resolveQuads(Container::Buffer<MeshQuad<Def>*>
 	
 
 template <class Def>
-MF_DECLARE	(count_t) ObjMap<Def>::resolveEdges(Container::Buffer<MeshEdge<Def>*>&edge_out)
+MF_DECLARE	(count_t) ObjMap<Def>::resolveEdges(Container::PreAllocVector<MeshEdge<Def>*>&edge_out)
 {
 	#ifndef THROW_BUFFER_ERROR
 		overflow = false;
@@ -7426,7 +7426,7 @@ MF_DECLARE	(count_t) ObjMap<Def>::resolveEdges(Container::Buffer<MeshEdge<Def>*>
 }
 
 template <class Def>
-MF_DECLARE	(count_t) ObjMap<Def>::resolveVertices(Container::Buffer<MeshVertex<Def>*>&vertex_out)
+MF_DECLARE	(count_t) ObjMap<Def>::resolveVertices(Container::PreAllocVector<MeshVertex<Def>*>&vertex_out)
 {
 	#ifndef THROW_BUFFER_ERROR
 		overflow = false;
@@ -7857,7 +7857,7 @@ template <class Float>
 	}
 
 
-template <class Def> Container::Buffer<ObjMap<Def>*>	ObjMap<Def>::sector_map;
+template <class Def> Container::PreAllocVector<ObjMap<Def>*>	ObjMap<Def>::sector_map;
 	
 	
 template <typename Float>
@@ -8083,7 +8083,7 @@ template <typename Float> template <typename T>
 			}
 			ASSERT__(edges.Count()>0);
 			ASSERT2__(flagged < triangles.Count(),flagged,triangles.Count());
-			Buffer<TTriangle>	new_triangles;
+			PreAllocVector<TTriangle>	new_triangles;
 			//logfile<< "queue ran empty after "<<counter<<" iterations"<<nl;
 				
 				

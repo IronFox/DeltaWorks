@@ -494,7 +494,7 @@
 					String					sharedAttachment,
 											vertexShaderAttachment,
 											fragmentShadowCode;
-					Ctr::Buffer<SamplerAssignment,0,Swap>
+					Ctr::PreAllocVector<SamplerAssignment,0,Swap>
 											samplerAssignments;
 
 					void					swap(LightShadowAttachment&other)
@@ -514,7 +514,7 @@
 											}
 				};
 
-				static	Ctr::Buffer<LightShadowAttachment,0,Swap>		shadowAttachments;
+				static	Ctr::PreAllocVector<LightShadowAttachment,0,Swap>		shadowAttachments;
 
 
 				/**
@@ -556,7 +556,7 @@
 			
 					Array<Line,Adopt>		innerLines,	//!< Inner lines preceeding any conditional sub block. Lines following condition blocks are found in the @a trailingLines member of sub blocks
 											trailingLines;	//!< Lines trailing the local block. They lie, in fact, outside this block on the next parent layer
-					Ctr::Vector0<PBlock>	children;		//!< Child blocks
+					Ctr::Vector<PBlock>	children;		//!< Child blocks
 					PBlock					 parent;		//!< Parent block (if any). may be NULL
 				
 					Block()					:type(Any),condition(NULL),parent(NULL)	{}
@@ -663,7 +663,7 @@
 				{
 				protected:
 					Ctr::StringTable<index_t>	variableMap;
-					Ctr::Vector0<UserConfiguration*>
+					Ctr::Vector<UserConfiguration*>
 												attachedConfigurations;
 					bool						changed;
 
@@ -688,7 +688,7 @@
 				class ConfigurationComponent
 				{
 				private:
-					Ctr::Vector0<Configuration*>linkedConfigs;
+					Ctr::Vector<Configuration*>linkedConfigs;
 				protected:
 					friend class				Configuration;
 
@@ -705,7 +705,7 @@
 				class RenderConfiguration:public ConfigurationComponent	//! Configuration container for pipeline related settings that are relevant for shader assembly
 				{
 				protected:
-					Ctr::Buffer<Light::Type,8>	lights;		//!< Known light types
+					Ctr::PreAllocVector<Light::Type,8>	lights;		//!< Known light types
 					bool						lightingEnabled,
 												fogEnabled;
 					friend class				UserConfiguration;
@@ -852,7 +852,7 @@
 					Type						type;	//!< Contained type
 				};
 				
-				Ctr::Buffer<TUniformInit,4>		uniformInit;	//!< Predefined variables
+				Ctr::PreAllocVector<TUniformInit,4>		uniformInit;	//!< Predefined variables
 				
 			public:
 		
@@ -951,7 +951,7 @@
 
 				bool							_ExtractFileContent(const String&filename, String&target);
 				GLhandleARB						_LoadShader(const String&source, GLenum programType);
-				static void						_ParseUniformVariableInitializers(String&source,Ctr::BasicBuffer<Initializer,Strategy::Swap>& initializers);
+				static void						_ParseUniformVariableInitializers(String&source,Ctr::BasicVector<Initializer,Strategy::Swap>& initializers);
 
 				/**/							Instance(const Instance&other){}
 				void							operator=(const Instance&other){}
@@ -1070,7 +1070,7 @@
 			
 
 			static ResolutionTable				depthBufferTable;
-			static Ctr::Buffer<DepthBuffer,0>		depthBufferList;
+			static Ctr::PreAllocVector<DepthBuffer,0>		depthBufferList;
 			static Ctr::IndexTable<index_t>			depthBufferMap;
 
 			GLint								maxTextureLayers,

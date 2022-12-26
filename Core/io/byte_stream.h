@@ -4,7 +4,7 @@
 #include "../interface/read_stream.h"
 #include "../interface/write_stream.h"
 #include "../container/array.h"
-#include "../container/buffer.h"
+#include "../container/vectorList.h"
 
 namespace DeltaWorks
 {
@@ -45,7 +45,7 @@ namespace DeltaWorks
 			}
 
 	private:
-		Buffer<BYTE>	data;
+		PreAllocVector<BYTE>	data;
 	};
 
 

@@ -2,17 +2,17 @@
 #define string_bufferH
 
 #include "../io/str_stream.h"
-#include "../container/buffer.h"
+#include "../container/vectorList.h"
 
 
 namespace DeltaWorks
 {
 	template <typename T>
-	class GenericStringBuffer : public Container::Buffer<T>
+	class GenericStringBuffer : public Container::PreAllocVector<T>
 	{
 	public:
 		typedef GenericStringBuffer<T>	Self;
-		typedef Container::Buffer<T>	Super;
+		typedef Container::PreAllocVector<T>	Super;
 		typedef StringType::ReferenceExpression<T>	StringRef;
 		typedef StringType::Template<T>	String;
 

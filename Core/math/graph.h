@@ -11,7 +11,7 @@ Collection of graph-algorithms.
 #include <memory>
 
 #include "../container/queue.h"
-#include "../container/buffer.h"
+#include "../container/vectorList.h"
 
 namespace DeltaWorks
 {
@@ -82,9 +82,9 @@ namespace DeltaWorks
 			private:
 				bool            isSelected;
 				int             inDegree;
-				Buffer0<WNode>	in,
+				Vector<WNode>	in,
 								out;
-				Buffer0<WEdge>	inEdges,
+				Vector<WEdge>	inEdges,
 								outEdges;
 				count_t			dfsIn,
 								dfsOut;
@@ -110,7 +110,7 @@ namespace DeltaWorks
 				{
 				public:
 					typedef std::shared_ptr<T>	Item;
-					typedef Buffer0<Item> Store;
+					typedef Vector<Item> Store;
 
 					typedef typename Store::const_iterator const_iterator;
 
@@ -119,7 +119,7 @@ namespace DeltaWorks
 					
 					void			GarbageCollect()
 					{
-						Buffer0<Item>	next;
+						Vector<Item>	next;
 						foreach (store,s)
 							if ((*s))
 							{
@@ -204,7 +204,7 @@ namespace DeltaWorks
 			void				EraseNode(const PNode&n);
 			PNode				MergeNodes(const PNode&a, const PNode&b);
 			PEdge				AddEdge(const PNode&node0, const PNode&node1);
-			bool				CreateTopologicalOrder(Container::BasicBuffer<PNode>&out);
+			bool				CreateTopologicalOrder(Container::BasicVector<PNode>&out);
 			void				PerformDepthFirstSearch();
 			void				VerifyIntegrity(bool thoroughly=false) const;
 

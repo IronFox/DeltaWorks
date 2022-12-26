@@ -750,7 +750,7 @@ namespace Engine
 			
 			titlePosition.SetMinAndMax(0);
 			
-			Ctr::Vector0<TIORow>	iorows;
+			Ctr::Vector<TIORow>	iorows;
 			
 			XML::Container	xml;
 			xml.LoadFromFile(filename);

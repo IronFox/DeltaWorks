@@ -10,7 +10,7 @@ progress logger unit.
 
 #include "../global_string.h"
 #include "../container/queue.h"
-#include "../container/buffer.h"
+#include "../container/vectorList.h"
 #include "../math/basic.h"
 
 
@@ -79,7 +79,7 @@ namespace DeltaWorks
 										step_depth,						//!< current indentation
 										bar_line;						//!< index of the line, the progress bar is currently attached to	
 
-			Container::Vector0<tLogMinor>     stack;							//!< sub state stack
+			Container::Vector<tLogMinor>     stack;							//!< sub state stack
 			tLogMinor                   top;	//!< current sub state
 		public:
 			/**/						Log();

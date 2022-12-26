@@ -3,7 +3,7 @@
 
 #include "../global_string.h"
 //#include "../container/lvector.h"
-#include "../container/buffer.h"
+#include "../container/vectorList.h"
 #include "../container/sorter.h"
 
 namespace DeltaWorks
@@ -28,7 +28,7 @@ namespace DeltaWorks
 						}
 	};
 
-	typedef Ctr::Vector0<TToken,SwapStrategy>	TokenList;
+	typedef Ctr::Vector<TToken,SwapStrategy>	TokenList;
 
 
 	class StringTokenizer
@@ -59,7 +59,7 @@ namespace DeltaWorks
 							}
 
 		};
-		typedef Ctr::Vector0<Pattern,SwapStrategy>	PatternList;
+		typedef Ctr::Vector<Pattern,SwapStrategy>	PatternList;
 	private:
 		PatternList			list[0x100],
 							open[0x100];

@@ -180,7 +180,7 @@ namespace DeltaWorks
 			return tokenize(composition.c_str(),composition.GetLength(),config,target);
 		}
 
-		bool			Tokenize(const StringRef&composition, const Configuration&config, Container::BasicBuffer<StringRef>&target, bool clear_list)
+		bool			Tokenize(const StringRef&composition, const Configuration&config, Container::BasicVector<StringRef>&target, bool clear_list)
 		{
 			if (clear_list)
 				target.clear();

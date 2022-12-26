@@ -1,6 +1,6 @@
 #include "openal.h"
 #include <general/timer.h>
-#include <container/buffer.h>
+#include <container/vectorList.h>
 #include <container/sorter.h>
 #include <io/file_system.h>
 
@@ -37,9 +37,9 @@ namespace Engine
 
 		namespace Registry
 		{
-	//		Buffer0<ALuint>	createdHandles;
+	//		Vector<ALuint>	createdHandles;
 
-			Buffer0<Source*>	playingSources;
+			Vector<Source*>	playingSources;
 
 			void	Replace(Source*toFind, Source*replaceWith);
 			void	Remove(Source*);

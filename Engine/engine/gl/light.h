@@ -2,7 +2,7 @@
 #define gl_lightH
 
 #include <math/vector.h>
-#include <container/buffer.h>
+#include <container/vectorList.h>
 
 namespace Engine
 {
@@ -19,7 +19,7 @@ namespace Engine
 
 		Container for a light setting
 	*/
-	typedef DeltaWorks::Buffer0<PLight>			LightScene;
+	typedef DeltaWorks::Vector<PLight>			LightScene;
 
 	class OpenGL;
 

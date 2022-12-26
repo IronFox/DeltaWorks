@@ -15,7 +15,7 @@ whose functions are derived in groups.
 	#endif
 	Engine::GLShader::Template::RenderConfiguration		Engine::GLShader::Template::globalRenderConfig;
 
-	DeltaWorks::Ctr::Buffer<Engine::GLShader::Template::LightShadowAttachment,0,DeltaWorks::Swap>		Engine::GLShader::Template::shadowAttachments;
+	DeltaWorks::Ctr::PreAllocVector<Engine::GLShader::Template::LightShadowAttachment,0,DeltaWorks::Swap>		Engine::GLShader::Template::shadowAttachments;
 
 
 	#define EXT_CONTEXT(name)					{group	= #name;}
@@ -1181,7 +1181,7 @@ namespace Engine
 				throw Except::Renderer::ShaderRejected(Report());
 		}
 
-		/*static*/ void				Instance::_ParseUniformVariableInitializers(String&source,Ctr::BasicBuffer<Initializer,Strategy::Swap>& initializers)
+		/*static*/ void				Instance::_ParseUniformVariableInitializers(String&source,Ctr::BasicVector<Initializer,Strategy::Swap>& initializers)
 		{
 			const char*str = source.c_str(),*begin = NULL;
 			index_t offset = initializers.Count();
@@ -1233,7 +1233,7 @@ namespace Engine
 			Clear();
 			this->composition = composition_;
 			glGetError();//flush errors
-			Ctr::Buffer<Initializer,0,Strategy::Swap>	initializers;
+			Ctr::PreAllocVector<Initializer,0,Strategy::Swap>	initializers;
 			_ParseUniformVariableInitializers(composition.sharedSource,initializers);
 			_ParseUniformVariableInitializers(composition.vertexSource,initializers);
 			_ParseUniformVariableInitializers(composition.fragmentSource,initializers);
@@ -1848,7 +1848,7 @@ namespace Engine
 				cout << endl;
 		 */		
 		
-				Ctr::Vector0<PExpression>	expressions;
+				Ctr::Vector<PExpression>	expressions;
 				for (index_t i = begin; i < end; i++)
 				{
 					const TToken&token = tokens[i];
@@ -3451,7 +3451,7 @@ namespace Engine
 	
 	
 	/*static*/	Extension::ResolutionTable		Extension::depthBufferTable;
-	/*static*/ Ctr::Buffer<Extension::DepthBuffer,0>	Extension::depthBufferList;
+	/*static*/ Ctr::PreAllocVector<Extension::DepthBuffer,0>	Extension::depthBufferList;
 	/*static*/ Ctr::IndexTable<index_t>				Extension::depthBufferMap;
 
 	/*static*/ GLuint		Extension::AllocateDepthBuffer(const Resolution&res)

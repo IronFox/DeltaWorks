@@ -7,7 +7,7 @@
 #include "timing.h"
 #include "aspect.h"
 #include "renderer/renderer.h"
-#include "../container/buffer.h"
+#include "../container/vectorList.h"
 
 namespace Engine
 {
@@ -37,7 +37,7 @@ namespace Engine
 
 
 	template <class GL, typename Particle = TParticle>
-		class Particles:public Buffer<Particle>
+		class Particles:public PreAllocVector<Particle>
 		{
 		private:
 			typename GL::Material		material;
@@ -48,7 +48,7 @@ namespace Engine
 			GL							*renderer;					//!< Pointer to the used rendering context (not NULL)
 
 		public:
-			typedef Buffer<Particle>	Super;
+			typedef PreAllocVector<Particle>	Super;
 			
 			Particles()					{setup();};
 		template <class Float>

@@ -472,7 +472,7 @@ namespace DeltaWorks
 	void	XML::Container::LoadFromCharArray(Ctr::ArrayData<char>&field)
 	{
 		encoding = Encoding::UTF8;
-		Buffer<Node*,4>	parse_stack;
+		PreAllocVector<Node*,4>	parse_stack;
 
 		bool in_block(false),/*in_string(false),*/open(false);
 	
@@ -849,7 +849,7 @@ namespace DeltaWorks
 		writeToStream(outfile,encoding,hostEncoding, &root_node, style);
 	}
 
-	static XML::Node*	findIn(Container::BasicBuffer<XML::Node,SwapStrategy>&children, const StringRef&path)
+	static XML::Node*	findIn(Container::BasicVector<XML::Node,SwapStrategy>&children, const StringRef&path)
 	{
 		StringRef local,sub;
 		index_t p = path.Find('/');
@@ -873,7 +873,7 @@ namespace DeltaWorks
 		return NULL;
 	}
 
-	static const XML::Node*	findInConst(const Container::BasicBuffer<XML::Node,SwapStrategy>&children, const StringRef&path)
+	static const XML::Node*	findInConst(const Container::BasicVector<XML::Node,SwapStrategy>&children, const StringRef&path)
 	{
 		StringRef local,sub;
 		index_t p = path.Find('/');
@@ -1184,7 +1184,7 @@ namespace DeltaWorks
 
 		XML::Encoding encoding = XML::Encoding::UTF8;
 	
-		Vector0<TScannerNode>	stack;
+		Vector<TScannerNode>	stack;
 		{
 			TScannerNode&current = stack.Append();
 			current.rule = root;

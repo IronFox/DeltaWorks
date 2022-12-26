@@ -103,15 +103,15 @@ namespace DeltaWorks
 			friend void				swap(Sequence&a, Sequence&b){a.swap(b);}
 		};
 
-		struct Stream : public Ctr::Vector0<Sequence,Strategy::Swap>
+		struct Stream : public Ctr::Vector<Sequence,Strategy::Swap>
 		{
 		public:
-			typedef Ctr::Vector0<Sequence,Strategy::Swap>	Super;
+			typedef Ctr::Vector<Sequence,Strategy::Swap>	Super;
 
-			typedef Ctr::Vector0<index_t>	MapEntry;
+			typedef Ctr::Vector<index_t>	MapEntry;
 			Ctr::StringTable<MapEntry,Strategy::Swap>	sequence_map;	//!< Maps state names to sequences
 
-			count_t			FindAll(const String&name, Buffer0<Sequence*>&result)
+			count_t			FindAll(const String&name, Vector<Sequence*>&result)
 			{
 				result.Clear();
 				//index_t at;
@@ -195,7 +195,7 @@ namespace DeltaWorks
 
 
 
-		typedef Ctr::Vector0<Stream,Strategy::Swap>		Result;
+		typedef Ctr::Vector<Stream,Strategy::Swap>		Result;
 	}
 
 
@@ -203,7 +203,7 @@ namespace DeltaWorks
 	{
 	private:
 		Ctr::StringTable<Parser::PNode>				nodes;
-		Ctr::Vector0<Parser::PNode>					detour_nodes;
+		Ctr::Vector<Parser::PNode>					detour_nodes;
 		//Buffer<Parser::Connection,0>				connections;
 		Ctr::IndexTable<Parser::Connection>			root;
 		

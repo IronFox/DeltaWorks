@@ -74,11 +74,11 @@ namespace DeltaWorks
 			};
 			
 		protected:
-			Buffer0<Context,Swap>			children;
+			Vector<Context,Swap>			children;
 			StringTable<index_t>			childMap;
-			Buffer0<Attribute,Swap>			attributes;
+			Vector<Attribute,Swap>			attributes;
 			StringTable<index_t>			attributeMap;
-			Buffer0<Context,Swap>			modes;
+			Vector<Context,Swap>			modes;
 			StringTable<index_t>			modeMap;
 			bool							isMode;
 
@@ -257,7 +257,7 @@ namespace DeltaWorks
 			bool						variables_finalized;	//!< True if variable contents of all local variables have been processed
 			Ctr::Array<XML::TAttribute>		conditions;			//!< Context conditions to be evaluated during finalization
 			CXContext					*parent;			//!< Pointer to the next superior context. NULL if this context Is the top most
-			Vector0<PCXContext>			pre_finalize_children;	//!< Sub contexts prior to finalization. Multiple contexts with the same name may co-exist if conditional variables are exclusive
+			Vector<PCXContext>			pre_finalize_children;	//!< Sub contexts prior to finalization. Multiple contexts with the same name may co-exist if conditional variables are exclusive
 				
 			void						parse(const String&content);	//!< Parses a coherent variable block as extracted from XML inner and following content
 			bool						Process(String&expression, bool singular, String*error_out)	const;	//!< Processes an expression that may contain variables

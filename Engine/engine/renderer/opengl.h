@@ -524,7 +524,7 @@ namespace Engine
 			public:
 				inline	bool	load(const T*field, size_t num_units);	//!< Loads the specified data into the local buffer. @a field must be at least @a num_units units long but may be NULL if @a num_units is 0
 				inline	bool	load(const Array<T>&field)	{return load(field.pointer(),field.GetLength());}	
-				inline	bool	load(const Ctr::Buffer<T>&field)	{return load(field.pointer(),field.GetLength());}
+				inline	bool	load(const Ctr::PreAllocVector<T>&field)	{return load(field.pointer(),field.GetLength());}
 
 				void	adoptData(GeometryBuffer<T>&other)
 				{
@@ -714,13 +714,13 @@ namespace Engine
 
 				inline	void		load(const T*field, count_t num_units);	//!< Loads the specified data into the local buffer. @a field must be at least @a num_units units long but may be NULL if @a num_units is 0
 				inline	void		load(const ArrayData<T>&field)		{load(field.pointer(),field.GetLength());}	
-				inline	void		load(const Ctr::BasicBuffer<T>&field)	{load(field.pointer(),field.GetLength());}
+				inline	void		load(const Ctr::BasicVector<T>&field)	{load(field.pointer(),field.GetLength());}
 				template <typename StructType>
 					inline	void	loadStructs(const StructType*field, count_t num_structs)	{load((const T*)field,num_structs * sizeof(StructType)/sizeof(T));}
 				template <typename StructType>
 					inline	void	loadStructs(const ArrayData<StructType>&field)	{loadStructs(field.pointer(),field.GetLength());}
 				template <typename StructType>
-					inline	void	loadStructs(const Ctr::BasicBuffer<StructType>&field)	{loadStructs(field.pointer(),field.GetLength());}
+					inline	void	loadStructs(const Ctr::BasicVector<StructType>&field)	{loadStructs(field.pointer(),field.GetLength());}
 				inline	const T*	getHostData() const		{return static_cast<const T*>(SmartBuffer::getHostData());}//!< Retrieves a pointer to any internally stored host data, or NULL if no such is available. Also returns NULL if the buffered data resides in device space
 				inline	count_t		countPrimitives()	const			//! Retrieves the number of primitives currently loaded into the buffer.
 									{
@@ -1068,7 +1068,7 @@ namespace Engine
 						Window				wnd;				//!< Handle of the active window
 		#endif
 						GLContext			gl_context,clone;			//!< Handle of the OpenGL context
-		static			Ctr::Buffer<GLBinding,4>	created_contexts;		//!< All created contexts
+		static			Ctr::PreAllocVector<GLBinding,4>	created_contexts;		//!< All created contexts
 
 						bool				last_full_screen,			//!< specifies whether or not fullscreen was applied earlier
 											verbose;

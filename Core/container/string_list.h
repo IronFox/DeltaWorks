@@ -8,7 +8,7 @@
 #include "../global_string.h"
 
 #include "hashtable.h"
-#include "buffer.h"
+#include "vectorList.h"
 #include "../general/undef.h"
 
 namespace DeltaWorks
@@ -266,7 +266,7 @@ namespace DeltaWorks
 		class Status:public TemporaryStatus	//! Status including string buffer
 		{
 		public:
-			Container::Buffer<char>	buffer;		//!< Buffer used to store characters
+			Container::PreAllocVector<char>	buffer;		//!< Buffer used to store characters
 
 			/**/					Status()
 									{}
@@ -292,7 +292,7 @@ namespace DeltaWorks
 		*/
 		bool			tokenize(const char*composition, const Configuration&config, Container::StringList&target, bool clear_list=true);
 		bool			tokenize(const String&composition, const Configuration&config, Container::StringList&target, bool clear_list=true);	//!< @overload
-		bool			Tokenize(const StringRef&composition, const Configuration&config, Container::BasicBuffer<StringRef>&target, bool clear_list=true);
+		bool			Tokenize(const StringRef&composition, const Configuration&config, Container::BasicVector<StringRef>&target, bool clear_list=true);
 	
 	
 		void			tokenizeSegment(const String&composition_segment, const Configuration&config, Status&status, Container::StringList&target);
@@ -352,12 +352,12 @@ namespace DeltaWorks
 
 	namespace Container
 	{
-		class StringList:private Buffer<String,0,SwapStrategy>
+		class StringList:private PreAllocVector<String,0,SwapStrategy>
 		//	private List::M::Vector3<String>
 		{
 		private:
 			//typedef	List::M::Vector3<String>	Super;
-			typedef Buffer<String,0,SwapStrategy>	Super;
+			typedef PreAllocVector<String,0,SwapStrategy>	Super;
 
 			
 			String				fuse(size_t index, size_t length, const char*glue, size_t glue_len) const;

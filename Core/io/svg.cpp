@@ -315,13 +315,13 @@ namespace DeltaWorks
 					config.recursion_break = true;
 					config.main_separator = " ,";
 				}
-				static Ctr::Vector0<StringRef> parts;
+				static Ctr::Vector<StringRef> parts;
 				ASSERT__(Tokenizer::Tokenize(strans,config,parts));
 
 				ASSERT__(!(parts.Count()%2));
 				for (index_t i = 0; i < parts.Count(); i+=2)
 				{
-					static Ctr::Vector0<StringRef> sp;
+					static Ctr::Vector<StringRef> sp;
 					StringRef stringParameters = parts[i+1];
 					if (stringParameters.GetFirstChar() == '(' && stringParameters.GetLastChar() == ')')
 					{

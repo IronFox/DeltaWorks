@@ -15,7 +15,7 @@ namespace DeltaWorks
 		using namespace Math;
 
 		template <typename T>
-			std::shared_ptr<T>	Append(Container::Vector0<std::shared_ptr<T> >&container)
+			std::shared_ptr<T>	Append(Container::Vector<std::shared_ptr<T> >&container)
 			{
 				std::shared_ptr<T> rs(new T());
 				container << rs;
@@ -34,7 +34,7 @@ namespace DeltaWorks
 
 
 
-		void			ObjConverter::parseObjPoint(Container::Buffer<M::TVec3<Def::FloatType> >&target, char*start, char*end) throw()
+		void			ObjConverter::parseObjPoint(Container::Vector<M::TVec3<Def::FloatType> >&target, char*start, char*end) throw()
 		{
 			BYTE section(0);
 			while (*start == ' ')
@@ -57,7 +57,7 @@ namespace DeltaWorks
 				v.v[k] = 0;
 		}
 
-		void			ObjConverter::parseObjPoint(Container::Buffer<M::TVec2<Def::FloatType> >&target, char*start, char*end) throw()
+		void			ObjConverter::parseObjPoint(Container::Vector<M::TVec2<Def::FloatType> >&target, char*start, char*end) throw()
 		{
 			BYTE section(0);
 			while (*start == ' ')
@@ -122,7 +122,7 @@ namespace DeltaWorks
 		void			ObjConverter::parseObjFace(char*start, char*end) throw()
 		{
 		
-			static Container::Buffer<int>	ibuffer;
+			static Container::Vector<int>	ibuffer;
 			ibuffer.Clear();
 		
 			while (start < end)
@@ -1267,8 +1267,8 @@ namespace DeltaWorks
 			//PointerTable<bool>	inversion_field;	//map of all objects with negative volume
 
 			static const UINT32 invalid_index = (UINT32)-1;
-			Container::Buffer<TPoolTriangle>	triangle_buffer;
-			Container::Buffer<TPoolQuad>		quad_buffer;
+			Container::Vector<TPoolTriangle>	triangle_buffer;
+			Container::Vector<TPoolQuad>		quad_buffer;
 		
 			sendMessage("Creating geometric hull");
 			for (index_t i = 0; i < group_buffer.Count(); i++)

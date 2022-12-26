@@ -21,14 +21,14 @@ namespace DeltaWorks
 	namespace Container
 	{
 		/**
-		Base buffer storage type that holds all pointers and allows some operations.
+		Base vector storage type that holds all pointers and allows some operations.
 		It does not know any used memory strategy and hence cannot destroy the referenced data on its own.
 		NEVER USE ON ITS OWN
 		*/
 		template <typename T>
-			class CommonBufferStorage
+			class CommonVectorStorage
 			{
-				typedef CommonBufferStorage<T>	Self;
+				typedef CommonVectorStorage<T>	Self;
 			protected:
 				T						*storageBegin,		//!< Pointer to the first element of the storage area. May be NULL indicating an empty buffer
 										*storageEnd,		//!< Pointer one past the last valid element of the storage area. May be NULL indicating an empty buffer. (storage_end-storageBegin) stays valid even if the buffer is empty
@@ -41,19 +41,19 @@ namespace DeltaWorks
 				inline static	T*		Allocate(count_t len);		//!< Allocates the specified number of elements via malloc. No constructors are called. The function returns NULL if len is 0. std::bad_alloc may be thrown if allocation fails
 				inline static	T*		AllocateNotEmpty(count_t len);	//!< Identical to the above but without length check. @a len must not be 0. passing 0 causes undefined behavior
 				
-				explicit				CommonBufferStorage(count_t len);			//!< Constructor \param len Initial buffer size in elements.
-				/**/					CommonBufferStorage(const Self&other);
+				explicit				CommonVectorStorage(count_t len);			//!< Constructor \param len Initial buffer size in elements.
+				/**/					CommonVectorStorage(const Self&other);
 				#if __BUFFER_RVALUE_REFERENCES__
-					/**/				CommonBufferStorage(Self&&other);
+					/**/				CommonVectorStorage(Self&&other);
 				#endif
-				/**/					CommonBufferStorage(std::initializer_list<T> items);
+				/**/					CommonVectorStorage(std::initializer_list<T> items);
 
 			public:
 				typedef T*				iterator;
 				typedef const T*		const_iterator;
 
 
-				virtual					~CommonBufferStorage() {DBG_ASSERT_IS_NULL__(storageBegin);DBG_ASSERT_IS_NULL__(storageEnd);DBG_ASSERT_IS_NULL__(usageEnd);DBG_ASSERT__(fillLevel == 0);};
+				virtual					~CommonVectorStorage() {DBG_ASSERT_IS_NULL__(storageBegin);DBG_ASSERT_IS_NULL__(storageEnd);DBG_ASSERT_IS_NULL__(usageEnd);DBG_ASSERT__(fillLevel == 0);};
 				MutableArrayRef<T>		ToRef() {return MutableArrayRef<T>(storageBegin,Count());}
 				ArrayRef<T>				ToRef() const {return ArrayRef<T>(storageBegin,Count());}
 				MutableArrayRef<T>		SubRef(index_t start, count_t count=InvalidIndex) {if (start >= Count()) return MutableArrayRef<T>(); return MutableArrayRef<T>(storageBegin+start,std::min(count, Count()-start));}
@@ -93,13 +93,13 @@ namespace DeltaWorks
 
 				inline bool				Owns(const T*element)	const;	//! Queries if the specified entry pointer was taken from the local buffer. Actual pointer address is checked, not what it points to.
 
-				inline bool				operator==(const CommonBufferStorage<T>&other) const;
-				inline bool				operator!=(const CommonBufferStorage<T>&other) const;
+				inline bool				operator==(const CommonVectorStorage<T>&other) const;
+				inline bool				operator!=(const CommonVectorStorage<T>&other) const;
 
 				inline T&				GetFromEnd(index_t);					//!< Retrieves the nth element from the end of the consumed buffer space. GetFromEnd(0) is identical to Last()
 				inline const T&			GetFromEnd(index_t)			const;	//!< @copydoc GetFromEnd()
 
-				void					swap(CommonBufferStorage<T>&other);			//!< Swaps data with the other buffer
+				void					swap(CommonVectorStorage<T>&other);			//!< Swaps data with the other buffer
 				template <typename IndexType>
 					inline T*			operator+(IndexType delta);				//!< Returns a pointer to the beginning of the buffer plus the specified delta
 				template <typename IndexType>
@@ -123,10 +123,10 @@ namespace DeltaWorks
 			strategy due to the otherwise added overhead of needlessly destroying local dynamic content in rvalue operator=() implementations.
 		*/
 		template <typename T, typename MyStrategy=typename StrategySelector<T>::Default>
-			class BasicBuffer : public CommonBufferStorage<T>
+			class BasicVector : public CommonVectorStorage<T>
 			{
 			protected:
-				typedef CommonBufferStorage<T>	Super;
+				typedef CommonVectorStorage<T>	Super;
 
 
 				inline void				EnsureHasSpace(count_t elements);	//!< Ensures that at least the specified number of non-allocated elements is available from @a usage_end to @a storage_end . The local storage may be resized/allocated if necessary. Element movement behavior is described by the passed @a Strategy struct. The requested elements are not constructed. std::bad_alloc may be thrown
@@ -137,17 +137,17 @@ namespace DeltaWorks
 				static inline void		DestructAndFree(T*range_begin, T*range_end);	//!< Invokes destructors for all elements from @a range_begin to @a range_end excluding @a range_end . Then invokes free(@a range_begin ). @a range_begin may be NULL if @a range_end is too.
 
 			public:
-				typedef BasicBuffer<T,MyStrategy>		Self;
+				typedef BasicVector<T,MyStrategy>		Self;
 				using Super::iterator;
 
-				explicit				BasicBuffer(count_t len);			//!< Constructor \param len Initial buffer size in elements.
-				/**/					BasicBuffer(const Self&other);
+				explicit				BasicVector(count_t len);			//!< Constructor \param len Initial buffer size in elements.
+				/**/					BasicVector(const Self&other);
 				#if __BUFFER_RVALUE_REFERENCES__
-					/**/				BasicBuffer(Self&&other);
-					/**/				BasicBuffer(Super&&other):Super(std::forward<Super>(other)){}
+					/**/				BasicVector(Self&&other);
+					/**/				BasicVector(Super&&other):Super(std::forward<Super>(other)){}
 				#endif
-				/**/					BasicBuffer(std::initializer_list<T> items);
-				virtual				   ~BasicBuffer();
+				/**/					BasicVector(std::initializer_list<T> items);
+				virtual				   ~BasicVector();
 				Self&					operator=(const ArrayRef<T>&array);
 				Self&					operator=(const Self&other);
 				Self&					operator=(std::initializer_list<T> items);
@@ -167,7 +167,7 @@ namespace DeltaWorks
 				inline void				Clear()				/**@copydoc clear()*/ {clear();}
 				void					ResizePreserveContent(count_t len);		//!< Resizes the local buffer size but preserves the old content and fill level where possible. If the old fill level exceeds the new size then all new elements will be occupied and initialized
 				template <typename Strategy2>
-					Self&				MoveAppendAll(BasicBuffer<T,Strategy2>&buffer, bool clearSourceOnCompletion=true);	//!< Appends all elements in the specified other buffer to the end of the local buffer. The elements will be moved, leaving the parameter buffer empty upon completion.
+					Self&				MoveAppendAll(BasicVector<T,Strategy2>&buffer, bool clearSourceOnCompletion=true);	//!< Appends all elements in the specified other buffer to the end of the local buffer. The elements will be moved, leaving the parameter buffer empty upon completion.
 				Self&					MoveAppendAll(Ctr::ArrayData<T>&array, bool clearSourceOnCompletion=true);					//!< Appends all elements in the specified array to the end of the local buffer. The elements will be moved, leaving the parameter array empty upon completion.	
 				Self&					moveAppend(T*data, count_t elements);			//!< Appends all elements in the specified range to the end of the local buffer. The elements will be moved, leaving the individual objects of the parameter field empty upon completion.
 				inline Self&			MoveAppend(T*data, count_t elements)	/**@copydoc moveAppend()*/ {return moveAppend(data,elements);}
@@ -178,7 +178,7 @@ namespace DeltaWorks
 					Self&				AppendAll(std::initializer_list<T2> items);
 				Self&					AppendAll(const ArrayRef<T>&array);				//!< Appends a number of elements to the end of the buffer, advancing the buffer cursor by the specified array's contained of elements. The buffer will automatically be resized if necessary.
 				template <typename T2, typename Strategy2>
-					Self&				AppendAll(const BasicBuffer<T2,Strategy2>&buffer);	//!< Appends a number of elements to the end of the buffer, advancing the buffer cursor by the specified array's contained of elements. The buffer will automatically be resized if necessary.
+					Self&				AppendAll(const BasicVector<T2,Strategy2>&buffer);	//!< Appends a number of elements to the end of the buffer, advancing the buffer cursor by the specified array's contained of elements. The buffer will automatically be resized if necessary.
 				template <typename T2>
 					Self&				appendAddresses(T2*data, count_t elements);	//!< Appends the addresses of the specified elements to the end of the buffer (assuming T is a pointer type fo T2). The buffer will automatically be resized if necessary.
 				template <typename T2>
@@ -238,7 +238,7 @@ namespace DeltaWorks
 				template <typename T2>
 					inline bool			FindAndErase(const T2&element)		/**@copydoc findAndErase()*/	{return findAndErase(element);}
 
-				void					adoptData(BasicBuffer<T,MyStrategy>&other);	//!< Adopts all attributes of the specified other buffer leaving it empty. Any existing local data is deleted.
+				void					adoptData(BasicVector<T,MyStrategy>&other);	//!< Adopts all attributes of the specified other buffer leaving it empty. Any existing local data is deleted.
 
 				using Super::Count;
 				using Super::GetLength;
@@ -274,29 +274,29 @@ namespace DeltaWorks
 			strategy due to the otherwise added overhead of needlessly destroying local dynamic content in rvalue operator=() implementations.
 		*/
 		template <typename T, count_t InitialLength=16, typename MyStrategy=typename StrategySelector<T>::Default>
-			class Buffer:public BasicBuffer<T,MyStrategy>
+			class PreAllocVector:public BasicVector<T,MyStrategy>
 			{
 			public:
-				typedef BasicBuffer<T,MyStrategy>				Super;
-				typedef Buffer<T,InitialLength,MyStrategy>	Self;
+				typedef BasicVector<T,MyStrategy>				Super;
+				typedef PreAllocVector<T,InitialLength,MyStrategy>	Self;
 				typedef	MyStrategy							AppliedStrategy;
 
 
-				explicit			Buffer(count_t len=InitialLength):Super(len)
+				explicit			PreAllocVector(count_t len=InitialLength):Super(len)
 									{}
-									Buffer(const Super&other):Super(other)
+									PreAllocVector(const Super&other):Super(other)
 									{}
-									Buffer(const Self&other):Super(other)
+									PreAllocVector(const Self&other):Super(other)
 									{}
 				#if __BUFFER_RVALUE_REFERENCES__
 					template<count_t Len>
-									Buffer(Buffer<T,Len,MyStrategy>&&other):Super(std::forward<Super>(other))
+									PreAllocVector(PreAllocVector<T,Len,MyStrategy>&&other):Super(std::forward<Super>(other))
 									{}
-									Buffer(Self && other) :Super(std::forward<Super>(other))
+									PreAllocVector(Self && other) :Super(std::forward<Super>(other))
 									{}
-									Buffer(Super&&other) :Super(std::forward<Super>(other))
+									PreAllocVector(Super&&other) :Super(std::forward<Super>(other))
 									{}
-									Buffer(typename Super::Super&&other):Super(std::forward<typename Super::Super>(other))
+									PreAllocVector(typename Super::Super&&other):Super(std::forward<typename Super::Super>(other))
 									{}
 					Self&			operator=(Self&&other) { Super::adoptData(other); return *this; }
 					Self&			operator=(Super&&other) { Super::adoptData(other); return *this; }
@@ -326,31 +326,31 @@ namespace DeltaWorks
 			strategy due to the otherwise added overhead of needlessly destroying local dynamic content in rvalue operator=() implementations.
 		*/
 		template <typename T, typename MyStrategy=typename StrategySelector<T>::Default>
-			class Buffer0:public Buffer<T,0,MyStrategy>
+			class Vector:public PreAllocVector<T,0,MyStrategy>
 			{
 			public:
-				typedef Buffer<T, 0, MyStrategy>				Super;
-				typedef Buffer0<T,MyStrategy>					Self;
+				typedef PreAllocVector<T, 0, MyStrategy>				Super;
+				typedef Vector<T,MyStrategy>					Self;
 				typedef	MyStrategy							AppliedStrategy;
 
 
-				explicit			Buffer0() :Super(0)
+				explicit			Vector() :Super(0)
 									{}
-									Buffer0(const Super&other):Super(other)
+									Vector(const Super&other):Super(other)
 									{}
-									Buffer0(const Self&other):Super(other)
+									Vector(const Self&other):Super(other)
 									{}
 				#if __BUFFER_RVALUE_REFERENCES__
 					template<count_t Len>
-									Buffer0(Buffer<T,Len,MyStrategy>&&other):Super(std::forward<Buffer<T,Len,MyStrategy> >(other))
+									Vector(PreAllocVector<T,Len,MyStrategy>&&other):Super(std::forward<PreAllocVector<T,Len,MyStrategy> >(other))
 									{}
-									Buffer0(Self&&other):Super(std::forward<Super>(other))
+									Vector(Self&&other):Super(std::forward<Super>(other))
 									{}
-									Buffer0(Super&&other):Super(std::forward<Super>(other))
+									Vector(Super&&other):Super(std::forward<Super>(other))
 									{}
-									Buffer0(typename Super::Super&&other):Super(std::forward<typename Super::Super>(other))
+									Vector(typename Super::Super&&other):Super(std::forward<typename Super::Super>(other))
 									{}
-									Buffer0(typename Super::Super::Super&&other):Super(std::forward<typename Super::Super::Super>(other))
+									Vector(typename Super::Super::Super&&other):Super(std::forward<typename Super::Super::Super>(other))
 									{}
 					Self&			operator=(Self&&other){Super::adoptData(other); return *this;}
 					Self&			operator=(Super&&other){Super::adoptData(other); return *this;}
@@ -370,10 +370,10 @@ namespace DeltaWorks
 				using Super::operator+;
 			};
 		template <count_t InitialLength=1024>
-			class WriteBuffer:public Buffer<BYTE,InitialLength,PrimitiveStrategy>, public IWriteStream
+			class WriteBuffer:public PreAllocVector<BYTE,InitialLength,PrimitiveStrategy>, public IWriteStream
 			{
 			public:
-				typedef Buffer<BYTE,InitialLength,PrimitiveStrategy>	Super;
+				typedef PreAllocVector<BYTE,InitialLength,PrimitiveStrategy>	Super;
 
 				virtual	bool		write(const void*data, serial_size_t size)
 									{
@@ -383,32 +383,32 @@ namespace DeltaWorks
 			};
 
 
-		#include "buffer.tpl.h"
+		#include "vectorList.tpl.h"
 
 
-		template <typename T, typename MyStrategy=typename StrategySelector<T>::Default>
-			using Vector0 = Buffer0<T,MyStrategy>;
-		template <typename T, count_t InitialLength=16, typename MyStrategy=typename StrategySelector<T>::Default>
-			using Vector = Buffer<T,InitialLength,MyStrategy>;
+		//template <typename T, typename MyStrategy=typename StrategySelector<T>::Default>
+		//	using Vector = Vector<T,MyStrategy>;
+		//template <typename T, count_t InitialLength=16, typename MyStrategy=typename StrategySelector<T>::Default>
+		//	using Vector = PreAllocVector<T,InitialLength,MyStrategy>;
 
 	}
 
 	template <typename T, typename MyStrategy>
-		class StrategySelector<Container::BasicBuffer<T, MyStrategy> >
+		class StrategySelector<Container::BasicVector<T, MyStrategy> >
 		{
 		public:
 			typedef	SwapStrategy		Default;
 		};
 
 	template <typename T, count_t InitialLength, typename MyStrategy>
-		class StrategySelector<Container::Buffer<T, InitialLength, MyStrategy> >
+		class StrategySelector<Container::PreAllocVector<T, InitialLength, MyStrategy> >
 		{
 		public:
 			typedef	SwapStrategy		Default;
 		};
 
 	template <typename T, typename MyStrategy>
-		class StrategySelector<Container::Buffer0<T, MyStrategy> >
+		class StrategySelector<Container::Vector<T, MyStrategy> >
 		{
 		public:
 			typedef	SwapStrategy		Default;

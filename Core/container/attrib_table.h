@@ -2,7 +2,7 @@
 #define attrib_tableH
 
 #include "../global_string.h"
-#include "buffer.h"
+#include "vectorList.h"
 #include "hashtable.h"
 #include "../string/converter.h"
 
@@ -74,9 +74,9 @@ namespace DeltaWorks
 				class RootConfiguration
 				{
 				public:
-						Buffer<TAttributeData<T> >	attributes;
-						Buffer<TAttributeConfig>	attribute_names;
-						Buffer<T>					values;
+						Vector<TAttributeData<T> >	attributes;
+						Vector<TAttributeConfig>	attribute_names;
+						Vector<T>					values;
 				
 				
 						void						clear()
@@ -155,7 +155,7 @@ namespace DeltaWorks
 			static	bool							finalized;
 			public:
 					StringTable<TAttribute>			name_map;
-					Buffer<TAttribute>				index_map;
+					Vector<TAttribute>				index_map;
 			
 					void							clear();
 			template <typename T>

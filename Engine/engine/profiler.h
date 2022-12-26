@@ -341,8 +341,8 @@ namespace Engine
 			protected:
 					typename GL::VBO					vbo;
 					typename GL::IBO					ibo;
-					Ctr::Buffer<typename GL::FloatType>	vertices;
-					Ctr::Buffer<typename GL::IndexType>	indices;
+					Ctr::PreAllocVector<typename GL::FloatType>	vertices;
+					Ctr::PreAllocVector<typename GL::IndexType>	indices;
 					Array<float,Primitive>				h_field,
 														h_block;
 					MaterialConfig						material;
@@ -511,7 +511,7 @@ namespace Engine
 			};
 			
 			
-			extern Ctr::Vector0<Graph*>					orthographic_graphs, perspective_graphs;
+			extern Ctr::Vector<Graph*>					orthographic_graphs, perspective_graphs;
 	}
 
 

@@ -1,7 +1,7 @@
 #include "../global_root.h"
 #include "monitoredProcess.h"
 #include "../io/file_system.h"
-#include "../container/buffer.h"
+#include "../container/vectorList.h"
 
 #ifdef WIN32
 
@@ -232,7 +232,7 @@ namespace DeltaWorks
 		struct TEnumParameter
 		{
 			DWORD	process;
-			Container::Vector0<HWND>	*outWindows;
+			Container::Vector<HWND>	*outWindows;
 		};
 
 		static BOOL CALLBACK Enumerate(HWND hWnd, LPARAM lParam)
@@ -247,7 +247,7 @@ namespace DeltaWorks
 			return TRUE;
 		}
 
-		static void EnumerateWindows(DWORD process, Container::Vector0<HWND>&outWindows)
+		static void EnumerateWindows(DWORD process, Container::Vector<HWND>&outWindows)
 		{
 			TEnumParameter p;
 			p.process = process;
@@ -471,7 +471,7 @@ namespace DeltaWorks
 			}
 			if (terminateOnQuit)
 			{
-				Container::Vector0<HWND>	windows;
+				Container::Vector<HWND>	windows;
 				MonitorDetails::EnumerateWindows(infoOut.dwProcessId,windows);
 				foreach (windows,w)
 				{
@@ -550,7 +550,7 @@ namespace DeltaWorks
 		const DWORD pid = infoOut.dwProcessId;
 		if (pid)
 		{
-			Vector0<HWND>	windows;
+			Vector<HWND>	windows;
 			MonitorDetails::EnumerateWindows(pid,windows);
 			windows.CopyToArray(outWindows);
 		}
@@ -564,7 +564,7 @@ namespace DeltaWorks
 		const DWORD pid = infoOut.dwProcessId;
 		if (pid)
 		{
-			Container::Vector0<HWND>	windows;
+			Container::Vector<HWND>	windows;
 			MonitorDetails::EnumerateWindows(pid,windows);
 			foreach (windows,w)
 			{

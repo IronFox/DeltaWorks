@@ -279,7 +279,7 @@ namespace DeltaWorks
 			return edge;
 		}
 	
-		bool				Graph::CreateTopologicalOrder(Container::BasicBuffer<PNode>&out)
+		bool				Graph::CreateTopologicalOrder(Container::BasicVector<PNode>&out)
 		{
 			Container::Queue<PNode>	queue;
 			foreach (nodes,n)

@@ -1,7 +1,7 @@
 #ifndef graph_meshH
 #define graph_meshH
 
-#include "../container/buffer.h"
+#include "../container/vectorList.h"
 #include "../math/vector.h"
 #include "../io/xml.h"
 #include "../io/texture_compression.h"
@@ -85,9 +85,9 @@ namespace DeltaWorks
 									slope;
 		};
 
-		typedef Container::Buffer<UINT32,0>				IndexContainer;
-		typedef Container::Buffer<TVertex,0,Primitive>		VertexContainer;
-		typedef Container::BasicBuffer<TVertex,Primitive>	OutVertexContainer;
+		typedef Container::PreAllocVector<UINT32,0>				IndexContainer;
+		typedef Container::PreAllocVector<TVertex,0,Primitive>		VertexContainer;
+		typedef Container::BasicVector<TVertex,Primitive>	OutVertexContainer;
 
 		VertexContainer				vertices;
 		IndexContainer				triangleIndices,
@@ -105,8 +105,8 @@ namespace DeltaWorks
 
 			direction_t				direction;
 		};
-		Container::Buffer<Edge,0>			edges;
-		Container::Buffer<TConnector,0>		subConnectors;
+		Container::PreAllocVector<Edge,0>			edges;
+		Container::PreAllocVector<TConnector,0>		subConnectors;
 
 		unsigned					textureRepetitions;
 
@@ -142,7 +142,7 @@ namespace DeltaWorks
 
 		void						BuildSegment(const SurfaceDescription::TConnector&begin, const SurfaceDescription::TConnector&end,const SurfaceDescription::TControl control_points[2], float tolerance0, float tolerance1);
 		void						BuildArc(const OutVertexContainer&arc_vertices, float near_distance, float far_distance, float extend_along_track);
-		void						BuildRails(const SurfaceDescription&source, const Container::BasicBuffer<float2>&profile, const M::TVec3<>&relativeTo);
+		void						BuildRails(const SurfaceDescription&source, const Container::BasicVector<float2>&profile, const M::TVec3<>&relativeTo);
 		void						BuildRails(const SurfaceDescription&source, float innerExtend, float outerExtend, float upperExtend, float lowerExtend, const M::TVec3<>&relativeTo);
 		void						BuildBarriers(const SurfaceDescription&source, float barrierPosition, float barrierHeight0, float barrierHeight1, const M::TVec3<>&relativeTo);
 		float3						GetEdgeCenter()	const;
@@ -158,7 +158,7 @@ namespace DeltaWorks
 		*/
 		static void					BuildArc(OutVertexContainer&arc_out, const TControl&control, float tolerance, bool flipped, bool global);
 	private:
-		static void					Subdivide(const SurfaceDescription::TConnector&begin, const SurfaceDescription::TConnector&end,const SurfaceDescription::TControl control_points[2], float tolerance, const InterpolatedSlice&ref0, const InterpolatedSlice&ref1, float t0, float t1, Container::Buffer<InterpolatedSlice,256,POD>&outIntersections, int force);
+		static void					Subdivide(const SurfaceDescription::TConnector&begin, const SurfaceDescription::TConnector&end,const SurfaceDescription::TControl control_points[2], float tolerance, const InterpolatedSlice&ref0, const InterpolatedSlice&ref1, float t0, float t1, Container::PreAllocVector<InterpolatedSlice,256,POD>&outIntersections, int force);
 		static void					BuildArcFromSlice(OutVertexContainer&arc_out, InterpolatedSlice&slice, float tolerance, bool flipped);
 
 	};
@@ -267,7 +267,7 @@ namespace DeltaWorks
 			bool							BuildConnector(bool outbound, index_t subdiv, bool second_node, SurfaceDescription::TConnector&out_connector)	const;
 			bool							BuildState(bool outbound, index_t subdiv, bool second_node, SurfaceDescription::TControl&out_state)	const;
 
-			void							BuildArc(Container::BasicBuffer<SurfaceDescription::TVertex>&arc_out, index_t lod, bool flip, bool global)	const;
+			void							BuildArc(Container::BasicVector<SurfaceDescription::TVertex>&arc_out, index_t lod, bool flip, bool global)	const;
 			Node&							SetPosition(float x,float y,float z)	{M::Vec::def(position,x,y,z); return *this;}
 			Node&							SetDirection(float x,float y,float z)	{M::Vec::def(direction,x,y,z); M::Vec::normalize(direction); return *this;}
 			Node&							SetUpAxis(float x, float y, float z)	{M::Vec::def(up,x,y,z); M::Vec::normalize(up); return *this;}
@@ -371,7 +371,7 @@ namespace DeltaWorks
 		index_t								FindSegment(const Segment::Connector&slot0, const Segment::Connector&slot1)	const;
 		void								Unlink(index_t segmentIndex);
 		void								ManagedUnlink(index_t segmentIndex,bool updateControls, bool build, Container::IndexSet*affectedSegments = NULL);
-		void								ManagedRemoveNode(index_t nodeIndex, bool updateConnectedSlopes, bool updateConnectedSegmentControls, bool build, Container::BasicBuffer<std::pair<index_t,PAttachment> >*removedSegments, Container::IndexSet*affectedSegments=NULL);
+		void								ManagedRemoveNode(index_t nodeIndex, bool updateConnectedSlopes, bool updateConnectedSegmentControls, bool build, Container::BasicVector<std::pair<index_t,PAttachment> >*removedSegments, Container::IndexSet*affectedSegments=NULL);
 		/**
 		@brief Copies all local data into a more compact form with no unused memory inbetwen
 		*/
@@ -398,7 +398,7 @@ namespace DeltaWorks
 		static void							CompileBarrierGeometry(CGS::Geometry<>&target,const Segment&segment, float position,float height0,float height1,name64_t texture, CGS::TextureResource*resource=NULL);
 		static void							CompileArcGeometry(CGS::Geometry<>&target, const Node&node, float near_distance, float far_distance, float extend_along_track, name64_t texture, name64_t normal_texture, bool node_is_flipped, CGS::TextureResource*resource=NULL);
 		static void							CompileRailGeometry(CGS::Geometry<>&target, const Segment&segment, float innerExtend, float outerExtend, float upperExtend, float lowerExtend, name64_t texture, name64_t normal_texture, CGS::TextureResource*resource=NULL);
-		static void							CompileRailGeometry(CGS::Geometry<>&target, const Segment&segment, const Container::BasicBuffer<float2>&profile, name64_t texture, name64_t normal_texture, CGS::TextureResource*resource=NULL);
+		static void							CompileRailGeometry(CGS::Geometry<>&target, const Segment&segment, const Container::BasicVector<float2>&profile, name64_t texture, name64_t normal_texture, CGS::TextureResource*resource=NULL);
 		static void							CompileFromDescriptions(CGS::Geometry<>&target, const Ctr::Array<SurfaceDescription>&lods, float shortest_edge, name64_t texture, name64_t normal_texture, CGS::TextureResource*resource =NULL);
 		static void							CompileFromDescriptions(CGS::Geometry<>&target, const Ctr::Array<SurfaceDescription>&lods, const SurfaceDescription&phHull, float shortest_edge, name64_t texture, name64_t normal_texture, CGS::TextureResource*resource =NULL);
 
@@ -430,7 +430,7 @@ namespace DeltaWorks
 											normal;
 		};
 		
-		Container::Buffer<Node>						nodes;
+		Container::PreAllocVector<Node>						nodes;
 		
 		
 		void								adoptData(LineShape&other)
@@ -446,7 +446,7 @@ namespace DeltaWorks
 	class Outline
 	{
 	public:
-		Container::Buffer0<LineShape,Adopt>	shapes;
+		Container::Vector<LineShape,Adopt>	shapes;
 		
 		
 		count_t					countNodes()	const
@@ -495,7 +495,7 @@ namespace DeltaWorks
 
 
 
-		Container::Buffer<Node>		nodes;
+		Container::PreAllocVector<Node>		nodes;
 
 		void				swap(Profile&other)
 							{
@@ -547,7 +547,7 @@ namespace DeltaWorks
 	protected:
 		static void				splitHull(SurfaceDescription&desc_out);
 		static float			splitIntersectionFactor(const SurfaceDescription::TVertex&v0,const SurfaceDescription::TVertex&v1);
-		static UINT32			insertInterpolatedVertex(Container::Buffer<SurfaceDescription::TVertex,0,POD>&vout,UINT32 v0,UINT32 v1,float factor);
+		static UINT32			insertInterpolatedVertex(Container::PreAllocVector<SurfaceDescription::TVertex,0,POD>&vout,UINT32 v0,UINT32 v1,float factor);
 	protected:
 		
 		bool					defineSurface(const Profile::Node&p0,const Profile::Node&p1,index_t edge_index,float x_step, float z_step, float texture_size_x, float texture_size_y,SurfaceDescription&desc_out, layout_t layout, float simplify_x)	const;
@@ -610,8 +610,8 @@ namespace DeltaWorks
 
 
 
-		Container::Buffer<Node>		nodes;
-		Container::Buffer<Edge>		edges;
+		Container::PreAllocVector<Node>		nodes;
+		Container::PreAllocVector<Edge>		edges;
 		
 
 		void				swap(Graph&other)

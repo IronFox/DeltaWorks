@@ -13,7 +13,7 @@ Also provides template-structures for abstract objects.
 #include "matrix.h"
 #include "../container/queue.h"
 #include "object_def.h"
-#include "../container/buffer.h"
+#include "../container/vectorList.h"
 #include "../general/parallel_for.h"
 
 
@@ -352,9 +352,9 @@ namespace DeltaWorks
 		namespace Obj
 		{
 			template <typename F, typename I>
-				bool	Triangulate(const ArrayRef<TVec2<F> >&vertices, BasicBuffer<I>&outIndices);
+				bool	Triangulate(const ArrayRef<TVec2<F> >&vertices, BasicVector<I>&outIndices);
 			template <typename F, typename I>
-				bool	TriangulateF(const count_t numVertices, const std::function<TVec2<F>(index_t)>&getVertex, BasicBuffer<I>&outIndices);
+				bool	TriangulateF(const count_t numVertices, const std::function<TVec2<F>(index_t)>&getVertex, BasicVector<I>&outIndices);
 
 
 			/*!
@@ -439,7 +439,7 @@ namespace DeltaWorks
 		MFUNC2	(bool)		_oTriangulate(const M::TVec2<C0>*vertex, count_t vertices, Mesh<C1>&target);//two entries per vertex
 	
 		template <typename ContainerT, typename Index>
-			MF_DECLARE	(bool)	_oTriangulate3(const ContainerT&vertex_field, Container::BasicBuffer<Index>&target);
+			MF_DECLARE	(bool)	_oTriangulate3(const ContainerT&vertex_field, Container::BasicVector<Index>&target);
 
 		/*!
 			\overload
@@ -552,7 +552,7 @@ namespace DeltaWorks
 		MFUNC	(void)		_oUnlinkFromVertices(MeshQuad<TFaceGraphDef<C> >*quad, MeshVertex<TFaceGraphDef<C> >*except);			//!< Unlinks the specified quad from all its vertices except the specified \b except vertex
 	
  	
-		MFUNC	(count_t)		_oCountUnmarked(const Ctr::BasicBuffer<C>&list);		//!< Counts the number of elements whoes 'marked' member is false
+		MFUNC	(count_t)		_oCountUnmarked(const Ctr::BasicVector<C>&list);		//!< Counts the number of elements whoes 'marked' member is false
 
 
 		MFUNC	(TriangleMesh<C>*)	_oSphere(const C&radius, count_t iterations);	//!< Generates a spherical triangle mesh \param radius Sphere radius \param iterations Surface resolution (5 = very low, 50 = very high)
@@ -1209,7 +1209,7 @@ namespace DeltaWorks
 				Ctr::Array<MeshQuad<Def>*>		quad_field;
 				Ctr::Array<MeshEdge<Def>*>		edge_field;
 			public:
-				static Container::Buffer<ObjMap<Def>*>sector_map;					//!< Global sector lookup buffer
+				static Container::PreAllocVector<ObjMap<Def>*>sector_map;					//!< Global sector lookup buffer
 	
 				M::Box<C>						dim;								//!< Bounding box
 				ObjMap<Def>*				child[8];							//!< Pointer to node children or NULL if the respective child does not exist
@@ -1235,10 +1235,10 @@ namespace DeltaWorks
 				MF_DECLARE	(count_t)		lookupEdge(const C p0[3], const C p1[3]);						//!< Recursivly performs a lookup for sectors intersecting the specified edge. Found sectors are written to \b sector_map. Required for succeeding resolve calls \param p0 Composite of the first edge vertex \param p1 Composite of the second edge vertex \return Number of sectors found intersecting the specified edge
 				MF_DECLARE	(count_t)		lookupSphere(const C center[3], const C&radius);
 				MF_DECLARE	(ObjMap<Def>*)	lookupCover(const C lower_corner[3], const C upper_corner[3]);	//!< Tries to find the closest sector entirely covering the specified volume \param lower_corner Lower corner coordinates of the box \param upper_corner Upper corner coordinates of the box \return Smallest Sectors that covers the entire specified box. The result may not entirely cover the box if no such sector exists.
-				MF_DECLARE	(count_t)		resolveQuads(Container::Buffer<MeshQuad<Def>*>&face_out);					//!< Copies all distinct quad pointers from the found sectors (if any) to the specified buffer. This method requires the result of either lookup(), lookupSphere(), or lookupEdge() to work properly \param face_out Out buffer for found quads. The buffer will not be reset before writing \return Number of quad pointers written to the buffer
-				MF_DECLARE	(count_t)		resolveTriangles(Container::Buffer<MeshTriangle<Def>*>&face_out);			//!< Copies all distinct triangle pointers from the found sectors (if any) to the specified buffer. This method requires the result of either lookup(), lookupSphere(), or lookupEdge() to work properly \param face_out Out buffer for found triangles. The buffer will not be reset before writing  \return Number of triangle pointers written to the buffer                                                                                                                                                                                                                                                                                                      
-				MF_DECLARE	(count_t)		resolveEdges(Container::Buffer<MeshEdge<Def>*>&edge_out);					//!< Copies all distinct edge pointers from the found sectors (if any) to the specified buffer. This method requires the result of either lookup(), lookupSphere(), or lookupEdge() to work properly \param edge_out Out buffer for found edges. The buffer will not be reset before writing \return Number of edge pointers written to the buffer
-				MF_DECLARE	(count_t)		resolveVertices(Container::Buffer<MeshVertex<Def>*>&vertex_out);			//!< Copies all distinct vertex pointers from the found sectors (if any) to the specified buffer. This method requires the result of either lookup(), lookupSphere(), or lookupEdge() to work properly \param edge_out Out buffer for found vertices. The buffer will not be reset before writing \return Number of vertex pointers written to the buffer
+				MF_DECLARE	(count_t)		resolveQuads(Container::PreAllocVector<MeshQuad<Def>*>&face_out);					//!< Copies all distinct quad pointers from the found sectors (if any) to the specified buffer. This method requires the result of either lookup(), lookupSphere(), or lookupEdge() to work properly \param face_out Out buffer for found quads. The buffer will not be reset before writing \return Number of quad pointers written to the buffer
+				MF_DECLARE	(count_t)		resolveTriangles(Container::PreAllocVector<MeshTriangle<Def>*>&face_out);			//!< Copies all distinct triangle pointers from the found sectors (if any) to the specified buffer. This method requires the result of either lookup(), lookupSphere(), or lookupEdge() to work properly \param face_out Out buffer for found triangles. The buffer will not be reset before writing  \return Number of triangle pointers written to the buffer                                                                                                                                                                                                                                                                                                      
+				MF_DECLARE	(count_t)		resolveEdges(Container::PreAllocVector<MeshEdge<Def>*>&edge_out);					//!< Copies all distinct edge pointers from the found sectors (if any) to the specified buffer. This method requires the result of either lookup(), lookupSphere(), or lookupEdge() to work properly \param edge_out Out buffer for found edges. The buffer will not be reset before writing \return Number of edge pointers written to the buffer
+				MF_DECLARE	(count_t)		resolveVertices(Container::PreAllocVector<MeshVertex<Def>*>&vertex_out);			//!< Copies all distinct vertex pointers from the found sectors (if any) to the specified buffer. This method requires the result of either lookup(), lookupSphere(), or lookupEdge() to work properly \param edge_out Out buffer for found vertices. The buffer will not be reset before writing \return Number of vertex pointers written to the buffer
 			};
 
 
@@ -1409,10 +1409,10 @@ namespace DeltaWorks
 												}
 					};
 				
-					Container::Buffer<TPoint>		buffer;	//!< Points that have not yet been inserted into the hull
-					Container::Buffer<TPoint>		vertices;	//!< Mapped hull point
-					Container::Buffer<TTriangle>	triangles;
-					Container::Buffer<TEdge>		edges;	//non-persistent
+					Container::PreAllocVector<TPoint>		buffer;	//!< Points that have not yet been inserted into the hull
+					Container::PreAllocVector<TPoint>		vertices;	//!< Mapped hull point
+					Container::PreAllocVector<TTriangle>	triangles;
+					Container::PreAllocVector<TEdge>		edges;	//non-persistent
 				
 					MF_DECLARE (void)				UpdateNormal(TTriangle&triangle)	const;
 				

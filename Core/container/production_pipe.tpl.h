@@ -53,7 +53,7 @@ template <typename T,typename MyStrategy>
 
 template <typename T,typename MyStrategy>
 	template <typename Strategy>
-		count_t						WorkPipe<T,MyStrategy>::FlushContentTo(BasicBuffer<T,Strategy>&destination)
+		count_t						WorkPipe<T,MyStrategy>::FlushContentTo(BasicVector<T,Strategy>&destination)
 		{
 			SignalRead();
 				count_t rs = Super::Count();
@@ -83,7 +83,7 @@ template <typename T,typename MyStrategy>
 	}
 
 template <typename T,typename MyStrategy>
-	inline	WorkPipe<T,MyStrategy>&    WorkPipe<T,MyStrategy>::MoveAppend(BasicBuffer<T>&buffer)
+	inline	WorkPipe<T,MyStrategy>&    WorkPipe<T,MyStrategy>::MoveAppend(BasicVector<T>&buffer)
 	{
 		lock.lock();
 			Super::MoveAppend(buffer);

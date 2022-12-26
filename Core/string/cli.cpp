@@ -852,7 +852,7 @@ namespace DeltaWorks
 		String			Parser::ExtendedComplete(const StringRef&line, StringList&out)
 		{
 			out.clear();
-			Buffer0<StringRef> segments;
+			Vector<StringRef> segments;
 			Tokenizer::Tokenize(line,GetSegmentizerConfig(),segments);
 
 			if (segments.IsEmpty())
@@ -1101,7 +1101,7 @@ namespace DeltaWorks
 
 		bool	Parser::Parse(const StringRef&line, bool allow_global_commands /*=true*/)
 		{
-			Buffer0<StringRef>	lines;
+			Vector<StringRef>	lines;
 			Tokenizer::Tokenize(line,lookup.lineConfig,lines);
 			for	(index_t i = 0; i < lines.Count(); i++)
 				if (!_ParseLine(lines[i],allow_global_commands))

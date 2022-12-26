@@ -11,7 +11,7 @@ E:\include\importer\obj.h
 #include "../../io/file_system.h"
 #include "../../io/string_file.h"
 #include "../../io/log.h"
-#include "../../container/buffer.h"
+#include "../../container/vectorList.h"
 #include "../../container/hashtable.h"
 #include "../../container/string_list.h"
 #include "../../image/converter/magic.h"
@@ -288,7 +288,7 @@ namespace DeltaWorks
 		public:
 			CGS::SubGeometryA<>					*target;
 			String								name;
-			Container::Buffer<TObjFace>			face_buffer;
+			Container::PreAllocVector<TObjFace>			face_buffer;
 		};
 
 		typedef std::shared_ptr<ObjFaceGroup>	PObjFaceGroup;
@@ -356,10 +356,10 @@ namespace DeltaWorks
 			//Sorted<List::M::Vector3<ObjVertexNT>,OperatorSort>	tex_vertices;
 			//Sorted<List::M::Vector3<ObjVertexN>,OperatorSort>	vertices;
 			
-			Container::Buffer<TObjTriangle>				triangles;
-			Container::Buffer<TObjTriangleT>			tex_triangles;
-			Container::Buffer<TObjQuad>					quads;
-			Container::Buffer<TObjQuadT>				tex_quads;
+			Container::PreAllocVector<TObjTriangle>				triangles;
+			Container::PreAllocVector<TObjTriangleT>			tex_triangles;
+			Container::PreAllocVector<TObjQuad>					quads;
+			Container::PreAllocVector<TObjQuadT>				tex_quads;
 			
 														ObjMaterialSection():target(NULL)
 														{}
@@ -378,7 +378,7 @@ namespace DeltaWorks
 		{
 		public:
 			String										name;
-			Container::Vector0<PObjMaterialSection>		sections;
+			Container::Vector<PObjMaterialSection>		sections;
 			PObjMaterialSection							selected_section;
 			ObjTexture									*texture,
 														*normal_map;
@@ -439,17 +439,17 @@ namespace DeltaWorks
 		{
 		protected:
 
-			Container::Buffer<M::TVec3<Def::FloatType> >		vertexBuffer,
+			Container::Vector<M::TVec3<Def::FloatType> >		vertexBuffer,
 												normal_buffer;
-			Container::Buffer<M::TVec2<Def::FloatType> >		texcoord_buffer;
+			Container::Vector<M::TVec2<Def::FloatType> >		texcoord_buffer;
 			CFSFolder							object_system;
-			Container::Vector0<PObjFaceGroup>	group_buffer;
+			Container::Vector<PObjFaceGroup>	group_buffer;
 			PObjFaceGroup						current_group;
 			unsigned							current_smooth_group, smooth_groups;
 			Container::IndexTable<unsigned>		smooth_group_table;
 			// ArrayList<TObjFace,512> 			*current_smooth_group;
 			// unsigned							current_smooth_group_index;
-			Container::Vector0<PObjMaterial>		material_list;
+			Container::Vector<PObjMaterial>		material_list;
 			Container::StringTable<PObjMaterial>	material_table;
 			Container::StringTable<PObjFaceGroup>	object_name_table;
 			Container::StringSet					object_name_table64, 
@@ -468,8 +468,8 @@ namespace DeltaWorks
 			void				LoadObjColor(const String&line,M::TVec4<Def::FloatType>&target) throw();
 			PathString			ParseMap(CFSFolder&folder, const String&line, M::TVec3<>&scale) throw();
 			void				LoadObjMaterialLibrary(const CFSFile*file) throw();
-			void				parseObjPoint(Container::Buffer<M::TVec3<Def::FloatType> >&target, char*start, char*end) throw();
-			void				parseObjPoint(Container::Buffer<M::TVec2<Def::FloatType> >&target, char*start, char*end) throw();
+			void				parseObjPoint(Container::Vector<M::TVec3<Def::FloatType> >&target, char*start, char*end) throw();
+			void				parseObjPoint(Container::Vector<M::TVec2<Def::FloatType> >&target, char*start, char*end) throw();
 			void				parseObjFaceVertex(char*start, char*end, int&v, int&n, int&t) throw();
 			void				parseObjFace(char*start, char*end) throw();
 			void				parseObjLine(char*start, char*end);

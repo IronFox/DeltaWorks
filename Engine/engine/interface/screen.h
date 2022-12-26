@@ -9,7 +9,7 @@ Collection of screen-query containers.
 
 
 #include <global_string.h>
-#include <container/buffer.h>
+#include <container/vectorList.h>
 
 namespace Engine
 {
@@ -68,7 +68,7 @@ namespace Engine
 	#endif
 	};
 
-	class ResolutionList:public Ctr::Vector0<ScreenResolution>
+	class ResolutionList:public Ctr::Vector<ScreenResolution>
 	{
 	public:
 		#if SYSTEM==WINDOWS

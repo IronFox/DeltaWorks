@@ -4,7 +4,7 @@
 #include "../global_string.h"
 #include "../io/string_file.h"
 #include "../string/string_buffer.h"
-#include "../container/buffer.h"
+#include "../container/vectorList.h"
 #include "../container/hashtable.h"
 
 
@@ -51,7 +51,7 @@ namespace DeltaWorks
 		{
 		public:
 
-			typedef Vector0<TAttribute>::const_iterator	const_iterator;
+			typedef Vector<TAttribute>::const_iterator	const_iterator;
 			const_iterator		begin() const {return attributeList.begin();}
 			const_iterator		end() const {return attributeList.end();}
 			size_t				size() const {return attributeList.size();}
@@ -80,7 +80,7 @@ namespace DeltaWorks
 			}
 
 		private:
-			Vector0<TAttribute>	attributeList;
+			Vector<TAttribute>	attributeList;
 			StringTable<index_t>attributeMap;
 
 		};
@@ -92,7 +92,7 @@ namespace DeltaWorks
 			String				name,
 								inner_content,
 								following_content;
-			Vector0<Node,Swap>	children;
+			Vector<Node,Swap>	children;
 			AttributeTable		attributes;
 								
 			Node&				NewChild(const String&name);
@@ -197,7 +197,7 @@ namespace DeltaWorks
 		class ScannerRule
 		{
 		public:
-			typedef void(*pNodeCallback)(const Vector0<TScannerNode>&node);
+			typedef void(*pNodeCallback)(const Vector<TScannerNode>&node);
 		protected:
 			StringTable<WScannerRule>
 									connections;

@@ -2,7 +2,7 @@
 #define vertex_tableH
 
 #include "../container/hashtable.h"
-#include "../container/buffer.h"
+#include "../container/vectorList.h"
 #include "../math/basic.h"
 #include "../math/vector.h"
 
@@ -40,7 +40,7 @@ namespace DeltaWorks
 	protected:
 		typedef HashTable<TVertexIntPosition,index_t>	Table;
 		
-		Container::Buffer<TPosition>					position_map;
+		Container::PreAllocVector<TPosition>					position_map;
 		float											tolerance;
 	public:
 		/**/							VertexTable(float tolerance=1e-3f);	//!< Constructs a newvertex table using the specified tolerance

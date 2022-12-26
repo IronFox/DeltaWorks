@@ -276,7 +276,7 @@ namespace Engine
 		{
 			typedef Component			Parent;
 		protected:
-			Buffer<PComponent,4>		children;
+			PreAllocVector<PComponent,4>		children;
 
 			/**/						Panel(const String&typeName):Component("Panel/"+typeName)	//!< Creates a derivative panel
 										{
@@ -369,7 +369,7 @@ namespace Engine
 			typedef Panel				Super;
 
 			M::Rect<float>						effectiveClientRegion;
-			Buffer<PComponent,4>	visible_children;
+			PreAllocVector<PComponent,4>	visible_children;
 				
 
 			void						createBars()

@@ -523,7 +523,7 @@ namespace Engine
 		//void						RestoreRendererState();	//must be implemented by 
 
 	private:
-		Buffer0<TRendererState>	stack;
+		Vector<TRendererState>	stack;
 
 	};
 }

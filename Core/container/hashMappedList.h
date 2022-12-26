@@ -1,7 +1,7 @@
 #pragma once
 
 #include "hashtable.h"
-#include "buffer.h"
+#include "vectorList.h"
 
 namespace DeltaWorks
 {
@@ -25,7 +25,7 @@ namespace DeltaWorks
 						TStrategy::swap(value,other.value);
 					}
 				};
-				typedef Buffer0<TEntry,Swap>			List;
+				typedef Vector<TEntry,Swap>			List;
 
 				typedef typename List::const_iterator	const_iterator;
 

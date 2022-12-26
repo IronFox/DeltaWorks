@@ -29,7 +29,7 @@
 
 
 template <typename T, typename MyStrategy>
-	inline void		BasicBuffer<T, MyStrategy>::DestructAndFree(T*range_begin, T*range_end)
+	inline void		BasicVector<T, MyStrategy>::DestructAndFree(T*range_begin, T*range_end)
 	{
 		MyStrategy::destructRange(range_begin,range_end);
 		free(range_begin);
@@ -37,7 +37,7 @@ template <typename T, typename MyStrategy>
 
 
 template <typename T>
-	inline T*	CommonBufferStorage<T>::Allocate(count_t len)
+	inline T*	CommonVectorStorage<T>::Allocate(count_t len)
 	{
 		if (!len)
 			return NULL;
@@ -49,7 +49,7 @@ template <typename T>
 
 
 template <typename T>
-	inline T*	CommonBufferStorage<T>::AllocateNotEmpty(count_t len)
+	inline T*	CommonVectorStorage<T>::AllocateNotEmpty(count_t len)
 	{
 		T*rs = (T*)malloc(sizeof(T)*len);
 		if (!rs)
@@ -59,7 +59,7 @@ template <typename T>
 
 
 template <typename T, typename MyStrategy>
-	inline void BasicBuffer<T, MyStrategy>::EnsureHasSpace(count_t elements)
+	inline void BasicVector<T, MyStrategy>::EnsureHasSpace(count_t elements)
 	{
 		const count_t	current_size = storageEnd-storageBegin,
 						fill = usageEnd-storageBegin,
@@ -106,7 +106,7 @@ template <typename T, typename MyStrategy>
 	}
 
 template <typename T, typename MyStrategy>
-	inline void BasicBuffer<T, MyStrategy>::EnsureHasSpace()
+	inline void BasicVector<T, MyStrategy>::EnsureHasSpace()
 	{
 		if (usageEnd == storageEnd)
 		{
@@ -144,7 +144,7 @@ template <typename T, typename MyStrategy>
 	}
 
 template <typename T>
-	CommonBufferStorage<T>::CommonBufferStorage(count_t len)
+	CommonVectorStorage<T>::CommonVectorStorage(count_t len)
 	{
 		try
 		{
@@ -168,13 +168,13 @@ template <typename T>
 
 
 template <typename T, typename MyStrategy>
-	BasicBuffer<T, MyStrategy>::BasicBuffer(count_t len):Super(len)
+	BasicVector<T, MyStrategy>::BasicVector(count_t len):Super(len)
 	{}
 
 
 
 template <typename T, typename MyStrategy>
-	BasicBuffer<T, MyStrategy>::~BasicBuffer()
+	BasicVector<T, MyStrategy>::~BasicVector()
 	{
 		DestructAndFree(storageBegin,usageEnd);
 		#ifdef _DEBUG
@@ -192,7 +192,7 @@ template <typename T, typename MyStrategy>
 	}
 
 template <typename T, typename MyStrategy>
-	void	BasicBuffer<T, MyStrategy>::clear(count_t len)
+	void	BasicVector<T, MyStrategy>::clear(count_t len)
 	{
 		//deloc(storageBegin);
 		MyStrategy::destructRange(storageBegin,usageEnd);
@@ -221,7 +221,7 @@ template <typename T, typename MyStrategy>
 	}
 
 template <typename T>
-	CommonBufferStorage<T>::CommonBufferStorage(std::initializer_list<T> items)
+	CommonVectorStorage<T>::CommonVectorStorage(std::initializer_list<T> items)
 	{
 		count_t	Fill = items.size();
 		//alloc(storageBegin,Fill);
@@ -255,13 +255,13 @@ template <typename T>
 	}
 
 template <typename T, typename MyStrategy>
-	BasicBuffer<T, MyStrategy>::BasicBuffer(std::initializer_list<T> items):Super(items)
+	BasicVector<T, MyStrategy>::BasicVector(std::initializer_list<T> items):Super(items)
 	{}
 
 
 
 template <typename T>
-	CommonBufferStorage<T>::CommonBufferStorage(const Self&other)
+	CommonVectorStorage<T>::CommonVectorStorage(const Self&other)
 	{
 		const count_t	fill = other.usageEnd-other.storageBegin;
 		//alloc(storageBegin,Fill);
@@ -294,13 +294,13 @@ template <typename T>
 	}
 
 template <typename T, typename MyStrategy>
-	BasicBuffer<T, MyStrategy>::BasicBuffer(const Self&other):Super(other)
+	BasicVector<T, MyStrategy>::BasicVector(const Self&other):Super(other)
 	{}
 
 
 #if __BUFFER_RVALUE_REFERENCES__
 template <typename T>
-	CommonBufferStorage<T>::CommonBufferStorage(Self&&other):storageBegin(other.storageBegin),storageEnd(other.storageEnd),usageEnd(other.usageEnd)
+	CommonVectorStorage<T>::CommonVectorStorage(Self&&other):storageBegin(other.storageBegin),storageEnd(other.storageEnd),usageEnd(other.usageEnd)
 	{
 		#if defined(_DEBUG) && __BUFFER_DBG_COUNT__
 			fillLevel = other.fillLevel;
@@ -313,11 +313,11 @@ template <typename T>
 
 
 template <typename T, typename MyStrategy>
-	BasicBuffer<T, MyStrategy>::BasicBuffer(Self&&other):Super(std::move(other))
+	BasicVector<T, MyStrategy>::BasicVector(Self&&other):Super(std::move(other))
 	{}
 
 template <typename T, typename MyStrategy>
-	BasicBuffer<T, MyStrategy>&		BasicBuffer<T, MyStrategy>::operator=(Self&&other)
+	BasicVector<T, MyStrategy>&		BasicVector<T, MyStrategy>::operator=(Self&&other)
 	{
 		adoptData(other);
 		return *this;
@@ -325,7 +325,7 @@ template <typename T, typename MyStrategy>
 #endif
 
 template <typename T, typename MyStrategy>
-	BasicBuffer<T, MyStrategy>&		BasicBuffer<T, MyStrategy>::operator=(const BasicBuffer<T, MyStrategy>&other)
+	BasicVector<T, MyStrategy>&		BasicVector<T, MyStrategy>::operator=(const BasicVector<T, MyStrategy>&other)
 	{
 		MyStrategy::destructRange(storageBegin,usageEnd);
 		const count_t	fill = other.usageEnd-other.storageBegin;
@@ -363,7 +363,7 @@ template <typename T, typename MyStrategy>
 	}
 
 template <typename T, typename MyStrategy>
-	BasicBuffer<T, MyStrategy>&		BasicBuffer<T, MyStrategy>::operator=(const ArrayRef<T>&other)
+	BasicVector<T, MyStrategy>&		BasicVector<T, MyStrategy>::operator=(const ArrayRef<T>&other)
 	{
 		Clear();
 		T*field = AppendRow(other.Count());
@@ -372,7 +372,7 @@ template <typename T, typename MyStrategy>
 	}
 
 template <typename T, typename MyStrategy>
-	BasicBuffer<T, MyStrategy>&		BasicBuffer<T, MyStrategy>::operator=(std::initializer_list<T> items)
+	BasicVector<T, MyStrategy>&		BasicVector<T, MyStrategy>::operator=(std::initializer_list<T> items)
 	{
 		Clear();
 		T*field = AppendRow(items.size());
@@ -382,14 +382,14 @@ template <typename T, typename MyStrategy>
 
 	
 template <typename T, typename MyStrategy>
-	void	BasicBuffer<T, MyStrategy>::Revert()
+	void	BasicVector<T, MyStrategy>::Revert()
 	{
 		MyStrategy::revert(storageBegin,usageEnd);
 	}
 
 
 template <typename T, typename MyStrategy>
-	void	BasicBuffer<T, MyStrategy>::ResizePreserveContent(count_t new_len)
+	void	BasicVector<T, MyStrategy>::ResizePreserveContent(count_t new_len)
 	{
 		if ((count_t)(storageEnd-storageBegin) == new_len)
 			return;
@@ -426,14 +426,14 @@ template <typename T, typename MyStrategy>
 
 
 template <typename T>
-	void	CommonBufferStorage<T>::Fill(const T&pattern)
+	void	CommonVectorStorage<T>::Fill(const T&pattern)
 	{
 		for (T*c = storageBegin; c < usageEnd; c++)
 			(*c) = pattern;
 	}
 
 template <typename T, typename MyStrategy>
-	inline T*				BasicBuffer<T, MyStrategy>::appendRow(count_t elements, const T&init_pattern)
+	inline T*				BasicVector<T, MyStrategy>::appendRow(count_t elements, const T&init_pattern)
 	{
 		EnsureHasSpace(elements);
 
@@ -449,7 +449,7 @@ template <typename T, typename MyStrategy>
 
 	
 template <typename T, typename MyStrategy>
-	inline T*				BasicBuffer<T, MyStrategy>::appendRow(count_t elements)
+	inline T*				BasicVector<T, MyStrategy>::appendRow(count_t elements)
 	{
 		EnsureHasSpace(elements);
 
@@ -465,7 +465,7 @@ template <typename T, typename MyStrategy>
 	
 template <typename T, typename MyStrategy>
 	template <typename T2>
-	BasicBuffer<T, MyStrategy>&		BasicBuffer<T, MyStrategy>::appendVA(count_t elements, ...)
+	BasicVector<T, MyStrategy>&		BasicVector<T, MyStrategy>::appendVA(count_t elements, ...)
 	{
 		if (!elements)
 			return *this;
@@ -488,7 +488,7 @@ template <typename T, typename MyStrategy>
 
 
 template <typename T, typename MyStrategy>
-	inline T&				BasicBuffer<T, MyStrategy>::Append()
+	inline T&				BasicVector<T, MyStrategy>::Append()
 	{
 		EnsureHasSpace();
 
@@ -504,7 +504,7 @@ template <typename T, typename MyStrategy>
 
 	
 template <typename T, typename MyStrategy>
-	inline T&				BasicBuffer<T, MyStrategy>::Insert(index_t before)
+	inline T&				BasicVector<T, MyStrategy>::Insert(index_t before)
 	{
 		if (usageEnd == storageEnd)
 		{
@@ -571,7 +571,7 @@ template <typename T, typename MyStrategy>
 	}
 
 template <typename T, typename MyStrategy>
-	inline T*				BasicBuffer<T, MyStrategy>::insertRow(index_t before, count_t length)
+	inline T*				BasicVector<T, MyStrategy>::insertRow(index_t before, count_t length)
 	{
 		if (usageEnd+length > storageEnd)
 		{
@@ -644,7 +644,7 @@ template <typename T, typename MyStrategy>
 
 template <typename T, typename MyStrategy>
 template <typename T2>
-	inline	T&				BasicBuffer<T, MyStrategy>::Insert(index_t before, const T2&data)
+	inline	T&				BasicVector<T, MyStrategy>::Insert(index_t before, const T2&data)
 	{
 		if (usageEnd == storageEnd)
 		{
@@ -710,7 +710,7 @@ template <typename T2>
 	}
 
 template <typename T, typename MyStrategy>
-	inline void				BasicBuffer<T, MyStrategy>::eraseLast()
+	inline void				BasicVector<T, MyStrategy>::eraseLast()
 	{
 		BUFFER_ASSERT_NOT_EMPTY();
 		usageEnd--;
@@ -722,7 +722,7 @@ template <typename T, typename MyStrategy>
 	}
 
 template <typename T, typename MyStrategy>
-	inline T				BasicBuffer<T, MyStrategy>::pop()
+	inline T				BasicVector<T, MyStrategy>::pop()
 	{
 		BUFFER_ASSERT_NOT_EMPTY();
 		usageEnd--;
@@ -739,7 +739,7 @@ template <typename T, typename MyStrategy>
 	/*	Not working ... laaaame
 
 template <typename T>
-	inline T				BasicBuffer<T, CopyStrategy>::pop()
+	inline T				BasicVector<T, CopyStrategy>::pop()
 	{
 		usageEnd--;
 		T data(*usageEnd);
@@ -748,7 +748,7 @@ template <typename T>
 	}
 
 template <typename T>
-	inline T				BasicBuffer<T, PrimitiveStrategy>::pop()
+	inline T				BasicVector<T, PrimitiveStrategy>::pop()
 	{
 		usageEnd--;
 		return *usageEnd;
@@ -756,35 +756,35 @@ template <typename T>
 	*/
 
 template <typename T>
-	inline	T&				CommonBufferStorage<T>::Last()
+	inline	T&				CommonVectorStorage<T>::Last()
 	{
 		BUFFER_ASSERT_NOT_EMPTY();
 		return *(usageEnd-1);
 	}
 	
 template <typename T>
-	inline	const T&		CommonBufferStorage<T>::Last()	const
+	inline	const T&		CommonVectorStorage<T>::Last()	const
 	{
 		BUFFER_ASSERT_NOT_EMPTY();
 		return *(usageEnd-1);
 	}
 
 template <typename T>
-	inline	T&				CommonBufferStorage<T>::First()
+	inline	T&				CommonVectorStorage<T>::First()
 	{
 		BUFFER_ASSERT_NOT_EMPTY();
 		return *storageBegin;
 	}
 	
 template <typename T>
-	inline	const T&		CommonBufferStorage<T>::First()	const
+	inline	const T&		CommonVectorStorage<T>::First()	const
 	{
 		BUFFER_ASSERT_NOT_EMPTY();
 		return *storageBegin;
 	}
 
 template <typename T, typename MyStrategy>
-	inline BasicBuffer<T, MyStrategy>&		BasicBuffer<T, MyStrategy>::operator<<(const T&el)
+	inline BasicVector<T, MyStrategy>&		BasicVector<T, MyStrategy>::operator<<(const T&el)
 	{
 		EnsureHasSpace();
 
@@ -799,7 +799,7 @@ template <typename T, typename MyStrategy>
 
 	#if __BUFFER_RVALUE_REFERENCES__
 		template <typename T, typename MyStrategy>
-			inline BasicBuffer<T, MyStrategy>&		BasicBuffer<T, MyStrategy>::operator<<(T&&el)
+			inline BasicVector<T, MyStrategy>&		BasicVector<T, MyStrategy>::operator<<(T&&el)
 			{
 				moveAppend(el);
 				return *this;
@@ -807,7 +807,7 @@ template <typename T, typename MyStrategy>
 	#endif
 
 template <typename T, typename MyStrategy>
-	inline T&		BasicBuffer<T, MyStrategy>::append(const T&el)
+	inline T&		BasicVector<T, MyStrategy>::append(const T&el)
 	{
 		EnsureHasSpace();
 
@@ -821,7 +821,7 @@ template <typename T, typename MyStrategy>
 	}
 
 template <typename T, typename MyStrategy>
-	inline	index_t			BasicBuffer<T,MyStrategy>::appendIfNotFound(const T&el)
+	inline	index_t			BasicVector<T,MyStrategy>::appendIfNotFound(const T&el)
 	{
 		index_t index = Super::GetIndexOf(el);
 		if (index == InvalidIndex)
@@ -834,7 +834,7 @@ template <typename T, typename MyStrategy>
 
 
 template <typename T, typename MyStrategy>
-	inline T&		BasicBuffer<T, MyStrategy>::moveAppend(T&el)
+	inline T&		BasicVector<T, MyStrategy>::moveAppend(T&el)
 	{
 		EnsureHasSpace();
 
@@ -850,7 +850,7 @@ template <typename T, typename MyStrategy>
 
 	#if __BUFFER_RVALUE_REFERENCES__
 		template <typename T, typename MyStrategy>
-			inline T&		BasicBuffer<T, MyStrategy>::append(T&&el)
+			inline T&		BasicVector<T, MyStrategy>::append(T&&el)
 			{
 				return moveAppend(el);
 			}
@@ -858,7 +858,7 @@ template <typename T, typename MyStrategy>
 
 
 template <typename T, typename MyStrategy>
-	inline index_t		BasicBuffer<T, MyStrategy>::push_back(const T&el)
+	inline index_t		BasicVector<T, MyStrategy>::push_back(const T&el)
 	{
 		EnsureHasSpace();
 
@@ -872,7 +872,7 @@ template <typename T, typename MyStrategy>
 	}
 
 template <typename T, typename MyStrategy> template <typename T2>
-	inline BasicBuffer<T, MyStrategy>&		BasicBuffer<T, MyStrategy>::appendAddresses(T2*data, count_t elements)
+	inline BasicVector<T, MyStrategy>&		BasicVector<T, MyStrategy>::appendAddresses(T2*data, count_t elements)
 	{
 		EnsureHasSpace(elements);
 		for (index_t i = 0; i < elements; i++)
@@ -886,7 +886,7 @@ template <typename T, typename MyStrategy> template <typename T2>
 	}
 
 template <typename T, typename MyStrategy> template <typename Strategy2>
-	BasicBuffer<T, MyStrategy>&		BasicBuffer<T, MyStrategy>::MoveAppendAll(BasicBuffer<T,Strategy2>&buffer, bool clearSourceOnCompletion/*=true*/)
+	BasicVector<T, MyStrategy>&		BasicVector<T, MyStrategy>::MoveAppendAll(BasicVector<T,Strategy2>&buffer, bool clearSourceOnCompletion/*=true*/)
 	{
 		if (IsEmpty() && clearSourceOnCompletion)
 		{
@@ -901,7 +901,7 @@ template <typename T, typename MyStrategy> template <typename Strategy2>
 	}
 
 template <typename T, typename MyStrategy>
-	BasicBuffer<T, MyStrategy>&		BasicBuffer<T, MyStrategy>::MoveAppendAll(Ctr::ArrayData<T>&array, bool clearSourceOnCompletion/*=true*/)
+	BasicVector<T, MyStrategy>&		BasicVector<T, MyStrategy>::MoveAppendAll(Ctr::ArrayData<T>&array, bool clearSourceOnCompletion/*=true*/)
 	{
 		moveAppend(array.pointer(),array.GetLength());
 		if (clearSourceOnCompletion)
@@ -910,7 +910,7 @@ template <typename T, typename MyStrategy>
 	}
 
 template <typename T, typename MyStrategy>
-	BasicBuffer<T, MyStrategy>&		BasicBuffer<T, MyStrategy>::moveAppend(T*data, count_t elements)
+	BasicVector<T, MyStrategy>&		BasicVector<T, MyStrategy>::moveAppend(T*data, count_t elements)
 	{
 		EnsureHasSpace(elements);
 		MyStrategy::constructRangeFromFleetingData(usageEnd,usageEnd+elements,data);
@@ -924,20 +924,20 @@ template <typename T, typename MyStrategy>
 	}
 
 template <typename T, typename MyStrategy>
-	BasicBuffer<T, MyStrategy>&		BasicBuffer<T, MyStrategy>::MoveAppend(std::initializer_list<T> items)
+	BasicVector<T, MyStrategy>&		BasicVector<T, MyStrategy>::MoveAppend(std::initializer_list<T> items)
 	{
 		return moveAppend(items.begin(),items.size());
 	}
 
 template <typename T, typename MyStrategy> template <typename T2>
-	BasicBuffer<T, MyStrategy>&		BasicBuffer<T, MyStrategy>::AppendAll(std::initializer_list<T2> items)
+	BasicVector<T, MyStrategy>&		BasicVector<T, MyStrategy>::AppendAll(std::initializer_list<T2> items)
 	{
 		return append(items.begin(),items.size());
 	}
 
 
 template <typename T, typename MyStrategy> template <typename T2>
-	BasicBuffer<T, MyStrategy>&		BasicBuffer<T, MyStrategy>::Append(const T2*data, count_t elements)
+	BasicVector<T, MyStrategy>&		BasicVector<T, MyStrategy>::Append(const T2*data, count_t elements)
 	{
 		EnsureHasSpace(elements);
 		for (index_t i = 0; i < elements; i++)
@@ -951,7 +951,7 @@ template <typename T, typename MyStrategy> template <typename T2>
 	}
 
 //template <typename T, typename MyStrategy> template <typename T2, typename Strategy2>
-//	BasicBuffer<T, MyStrategy>&		BasicBuffer<T, MyStrategy>::AppendSubList(const BasicBuffer<T2,Strategy2>&other, index_t offset, count_t maxElements)
+//	BasicVector<T, MyStrategy>&		BasicVector<T, MyStrategy>::AppendSubList(const BasicVector<T2,Strategy2>&other, index_t offset, count_t maxElements)
 //	{
 //		if (offset >= other.Count())
 //			return *this;
@@ -963,27 +963,27 @@ template <typename T, typename MyStrategy> template <typename T2>
 //
 
 template <typename T, typename MyStrategy> //template <typename T2>
-	BasicBuffer<T, MyStrategy>&		BasicBuffer<T, MyStrategy>::AppendAll(const ArrayRef<T>&data)
+	BasicVector<T, MyStrategy>&		BasicVector<T, MyStrategy>::AppendAll(const ArrayRef<T>&data)
 	{
 		return Append(data.pointer(),data.Count());
 	}
 
 template <typename T, typename MyStrategy> template <typename T2, typename Strategy2>
-	BasicBuffer<T, MyStrategy>&		BasicBuffer<T, MyStrategy>::AppendAll(const BasicBuffer<T2,Strategy2>&data)
+	BasicVector<T, MyStrategy>&		BasicVector<T, MyStrategy>::AppendAll(const BasicVector<T2,Strategy2>&data)
 	{
 		return Append(data.pointer(),data.Count());
 	}
 
 
 template <typename T, typename MyStrategy> template <typename T2>
-	BasicBuffer<T, MyStrategy>&		BasicBuffer<T, MyStrategy>::appendAddresses(MutableArrayRef<T2>&data)
+	BasicVector<T, MyStrategy>&		BasicVector<T, MyStrategy>::appendAddresses(MutableArrayRef<T2>&data)
 	{
 		return appendAddresses(data.pointer(),data.Count());
 	}
 
 
 template <typename T, typename MyStrategy>
-	void		BasicBuffer<T, MyStrategy>::compact()
+	void		BasicVector<T, MyStrategy>::compact()
 	{
 		if (usageEnd == storageEnd)	// already compacted
 			return;
@@ -1014,7 +1014,7 @@ template <typename T, typename MyStrategy>
 
 
 template <typename T, typename MyStrategy>
-	inline void		BasicBuffer<T, MyStrategy>::reset()
+	inline void		BasicVector<T, MyStrategy>::reset()
 	{
 		MyStrategy::destructRange(storageBegin,usageEnd);
 		usageEnd = storageBegin;
@@ -1025,36 +1025,36 @@ template <typename T, typename MyStrategy>
 	}
 
 template <typename T, typename MyStrategy>
-	inline void		BasicBuffer<T, MyStrategy>::clear()
+	inline void		BasicVector<T, MyStrategy>::clear()
 	{
 		reset();
 	}
 
 template <typename T>
-	inline	bool			CommonBufferStorage<T>::empty()						const
+	inline	bool			CommonVectorStorage<T>::empty()						const
 	{
 		return usageEnd==storageBegin;
 	}
 template <typename T>
-	inline bool	CommonBufferStorage<T>::IsEmpty()					const
+	inline bool	CommonVectorStorage<T>::IsEmpty()					const
 	{
 		return usageEnd==storageBegin;
 	}
 
 template <typename T>
-	inline bool	CommonBufferStorage<T>::IsNotEmpty()					const
+	inline bool	CommonVectorStorage<T>::IsNotEmpty()					const
 	{
 		return usageEnd!=storageBegin;
 	}
 
 template <typename T>
-	inline count_t	CommonBufferStorage<T>::GetLength()					const
+	inline count_t	CommonVectorStorage<T>::GetLength()					const
 	{
 		return usageEnd-storageBegin;
 	}
 
 template <typename T>
-	inline	count_t		CommonBufferStorage<T>::GetStorageSize()				const
+	inline	count_t		CommonVectorStorage<T>::GetStorageSize()				const
 	{
 		return storageEnd-storageBegin;
 	}
@@ -1063,68 +1063,68 @@ template <typename T>
 	
 
 template <typename T>
-	inline T&			CommonBufferStorage<T>::operator[](index_t index)
+	inline T&			CommonVectorStorage<T>::operator[](index_t index)
 	{
 		BUFFER_CHECK_RANGE(index);
 		return storageBegin[index];
 	}
 
 template <typename T>
-	inline const T&	CommonBufferStorage<T>::operator[](index_t index)	const
+	inline const T&	CommonVectorStorage<T>::operator[](index_t index)	const
 	{
 		BUFFER_CHECK_RANGE(index);
 		return storageBegin[index];
 	}
 
 template <typename T>
-	inline bool	CommonBufferStorage<T>::Owns(const T*element)	const
+	inline bool	CommonVectorStorage<T>::Owns(const T*element)	const
 	{
 		return element >= storageBegin && element < usageEnd;
 	}
 
 template <typename T>
-	inline T&			CommonBufferStorage<T>::at(index_t index)
+	inline T&			CommonVectorStorage<T>::at(index_t index)
 	{
 		BUFFER_CHECK_RANGE(index);
 		return storageBegin[index];
 	}
 
 template <typename T>
-	inline const T&	CommonBufferStorage<T>::at(index_t index)	const
+	inline const T&	CommonVectorStorage<T>::at(index_t index)	const
 	{
 		BUFFER_CHECK_RANGE(index);
 		return storageBegin[index];
 	}
 
 template <typename T>
-	inline T&			CommonBufferStorage<T>::GetFromEnd(index_t index)
+	inline T&			CommonVectorStorage<T>::GetFromEnd(index_t index)
 	{
 		BUFFER_CHECK_RANGE(index);
 		return *(usageEnd-index-1);
 	}
 
 template <typename T>
-	inline const T&	CommonBufferStorage<T>::GetFromEnd(index_t index)	const
+	inline const T&	CommonVectorStorage<T>::GetFromEnd(index_t index)	const
 	{
 		BUFFER_CHECK_RANGE(index);
 		return *(usageEnd-index-1);
 	}
 
 template <typename T>
-	inline T*				CommonBufferStorage<T>::pointer()
+	inline T*				CommonVectorStorage<T>::pointer()
 	{
 		return storageBegin;
 	}
 
 template <typename T>
-	inline const T*		CommonBufferStorage<T>::pointer()			const
+	inline const T*		CommonVectorStorage<T>::pointer()			const
 	{
 		return storageBegin;
 	}
 
 template <typename T>
 	template <typename IndexType>
-		inline T*				CommonBufferStorage<T>::operator+(IndexType delta)
+		inline T*				CommonVectorStorage<T>::operator+(IndexType delta)
 		{
 			BUFFER_CHECK_RANGE((index_t)delta);
 			return storageBegin+delta;
@@ -1132,14 +1132,14 @@ template <typename T>
 
 template <typename T>
 	template <typename IndexType>
-		inline const T*		CommonBufferStorage<T>::operator+(IndexType delta)		const
+		inline const T*		CommonVectorStorage<T>::operator+(IndexType delta)		const
 		{
 			BUFFER_CHECK_RANGE((index_t)delta);
 			return storageBegin+delta;
 		}
 
 template <typename T, typename MyStrategy>
-	bool			BasicBuffer<T, MyStrategy>::Truncate(count_t fillLevel)
+	bool			BasicVector<T, MyStrategy>::Truncate(count_t fillLevel)
 	{
 		count_t cfill = usageEnd-storageBegin;
 		if (fillLevel < cfill)
@@ -1157,7 +1157,7 @@ template <typename T, typename MyStrategy>
 	}
 
 template <typename T, typename MyStrategy>
-	void			BasicBuffer<T, MyStrategy>::adoptData(BasicBuffer<T,MyStrategy>&other)
+	void			BasicVector<T, MyStrategy>::adoptData(BasicVector<T,MyStrategy>&other)
 	{
 		if (&other == this)
 			return;
@@ -1176,7 +1176,7 @@ template <typename T, typename MyStrategy>
 	}
 
 template <typename T>
-	void			CommonBufferStorage<T>::swap(Self&other)
+	void			CommonVectorStorage<T>::swap(Self&other)
 	{
 		swp(storageBegin,other.storageBegin);
 		swp(usageEnd,other.usageEnd);
@@ -1188,7 +1188,7 @@ template <typename T>
 	}
 
 template <typename T, typename MyStrategy>
-	void			BasicBuffer<T, MyStrategy>::copyToArray(Ctr::ArrayData<T>&target)	const
+	void			BasicVector<T, MyStrategy>::copyToArray(Ctr::ArrayData<T>&target)	const
 	{
 		target.SetSize(usageEnd-storageBegin);
 		const T*from = storageBegin;
@@ -1200,14 +1200,14 @@ template <typename T, typename MyStrategy>
 	}
 
 template <typename T, typename MyStrategy>
-	Ctr::Array<T,MyStrategy>			BasicBuffer<T, MyStrategy>::copyToArray()	const
+	Ctr::Array<T,MyStrategy>			BasicVector<T, MyStrategy>::copyToArray()	const
 	{
 		return Ctr::Array<T,MyStrategy>(storageBegin,usageEnd-storageBegin);
 	}
 
 
 template <typename T, typename MyStrategy>
-	void			BasicBuffer<T, MyStrategy>::moveToArray(Ctr::ArrayData<T>&target, bool reset_buffer)
+	void			BasicVector<T, MyStrategy>::moveToArray(Ctr::ArrayData<T>&target, bool reset_buffer)
 	{
 		target.SetSize(usageEnd-storageBegin);
 		T*from = storageBegin;
@@ -1221,7 +1221,7 @@ template <typename T, typename MyStrategy>
 	}
 
 template <typename T>
-	inline bool				CommonBufferStorage<T>::operator==(const Self&other) const
+	inline bool				CommonVectorStorage<T>::operator==(const Self&other) const
 	{
 		count_t len = usageEnd - storageBegin;
 		if (len != other.usageEnd - other.storageBegin)
@@ -1233,7 +1233,7 @@ template <typename T>
 	}
 
 template <typename T>
-	inline bool				CommonBufferStorage<T>::operator!=(const Self&other) const
+	inline bool				CommonVectorStorage<T>::operator!=(const Self&other) const
 	{
 		return !operator==(other);
 	}
@@ -1241,7 +1241,7 @@ template <typename T>
 	
 template <typename T>
 	template <typename T2>
-		inline	bool		CommonBufferStorage<T>::Contains(const T2&element)	const
+		inline	bool		CommonVectorStorage<T>::Contains(const T2&element)	const
 		{
 			const T*at = storageBegin;
 			while (at != usageEnd)
@@ -1255,7 +1255,7 @@ template <typename T>
 
 template <typename T>
 	template <typename T2>
-		inline	index_t		CommonBufferStorage<T>::GetIndexOf(const T2&element)	const
+		inline	index_t		CommonVectorStorage<T>::GetIndexOf(const T2&element)	const
 		{
 			const T*at = storageBegin;
 			while (at != usageEnd)
@@ -1269,7 +1269,7 @@ template <typename T>
 
 template <typename T, typename MyStrategy>
 	template <typename T2>
-			bool			BasicBuffer<T, MyStrategy>::findAndErase(const T2&element)
+			bool			BasicVector<T, MyStrategy>::findAndErase(const T2&element)
 			{
 				index_t index = Super::GetIndexOf(element);
 				if (index == InvalidIndex)
@@ -1279,7 +1279,7 @@ template <typename T, typename MyStrategy>
 			}
 
 template <typename T, typename MyStrategy>
-	inline	typename BasicBuffer<T,MyStrategy>::iterator		BasicBuffer<T, MyStrategy>::erase(iterator it)
+	inline	typename BasicVector<T,MyStrategy>::iterator		BasicVector<T, MyStrategy>::erase(iterator it)
 	{
 		index_t index = it - storageBegin;
 		if (index >= (count_t)(usageEnd-storageBegin))
@@ -1290,7 +1290,7 @@ template <typename T, typename MyStrategy>
 
 
 template <typename T, typename MyStrategy>
-	inline	void			BasicBuffer<T, MyStrategy>::Erase(index_t index)
+	inline	void			BasicVector<T, MyStrategy>::Erase(index_t index)
 	{
 		if (index >= (count_t)(usageEnd-storageBegin))
 			return;
@@ -1311,7 +1311,7 @@ template <typename T, typename MyStrategy>
 	
 
 template <typename T, typename MyStrategy>
-	inline	void			BasicBuffer<T, MyStrategy>::Erase(index_t index, index_t elements)
+	inline	void			BasicVector<T, MyStrategy>::Erase(index_t index, index_t elements)
 	{
 		if (index >= (count_t)(usageEnd-storageBegin) || !elements)
 			return;

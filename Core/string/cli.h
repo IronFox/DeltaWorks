@@ -293,12 +293,12 @@ namespace DeltaWorks
 
 
 		template <typename T>
-			class ItemTable : private Buffer<std::shared_ptr<T> >
+			class ItemTable : private PreAllocVector<std::shared_ptr<T> >
 			{
 			public:
 				typedef std::shared_ptr<T>	Type;
 			private:
-				typedef Buffer<Type>	Super;
+				typedef PreAllocVector<Type>	Super;
 				StringTable<index_t>		table;
 			public:
 				typedef typename Super::const_iterator	const_iterator;
@@ -388,7 +388,7 @@ namespace DeltaWorks
 		{
 			PFolder						root;
 			ItemTable<Command>			globalCommands;
-			Buffer0<Parser*>			activeParsers;	//must be raw points, unfortunately, due to handling in destructors and constructors
+			Vector<Parser*>			activeParsers;	//must be raw points, unfortunately, due to handling in destructors and constructors
 		public:
 			bool						setMayCreateVariables = true;
 			std::function<void(PParser,PFolder,PVariable)>	onVariableCall;	//!< Callback function invoked whenever a variable is executed (NULL by default). First parameter is the containing folder
@@ -433,7 +433,7 @@ namespace DeltaWorks
 			PFolder						focused;			//!< Points to the currently focused folder (not NULL)
 			PCommand					executing;			//!< Currently executing command
 			PFolder						executingFolder;	//!< Parent folder of the currently executing command
-			Buffer<PFolder,4>			focusStack;
+			PreAllocVector<PFolder,4>			focusStack;
 
 			String						error;				//!< Contains a description of the last occured error (if any)
 			struct TLookup
@@ -441,12 +441,12 @@ namespace DeltaWorks
 				Tokenizer::Config		pathConfig,		//!< Config used to split the first segment of an input line into path segments
 										segmentConfig,		//!< Config used to split a line into space separated segments
 										lineConfig;		//!< Config used to split a string into lines
-				Buffer0<StringRef>		pathSegments,		//!< Internal storage for the segments of a path
+				Vector<StringRef>		pathSegments,		//!< Internal storage for the segments of a path
 										cmdSegments;		//!< Internal storage for the segments of a command line
 				PVariable				variable;
 				PCommand				command;
 				PFolder					folder;
-				Buffer0<String>			dequotedCMDSegments;
+				Vector<String>			dequotedCMDSegments;
 
 				/**
 				Combines all segments to a folder string of the form [root]/[sub]/[subsub].
@@ -653,7 +653,7 @@ namespace DeltaWorks
 			}
 		};
 
-		class ScriptList:public Vector0<Script,Swap>	//! List of scripts
+		class ScriptList:public Vector<Script,Swap>	//! List of scripts
 		{
 		public:
 			void		Load(const PathString&filename, const String&alias);	//!< Attempts to load a new script to the end of the script list

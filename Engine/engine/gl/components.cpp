@@ -117,7 +117,7 @@ namespace Engine
 		{
 			if (index+1 >= children.Count())
 				return false;
-			Buffer<PComponent,4>::AppliedStrategy::swap(children[index],children[index+1]);
+			PreAllocVector<PComponent,4>::AppliedStrategy::swap(children[index],children[index+1]);
 			SignalVisualChange();
 			return true;
 		}
@@ -136,7 +136,7 @@ namespace Engine
 		{
 			if (!index || index >= children.Count())
 				return false;
-			Buffer<PComponent,4>::AppliedStrategy::swap(children[index-1],children[index]);
+			PreAllocVector<PComponent,4>::AppliedStrategy::swap(children[index-1],children[index]);
 			SignalVisualChange();
 			return true;
 		}

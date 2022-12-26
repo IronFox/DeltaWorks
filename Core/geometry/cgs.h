@@ -175,7 +175,7 @@ namespace DeltaWorks
 
 
 		typedef Ctr::Array<index_t>					Path;
-		typedef Container::BasicBuffer<index_t>	BuildPath;
+		typedef Container::BasicVector<index_t>	BuildPath;
 
 		TextureA* cloneTexture(TextureA*source);
 		Riff::Chunk*openBlock(Riff::Chunk&riff,tName name);
@@ -811,8 +811,8 @@ namespace DeltaWorks
 			private:
 					typedef Ctr::ArrayData<SubGeometryA<Def> > 	Context;
 
-					Container::Vector0<Context*>			context_stack;
-					Container::Vector0<SubGeometryA<Def>*>	entry_stack;
+					Container::Vector<Context*>			context_stack;
+					Container::Vector<SubGeometryA<Def>*>	entry_stack;
 					Geometry<Def>							*super;
 					Context									*context;
 					SubGeometryA<Def>						*current;
@@ -1366,9 +1366,9 @@ namespace DeltaWorks
 				
 					struct	TAnimationMap	//! Performance optimization map
 					{
-						Container::Buffer<AnimatorInstanceA<Def>*>		sub_animator_field;				//!< Animators (wheel/construct) of sub geometries ordered limearily for faster access
-						Container::Buffer<AnimatableSubInstanceA<Def>*>	animated_sub_field;				//!< Linear list of all sub geometries that are affected by some animator for faster state reseting
-						Container::Buffer<double*>						animated_wheel_status_field,	//!< Linear list of all animated wheels' status vectors (two floats per entry) for faster reseting
+						Container::PreAllocVector<AnimatorInstanceA<Def>*>		sub_animator_field;				//!< Animators (wheel/construct) of sub geometries ordered limearily for faster access
+						Container::PreAllocVector<AnimatableSubInstanceA<Def>*>	animated_sub_field;				//!< Linear list of all sub geometries that are affected by some animator for faster state reseting
+						Container::PreAllocVector<double*>						animated_wheel_status_field,	//!< Linear list of all animated wheels' status vectors (two floats per entry) for faster reseting
 															animated_accel_status_field;	//!< Linear list of all animated accelerators' status vectors (one float per entry) for faster reseting
 					};
 					TAnimationMap							animation_map;
@@ -1491,8 +1491,8 @@ namespace DeltaWorks
 				public:
 					struct LOD
 					{
-						Buffer<Float,0>	vertexData;
-						Buffer<Index,0>	triangleIndices,
+						PreAllocVector<Float,0>	vertexData;
+						PreAllocVector<Index,0>	triangleIndices,
 										quadIndices;
 						void			swap(LOD&other)
 										{
@@ -1505,7 +1505,7 @@ namespace DeltaWorks
 				private:
 					friend class Constructor<Def>;
 
-					Buffer<LOD,2,Swap>	lods;
+					PreAllocVector<LOD,2,Swap>	lods;
 					index_t				normalsFromVertex,
 										normalsFromTriangle,
 										normalsFromQuad;
@@ -2221,7 +2221,7 @@ namespace DeltaWorks
 
 			private:
 				VConfig			config;
-				Buffer<Object,1,Adopt>	objects;
+				PreAllocVector<Object,1,Adopt>	objects;
 			public:
 				MaterialColors	colors;
 

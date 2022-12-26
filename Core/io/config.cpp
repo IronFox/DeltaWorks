@@ -661,7 +661,7 @@ namespace DeltaWorks
 		bool	Container::LoadFromFile(StringFile&file)
 		{
 			Clear();
-			Vector0<Context*>	stack_elements;
+			Vector<Context*>	stack_elements;
 			stack_elements.append(this);
 		
 			//logfile << "Now processing file "<<filename<<nl;

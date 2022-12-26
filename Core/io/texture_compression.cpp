@@ -225,7 +225,7 @@ namespace DeltaWorks
 			break;
 			case PNGCompression:
 			{
-				Ctr::Buffer0<BYTE>	out_buffer;
+				Ctr::Vector<BYTE>	out_buffer;
 				png.CompressToBuffer(*from,out_buffer);
 
 				buffer.SetSize(sizeof(Image::THeader)+out_buffer.Count());

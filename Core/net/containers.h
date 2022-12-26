@@ -4,7 +4,7 @@
 #include "../global_root.h"
 #include "../third_party/bz2/bz2.h"
 #include "../global_string.h"
-#include "../container/buffer.h"
+#include "../container/vectorList.h"
 //#include "tcp.h"
 
 namespace DeltaWorks

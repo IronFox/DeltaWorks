@@ -1,6 +1,6 @@
 #include "../../global_root.h"
 #include "png.h"
-#include "../../container/buffer.h"
+#include "../../container/vectorList.h"
 
 extern "C"
 {
@@ -68,13 +68,13 @@ namespace DeltaWorks
 		};
 
 
-		class BufferOut : public WriteIO, public Ctr::Buffer<png_byte>
+		class BufferOut : public WriteIO, public Ctr::PreAllocVector<png_byte>
 		{
 		public:
 
 			virtual void Write(const png_byte* data, png_size_t size) override
 			{
-				Ctr::Buffer<BYTE>::Append(data,size);
+				Ctr::PreAllocVector<BYTE>::Append(data,size);
 			}
 
 			virtual void Flush() override {};
@@ -83,7 +83,7 @@ namespace DeltaWorks
 		class BufferRefOut : public WriteIO
 		{
 		public:
-			BufferRefOut(Ctr::BasicBuffer<BYTE>	*buffer):buffer(buffer)
+			BufferRefOut(Ctr::BasicVector<BYTE>	*buffer):buffer(buffer)
 			{}
 
 			virtual void Write(const png_byte* data, png_size_t size) override
@@ -93,7 +93,7 @@ namespace DeltaWorks
 
 			virtual void Flush() override {};
 		private:
-			Ctr::BasicBuffer<BYTE>	*const buffer;
+			Ctr::BasicVector<BYTE>	*const buffer;
 		};
 
 		class StreamOut : public WriteIO
@@ -558,7 +558,7 @@ namespace DeltaWorks
 	}
 
 	
-	/*static*/	void		PNG::CompressToBuffer(const Image&image, Ctr::BasicBuffer<BYTE>&data)
+	/*static*/	void		PNG::CompressToBuffer(const Image&image, Ctr::BasicVector<BYTE>&data)
 	{
 		Detail::BufferRefOut buf(&data);
 		

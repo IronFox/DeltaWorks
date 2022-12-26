@@ -102,7 +102,7 @@ namespace DeltaWorks
 				CLI::PCommand cmd = commands[i];
 				if (!listed_commands.IsSet(cmd.get()))
 				{
-					Buffer<CLI::PCommand>	temp;
+					PreAllocVector<CLI::PCommand>	temp;
 					temp.append(cmd);
 					for (index_t j = i+1; j < commands.Count(); j++)
 						if (commands[j] == cmd)
