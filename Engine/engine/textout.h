@@ -261,6 +261,12 @@ namespace Engine
 				Textout<Font>&	operator<<(const M::TVec2<T>&v)	{return *this << '('<<v.x << ", "<<v.y<<')';}
 			template <typename T>
 				Textout<Font>&	operator<<(const M::TVec3<T>&v)	{return *this << '('<<v.x << ", "<<v.y<< ", "<<v.z<<')';}
+			template <typename T>
+				Textout<Font>&	operator<<(T&v)	
+				{
+					using StringConversion::ToString;
+					return *this << ToString(v);
+				}
 
 			void			BeginNewLine();		//!< Non-virtual overload of NewLine()
 			void			Print(const char*str, size_t len);					//!< Prints a string segment with a predefined length @param str Pointer to an array of characters containing at least @b len characters @param len Number of characters to print
