@@ -253,6 +253,8 @@ namespace DeltaWorks::Time
 	
 	Delta::Delta(long double seconds):internal(Details::SecondsToDelta(seconds))
 	{}
+	Delta::Delta(double seconds):internal(Details::SecondsToDelta(seconds))
+	{}
 
 	/*explicit			*/	Delta::Delta(Details::delta_t internal):internal(internal)
 	{}
@@ -261,6 +263,12 @@ namespace DeltaWorks::Time
 	/*static*/ Delta			Delta::FromMilliseconds(long long ms)
 	{
 		return Delta(Details::MillisecondsToDelta(ms));
+	}
+
+
+	/*static*/ Delta			Delta::FromSeconds(long long s)
+	{
+		return Delta(Details::SecondsToDelta(s));
 	}
 
 
@@ -423,7 +431,7 @@ namespace DeltaWorks::Time
 
 		Delta operator "" _d(unsigned long long days)
 		{
-			return Delta(days * (60ll * 60 * 24));
+			return Delta(long double(days * (60ll * 60 * 24)));
 		}
 	
 		Delta operator "" _h(long double hours)
@@ -433,7 +441,7 @@ namespace DeltaWorks::Time
 	
 		Delta operator "" _h(unsigned long long hours)
 		{
-			return Delta(hours * (60ll * 60));
+			return Delta(long double(hours * (60ll * 60)));
 		}
 	
 		Delta operator "" _m(long double minutes)
@@ -443,7 +451,7 @@ namespace DeltaWorks::Time
 	
 		Delta operator "" _m(unsigned long long minutes)
 		{
-			return Delta(minutes * (60));
+			return Delta(long double(minutes * (60)));
 		}
 	
 		Delta operator "" _s(long double seconds)
@@ -453,7 +461,7 @@ namespace DeltaWorks::Time
 	
 		Delta operator "" _s(unsigned long long seconds)
 		{
-			return Delta(seconds);
+			return Delta(long double(seconds));
 		}
 	
 		Delta operator "" _ms(long double millis)

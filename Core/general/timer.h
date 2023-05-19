@@ -145,11 +145,13 @@ namespace DeltaWorks::Time
 		*/
 		/**/					Delta();
 		explicit				Delta(long double seconds);
+		explicit				Delta(double seconds);
 
 		float					ToSeconds() const;
 		double					ToSecondsD() const;
 
 		static Delta			FromMilliseconds(long long ms);
+		static Delta			FromSeconds(long long s);
 
 		bool					IsInRange(const Delta&min, const Delta&max) const;
 		Delta					operator+(const Delta&other) const;
