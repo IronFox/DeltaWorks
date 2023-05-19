@@ -8,6 +8,9 @@ Global super-include. This file is included by all local .h-files.
 ******************************************************************/
 
 #include "general/undef.h"
+
+#include <format>	//prevent weird header order mess on visual studio
+
 #include <stdlib.h>
 
 #pragma warning (error: 4715)	//functions with a declared return value must return something
