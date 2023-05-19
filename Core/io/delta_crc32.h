@@ -26,6 +26,11 @@ namespace DeltaWorks
 			typedef UINT32	HashContainer;	//for interchangability
 
 			/**/		Sequence();
+			/**/		Sequence(const void* source, size_t size)
+			{
+				Reset();
+				Append(source, size);
+			}
 			void		Reset();								//!< Restarts the checksum sequence (this method is automatically called by the constructor)
 			Sequence&	Append(const void*source, size_t size);	//!< Appends data to the CRC32 volume and advances the internal status @param source Binary data to insert into the calculation @param size Number of bytes that should be inserted into the calculation. @a source must provide at least this many bytes
 			template<typename T>
