@@ -1,3 +1,4 @@
 .projector
 *.lib
 *.7z
+*.pdb
