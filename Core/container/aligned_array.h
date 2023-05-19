@@ -20,7 +20,7 @@ namespace DeltaWorks
 	requires. The contained array content is automatically copied, allocated or deallocated where needed and shielded
 	from inappropriate (and usually undesired) operations.
 	*/
-	template <class C, size_t A> class AlignedArray: public SerializableObject, public Arrays
+	template <class C, size_t A> class AlignedArray: public Arrays
 	{
 		protected:
 			C*				data;
@@ -706,7 +706,7 @@ namespace DeltaWorks
 			{
 				return elements && !data[elements-1];
 			}
-				
+				/*
 		
 			virtual	void			Serialize(IWriteStream&outStream) const	override
 			{
@@ -737,7 +737,7 @@ namespace DeltaWorks
 
 				for (index_t i = 0; i < elements; i++)
 					DeserializeObject(data+i,sizeof(C),inStream,0);
-			}
+			}*/
 
 	};
 
