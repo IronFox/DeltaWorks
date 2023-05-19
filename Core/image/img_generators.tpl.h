@@ -261,7 +261,7 @@ template <class Nature>
 				else
 				{
 					F distance = (fabs(M::Vec::dot(normal,f))-center_radius)-fabs(M::Vec::dot(axis,f))*growth;
-					alpha = 1.0-cosStep(distance,0,smoothing);
+					alpha = 1.0-M::cosStep(distance,0,smoothing);
 				}
 				alpha *= (1/(pow(len,1)*100+1));
 				//alpha = M::Clamp(alpha,0,1);
@@ -301,12 +301,12 @@ template <class Nature>
 								(F)y/(F)(target.GetHeight()-1)*2.0f-1.0f};
 				F alpha = 0;
 				M::TVec4<F>	color;
-				alpha = vmax(vmax(fabs(M::Vec::dot(f,axis0)),fabs(M::Vec::dot(f,axis1))),fabs(M::Vec::dot(f,axis2)))*1.2*(1.0+smoothing*2);
+				alpha = M::vmax(M::vmax(fabs(M::Vec::dot(f,axis0)),fabs(M::Vec::dot(f,axis1))),fabs(M::Vec::dot(f,axis2)))*1.2*(1.0+smoothing*2);
 				if (alpha <= 1)
 					M::Vec::interpolate(inner,border,alpha,color);
 				else
 				{
-					alpha = cosStep(alpha,1.0f,1.0f+smoothing);
+					alpha = M::cosStep(alpha,1.0f,1.0f+smoothing);
 					M::Vec::interpolate(border,outer,alpha,color);
 				}
 						//a1 = _dot2(f,axis1),
