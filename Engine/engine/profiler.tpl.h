@@ -133,7 +133,7 @@ namespace Engine
 				{
 					M::TVec3<>&n = normals[i];
 					M::Vec::normalize0(n);
-					float nd = vmax(M::Vec::dot(n,C3dGraph::light),0.0f)*0.8+0.2;
+					float nd = M::Max(M::Vec::dot(n,C3dGraph::light),0.0f)*0.8+0.2;
 					M::Vec::mult(M::Vec::ref3(vertices+i*stride+dimensions),nd);
 				}
 			}
@@ -737,7 +737,10 @@ namespace Engine
 					
 					addRow(color);
 				}
-				str_current = h_field.Last();
+
+				using StringConversion::ToString;
+
+				str_current = ToString(h_field.Last());
 				
 			}
 			else
@@ -959,13 +962,13 @@ namespace Engine
 				
 				Base::vertices << px << (h_field[t]+d) << Base::depth*depth;
 				if (d)
-					Base::vertices.append(color,3) << vmin(x*2,1);
+					Base::vertices.append(color,3) << M::Min(x*2,1);
 				else
 					Base::vertices.append(color,3) << 0;
 				
 				Base::vertices << px << (h_field[t]+d) << -Base::depth*depth;
 				if (d)
-					Base::vertices.append(color,3) << vmin(x*2,1);
+					Base::vertices.append(color,3) << M::Min(x*2,1);
 				else
 					Base::vertices.append(color,3) << 0;
 				
@@ -978,13 +981,13 @@ namespace Engine
 						broken = true;
 						Base::vertices << px << (h_field[t]+d) << Base::depth*depth;
 						if (d)
-							Base::vertices.append(color,3) << vmin(x*2,1);
+							Base::vertices.append(color,3) << M::Min(x*2,1);
 						else
 							Base::vertices.append(color,3) << 0;
 						
 						Base::vertices << px << (h_field[t]+d) << -Base::depth*depth;
 						if (d)
-							Base::vertices.append(color,3) << vmin(x*2,1);
+							Base::vertices.append(color,3) << M::Min(x*2,1);
 						else
 							Base::vertices.append(color,3) << 0;
 						offset+=2;

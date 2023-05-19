@@ -118,7 +118,7 @@ namespace Engine
 			{
 				if (accumulated.IsNotZero())
 				{
-					minimum_history.Last() = M::vmin(fminimum,minimum.ToSeconds());
+					minimum_history.Last() = M::Min(fminimum,minimum.ToSeconds());
 					maximum_history.Last() = M::vmax(fmaximum,maximum.ToSeconds());
 				}
 				else
@@ -167,9 +167,9 @@ namespace Engine
 			else
 			{
 				fmaximum = M::vmax(fmaximum,fframe_accumulated);
-				fminimum = M::vmin(fminimum,fframe_accumulated);
+				fminimum = M::Min(fminimum,fframe_accumulated);
 				maximum = M::vmax(maximum,frame_accumulated);
-				minimum = M::vmin(minimum,frame_accumulated);
+				minimum = M::Min(minimum,frame_accumulated);
 			}
 			
 			frame_accumulated = Time::Delta::Zero;
@@ -182,7 +182,7 @@ namespace Engine
 		}
 
 		
-		Channel::Channel():history(Config::channelResolution()),minimum_history(Config::channelResolution()),maximum_history(Config::channelResolution()),accumulated(0),minimum(0),maximum(0),frame_accumulated(0),faccumulated(0),fminimum(0),fmaximum(0),counter(0),total(0),name("[unnamed]")
+		Channel::Channel():history(Config::channelResolution()),minimum_history(Config::channelResolution()),maximum_history(Config::channelResolution()),faccumulated(0),fminimum(0),fmaximum(0),counter(0),name("[unnamed]")
 		{
 			history.Fill(0);
 			//weighted_history.Fill(0);
@@ -480,7 +480,7 @@ namespace Engine
 							for (index_t i = 0; i < ARRAYSIZE(times)-1; i++)
 								times[i] = times[i+1];
 							times[ARRAYSIZE(times)-1] = d;
-							Time::Delta base = M::vmin(M::vmin(M::vmin(times[0],times[1]),M::vmin(times[2],times[3])),times[4]);
+							Time::Delta base = M::Min(M::Min(M::Min(times[0],times[1]),M::Min(times[2],times[3])),times[4]);
 							float weight = d > base*2;;
 
 							

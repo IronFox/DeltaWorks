@@ -104,7 +104,7 @@ template <typename T, count_t Components>
 
 		if (count == 1 && component.GetLength()>1)
 		{
-			count = M::vmin(component.GetLength(),Components);
+			count = M::Min(component.GetLength(),Components);
 
 			for (index_t i = 1; i < count; i++)
 				temp[i] = temp[0];

@@ -468,7 +468,7 @@ MFUNC2 (bool) Aspect<C>::VectorToScreen(const M::TVec3<C0>&vector, M::TVec2<C1>&
 	M::Mat::rotate(view,vector,temp0.xyz);
 	temp0.w = 1;
 	M::Mat::Mult(projection,temp0,temp1);
-	if (vabs(temp1.w) < GetError<C>())
+	if (M::vabs(temp1.w) < M::GetError<C>())
 		return false;
 	M::Vec::divide(temp1.xy,temp1.w,screenPoint);
 	return temp1.w >= 0;
