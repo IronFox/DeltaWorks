@@ -8,20 +8,20 @@
 
 
 #include "../math/vclasses.h"
-#include "../math/object.h"
-#include "../math/object_def.h"
-#include "../general/timer.h"
-#include "../general/system.h"
-#include "../general/thread_system.h"
-#include "../general/random.h"
-#include "../container/production_pipe.h"
-#include "../container/sorter.h"
-#include "../container/vectorList.h"
-#include "../io/mutex_log.h"
-#include "../io/delta_crc32.h"
-#include "../general/auto.h"
+//#include "../math/object.h"
+//#include "../math/object_def.h"
+//#include "../general/timer.h"
+//#include "../general/system.h"
+//#include "../general/thread_system.h"
+//#include "../general/random.h"
+//#include "../container/production_pipe.h"
+//#include "../container/sorter.h"
+//#include "../container/vectorList.h"
+//#include "../io/mutex_log.h"
+//#include "../io/delta_crc32.h"
+//#include "../general/auto.h"
 #include "../geometry/coordinates.h"
-#include "../io/log_stream.h"
+//#include "../io/log_stream.h"
 
 
 namespace DeltaWorks
