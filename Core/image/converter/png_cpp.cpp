@@ -2,6 +2,8 @@
 #include "png.h"
 #include "../../container/vectorList.h"
 
+#pragma comment(lib, "Ws2_32.lib")
+
 extern "C"
 {
 	#include "../../third_party/png/png.h"
