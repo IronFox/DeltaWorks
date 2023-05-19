@@ -285,7 +285,7 @@ template <class Def> void VertexContainerA<Def>::stretch(UINT16 layers, UINT32 f
 
 	typename Def::FloatType	*from = vdata.pointer(),
 							*to = new_field.pointer();
-	unsigned	lyr = vmin(vlyr,layers);
+	unsigned	lyr = M::Min(vlyr,layers);
 	bool		tan = !!(vflags&HasTangentFlag) && !!(flags&HasTangentFlag),
 				norm = !!(vflags&HasNormalFlag) && !!(flags&HasNormalFlag),
 				col = !!(vflags&HasColorFlag) && !!(flags&HasColorFlag);
@@ -489,9 +489,9 @@ template <class Def> String IndexContainer<Def>::difference(SubGeometryChunk&oth
 				rs+="}";\
 		}}
 
-	unsigned cnt = vmin(vcnt*(3+vbnd+2*vlyr),other.vcnt*(3+other.vbnd+2*other.vlyr));
+	unsigned cnt = M::Min(vcnt*(3+vbnd+2*vlyr),other.vcnt*(3+other.vbnd+2*other.vlyr));
 	COMPARE(vdata,cnt);
-	COMPARE(idata,vmin(icnt,other.icnt));
+	COMPARE(idata,M::Min(icnt,other.icnt));
 	#undef COMPARE
 	return rs;
 }*/

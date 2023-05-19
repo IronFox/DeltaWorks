@@ -945,7 +945,7 @@ namespace DeltaWorks
 				static inline void						_IncludeEdgeLength(T0&edgeLen, const T1&newEdgeLen)
 														{
 															if (newEdgeLen > TypeInfo<T1>::error)
-																edgeLen = vmin(edgeLen,newEdgeLen);
+																edgeLen = M::Min(edgeLen,newEdgeLen);
 														}
 
 														//		String								difference(SubGeometry&other, const String&intend);
