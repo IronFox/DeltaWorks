@@ -1,10 +1,9 @@
-#ifndef math_sseH
-#define math_sseH
+#pragma once
 
 #include "vector.h"
 #include "object.h"
 #include "../global_string.h"
-	
+#include <math/basic.h>
 
 
 #undef SSE__
@@ -36,91 +35,16 @@
 	#else
 		#define ALIGNED16
 	#endif
+
+#include "sse/sse_types.h"
+#include "sse/sse_constants.h"
+#include "sse/sse_operators.h"
 	
 namespace DeltaWorks
 {
 	namespace Math
 	{
-		namespace SSE
-		{
-			#ifndef __GNUC__
-				#define SSE_VECTOR	__m128
-				#define SSE_DEFINE4	_mm_setr_ps
-				#define SSE_DEFINE1	_mm_set1_ps
-			#else
-				class Vector
-				{
-				public:
-						__m128		value;
-			
-				inline				Vector()
-									{}
-				inline				Vector(const __m128&v):value(v)
-									{}
-				inline				Vector(float w, float x, float y, float z):value(_mm_setr_ps(w,x,y,z))
-									{}
-				inline				Vector(float v):value(_mm_set1_ps(v))
-									{}
-					
-				inline operator __m128() const
-									{
-										return value;
-									}
-				};
-				#define SSE_VECTOR	::SSE::Vector
-				#define SSE_DEFINE1	::SSE::Vector
-				#define SSE_DEFINE4	::SSE::Vector
 		
-			#endif	
-	
-			static	const	SSE_VECTOR	one = _mm_set1_ps(1.0f),
-										two = _mm_set1_ps(2.0f),
-										three = _mm_set1_ps(3.0f),
-										four = _mm_set1_ps(4.0f),
-										five = _mm_set1_ps(5.0f),
-										six = _mm_set1_ps(6.0f),
-										seven = _mm_set1_ps(7.0f),
-										eight = _mm_set1_ps(8.0f),
-										nine = _mm_set1_ps(9.0f),
-										ten = _mm_set1_ps(10.0f),
-										twenty = _mm_set1_ps(20.0f),
-										thirty = _mm_set1_ps(30.0f),
-										hundred = _mm_set1_ps(100.0f),
-										c255 = _mm_set1_ps(255.0f),
-										c127 = _mm_set1_ps(127.0f),
-										c128 = _mm_set1_ps(128.0f),
-										zero = _mm_setzero_ps(),
-										minus_one = _mm_set1_ps(-1.0f),
-										minus_two = _mm_set1_ps(-2.0f),
-										minus_three = _mm_set1_ps(-3.0f),
-										minus_four = _mm_set1_ps(-4.0f),
-										half = _mm_set1_ps(0.5f),
-										onethird = _mm_set1_ps(1.0f/3.0f),
-										twothirds = _mm_set1_ps(2.0f/3.0f),
-										point125 = _mm_set1_ps(0.125f),
-										point25 = _mm_set1_ps(0.25f),
-										point375 = _mm_set1_ps(0.375f),
-										point75 = _mm_set1_ps(0.75f),
-										point01 = _mm_set1_ps(0.01f),
-										point02 = _mm_set1_ps(0.02f),
-										point03 = _mm_set1_ps(0.03f),
-										point04 = _mm_set1_ps(0.04f),
-										point05 = _mm_set1_ps(0.05f),
-										point1 = _mm_set1_ps(0.1f),
-										point2 = _mm_set1_ps(0.2f),
-										point3 = _mm_set1_ps(0.3f),
-										point4 = _mm_set1_ps(0.4f),
-										point5 = _mm_set1_ps(0.5f),
-										point6 = _mm_set1_ps(0.6f),
-										point7 = _mm_set1_ps(0.7f),
-										point8 = _mm_set1_ps(0.8f),
-										point9 = _mm_set1_ps(0.9f),
-										onepoint1 = _mm_set1_ps(1.1f),
-										onepoint2 = _mm_set1_ps(1.2f),
-										onepoint3 = _mm_set1_ps(1.3f),
-										onepoint4 = _mm_set1_ps(1.4f),
-										onepoint5 = _mm_set1_ps(1.5f);
-		}
 	
 
 		namespace SSE
@@ -140,14 +64,14 @@ namespace DeltaWorks
 				return _mm_load_ps((float*)interchange);
 			}
 		
-			inline __m128 clamp(const __m128&val, float lower_boundary, float upper_boundary)
+			inline __m128 Clamp(const __m128&val, float lower_boundary, float upper_boundary)
 			{
 				__m128	lower = _mm_set1_ps(lower_boundary),
 						upper = _mm_set1_ps(upper_boundary);
 				return _mm_min_ps(_mm_max_ps(val,lower),upper);
 			}
 		
-			inline __m128 clamp(const __m128&val, const __m128& lower, const __m128& upper)
+			inline __m128 Clamp(const __m128&val, const __m128& lower, const __m128& upper)
 			{
 				return _mm_min_ps(_mm_max_ps(val,lower),upper);
 			}
@@ -222,7 +146,7 @@ namespace DeltaWorks
 			
 				@return Component wise cubicFactor(linearStep(val,lower_boundary,upper_boundary))
 			*/
-			inline __m128 cubicStep(const __m128&val, float lower_boundary, float upper_boundary)
+			inline __m128 CubicStep(const __m128&val, float lower_boundary, float upper_boundary)
 			{
 				__m128	lower = _mm_set1_ps(lower_boundary),
 						upper = _mm_set1_ps(upper_boundary),
@@ -239,7 +163,7 @@ namespace DeltaWorks
 						);
 			}		
 		
-			inline __m128 cubicStep(const __m128&val, const __m128&lower, const __m128&upper)
+			inline __m128 CubicStep(const __m128&val, const __m128&lower, const __m128&upper)
 			{
 				__m128	factor = _mm_rcp_ps(_mm_sub_ps(upper,lower)),	
 						f = _mm_mul_ps(_mm_sub_ps(_mm_min_ps(_mm_max_ps(val,lower),upper),lower),factor),
@@ -254,7 +178,7 @@ namespace DeltaWorks
 						);
 			}
 		
-			inline void cubicStep(const __m128&val, float lower_boundary, float upper_boundary, __m128&result)	//! @overload
+			inline void CubicStep(const __m128&val, float lower_boundary, float upper_boundary, __m128&result)	//! @overload
 			{
 				__m128	lower = _mm_set1_ps(lower_boundary),
 						upper = _mm_set1_ps(upper_boundary),
@@ -279,7 +203,7 @@ namespace DeltaWorks
 				@param f Linear value to apply
 				@return Cubic value
 			*/
-			inline __m128 cubicFactor(const __m128&f)
+			inline __m128 CubicFactor(const __m128&f)
 			{
 				__m128 sqr = _mm_mul_ps(f,f);
 			
@@ -292,7 +216,7 @@ namespace DeltaWorks
 						);
 			}
 		
-			inline __m128 abs(const __m128&x)
+			inline __m128 Abs(const __m128&x)
 			{
 				ALIGNED16	const UINT32 mask = 0x7FFFFFFF;
 				return _mm_and_ps(_mm_load1_ps((const float*)&mask),x);
@@ -805,158 +729,6 @@ namespace DeltaWorks
 
 
 		}
-	
-	
-		inline SSE_VECTOR operator+(float value, const SSE_VECTOR&v)
-		{
-			return _mm_add_ps(_mm_set1_ps(value),v);
-		}
-		inline SSE_VECTOR operator*(float value, const SSE_VECTOR&v)
-		{
-			return _mm_mul_ps(_mm_set1_ps(value),v);
-		}
-		inline SSE_VECTOR operator-(float value, const SSE_VECTOR&v)
-		{
-			return _mm_sub_ps(_mm_set1_ps(value),v);
-		}
-		inline SSE_VECTOR operator/(float value, const SSE_VECTOR&v)
-		{
-			return _mm_div_ps(_mm_set1_ps(value),v);
-		}
-
-		inline SSE_VECTOR operator+(const SSE_VECTOR&v, float value)
-		{
-			return _mm_add_ps(v,_mm_set1_ps(value));
-		}
-		inline SSE_VECTOR operator*(const SSE_VECTOR&v, float value)
-		{
-			return _mm_mul_ps(v,_mm_set1_ps(value));
-		}
-		inline SSE_VECTOR operator-(const SSE_VECTOR&v, float value)
-		{
-			return _mm_sub_ps(v,_mm_set1_ps(value));
-		}
-		inline SSE_VECTOR operator/(const SSE_VECTOR&v, float value)
-		{
-			return _mm_div_ps(v,_mm_set1_ps(value));
-		}
-	
-		inline void operator+=(SSE_VECTOR&v0, const SSE_VECTOR&v1)
-		{
-			v0 = _mm_add_ps(v0,v1);
-		}
-		inline void operator*=(SSE_VECTOR&v0, const SSE_VECTOR&v1)
-		{
-			v0 = _mm_mul_ps(v0,v1);
-		}
-		inline void operator-=(SSE_VECTOR&v0, const SSE_VECTOR&v1)
-		{
-			v0 = _mm_sub_ps(v0,v1);
-		}
-		inline void operator/=(SSE_VECTOR&v0, const SSE_VECTOR&v1)
-		{
-			v0 = _mm_div_ps(v0,v1);
-		}
-	
-		inline SSE_VECTOR operator+(const SSE_VECTOR&v0, const SSE_VECTOR&v1)
-		{
-			return _mm_add_ps(v0,v1);
-		}
-		inline SSE_VECTOR operator*(const SSE_VECTOR&v0, const SSE_VECTOR&v1)
-		{
-			return _mm_mul_ps(v0,v1);
-		}
-		inline SSE_VECTOR operator-(const SSE_VECTOR&v0, const SSE_VECTOR&v1)
-		{
-			return _mm_sub_ps(v0,v1);
-		}
-		inline SSE_VECTOR operator-(const SSE_VECTOR&v0)
-		{
-			return _mm_mul_ps(v0,SSE::minus_one);
-		}
-		inline SSE_VECTOR operator/(const SSE_VECTOR&v0, const SSE_VECTOR&v1)
-		{
-			return _mm_div_ps(v0,v1);
-		}
-	
-		namespace SSE
-		{
-			inline void resolveSplineQuad(const SplineQuad<SSE_VECTOR>&quad, const SSE_VECTOR&x, const SSE_VECTOR&y, SSE_VECTOR out[3])
-			{
-				SSE_VECTOR	ix = SSE::one-x,
-							x3 = x*x*x,
-							x2 = x*x*ix*SSE::three,
-							x1 = x*ix*ix*SSE::three,
-							x0 = ix*ix*ix,
-							iy = SSE::one-y,
-							y3 = y*y*y,
-							y2 = y*y*iy*SSE::three,
-							y1 = y*iy*iy*SSE::three,
-							y0 = iy*iy*iy;
-			
-				out[0] =	quad.control[0][0][0]*x0*y0 + quad.control[1][0][0]*x1*y0 + quad.control[2][0][0]*x2*y0 + quad.control[3][0][0]*x3*y0
-							+
-							quad.control[0][1][0]*x0*y1 + quad.control[1][1][0]*x1*y1 + quad.control[2][1][0]*x2*y1 + quad.control[3][1][0]*x3*y1
-							+
-							quad.control[0][2][0]*x0*y2 + quad.control[1][2][0]*x1*y2 + quad.control[2][2][0]*x2*y2 + quad.control[3][2][0]*x3*y2
-							+
-							quad.control[0][3][0]*x0*y3 + quad.control[1][3][0]*x1*y3 + quad.control[2][3][0]*x2*y3 + quad.control[3][3][0]*x3*y3;
-			
-				out[1] =	quad.control[0][0][1]*x0*y0 + quad.control[1][0][1]*x1*y0 + quad.control[2][0][1]*x2*y0 + quad.control[3][0][1]*x3*y0
-							+
-							quad.control[0][1][1]*x0*y1 + quad.control[1][1][1]*x1*y1 + quad.control[2][1][1]*x2*y1 + quad.control[3][1][1]*x3*y1
-							+
-							quad.control[0][2][1]*x0*y2 + quad.control[1][2][1]*x1*y2 + quad.control[2][2][1]*x2*y2 + quad.control[3][2][1]*x3*y2
-							+
-							quad.control[0][3][1]*x0*y3 + quad.control[1][3][1]*x1*y3 + quad.control[2][3][1]*x2*y3 + quad.control[3][3][1]*x3*y3;
-			
-				out[2] =	quad.control[0][0][2]*x0*y0 + quad.control[1][0][2]*x1*y0 + quad.control[2][0][2]*x2*y0 + quad.control[3][0][2]*x3*y0
-							+
-							quad.control[0][1][2]*x0*y1 + quad.control[1][1][2]*x1*y1 + quad.control[2][1][2]*x2*y1 + quad.control[3][1][2]*x3*y1
-							+
-							quad.control[0][2][2]*x0*y2 + quad.control[1][2][2]*x1*y2 + quad.control[2][2][2]*x2*y2 + quad.control[3][2][2]*x3*y2
-							+
-							quad.control[0][3][2]*x0*y3 + quad.control[1][3][2]*x1*y3 + quad.control[2][3][2]*x2*y3 + quad.control[3][3][2]*x3*y3;
-			}
-
-			inline void resolveSplineQuadCenter(const SplineQuad<SSE_VECTOR>&quad, SSE_VECTOR out[3])
-			{
-				SSE_VECTOR	x3 = SSE::point125,
-							x2 = SSE::point375,
-							x1 = SSE::point375,
-							x0 = SSE::point125,
-							y3 = SSE::point125,
-							y2 = SSE::point375,
-							y1 = SSE::point375,
-							y0 = SSE::point125;
-			
-				out[0] =	quad.control[0][0][0]*x0*y0 + quad.control[1][0][0]*x1*y0 + quad.control[2][0][0]*x2*y0 + quad.control[3][0][0]*x3*y0
-							+
-							quad.control[0][1][0]*x0*y1 + quad.control[1][1][0]*x1*y1 + quad.control[2][1][0]*x2*y1 + quad.control[3][1][0]*x3*y1
-							+
-							quad.control[0][2][0]*x0*y2 + quad.control[1][2][0]*x1*y2 + quad.control[2][2][0]*x2*y2 + quad.control[3][2][0]*x3*y2
-							+
-							quad.control[0][3][0]*x0*y3 + quad.control[1][3][0]*x1*y3 + quad.control[2][3][0]*x2*y3 + quad.control[3][3][0]*x3*y3;
-			
-				out[1] =	quad.control[0][0][1]*x0*y0 + quad.control[1][0][1]*x1*y0 + quad.control[2][0][1]*x2*y0 + quad.control[3][0][1]*x3*y0
-							+
-							quad.control[0][1][1]*x0*y1 + quad.control[1][1][1]*x1*y1 + quad.control[2][1][1]*x2*y1 + quad.control[3][1][1]*x3*y1
-							+
-							quad.control[0][2][1]*x0*y2 + quad.control[1][2][1]*x1*y2 + quad.control[2][2][1]*x2*y2 + quad.control[3][2][1]*x3*y2
-							+
-							quad.control[0][3][1]*x0*y3 + quad.control[1][3][1]*x1*y3 + quad.control[2][3][1]*x2*y3 + quad.control[3][3][1]*x3*y3;
-			
-				out[2] =	quad.control[0][0][2]*x0*y0 + quad.control[1][0][2]*x1*y0 + quad.control[2][0][2]*x2*y0 + quad.control[3][0][2]*x3*y0
-							+
-							quad.control[0][1][2]*x0*y1 + quad.control[1][1][2]*x1*y1 + quad.control[2][1][2]*x2*y1 + quad.control[3][1][2]*x3*y1
-							+
-							quad.control[0][2][2]*x0*y2 + quad.control[1][2][2]*x1*y2 + quad.control[2][2][2]*x2*y2 + quad.control[3][2][2]*x3*y2
-							+
-							quad.control[0][3][2]*x0*y3 + quad.control[1][3][2]*x1*y3 + quad.control[2][3][2]*x2*y3 + quad.control[3][3][2]*x3*y3;
-			}
-
-
-		}
 
 
 	
@@ -989,26 +761,26 @@ namespace DeltaWorks
 
 	}
 
-	template <>
-		class TypeInfo < SSE_VECTOR >
-		{
-		public:
-			typedef SSE_VECTOR	Type;
-			typedef Type		UnionCompatibleBase;
-			typedef TypeInfo<Type>	UnsignedType;
-			typedef TypeInfo<Type>	SignedType;
-			typedef TypeInfo<Type>	GreaterType;
-			typedef TypeInfo<Type>	LesserType;
-			typedef TTrue		IsPrimitive;
-			static const bool	is_signed = true,
-				is_float = true;
-			//static const Type	zero;
-			//static const Type	max;
-			//static const Type	min;
-			//static const Type	undefined;
-			//static const Type	error;
-			//static const char*	name;
-		};
+	//template <>
+	//	class TypeInfo < SSE_VECTOR >
+	//	{
+	//	public:
+	//		typedef SSE_VECTOR	Type;
+	//		typedef Type		UnionCompatibleBase;
+	//		typedef TypeInfo<Type>	UnsignedType;
+	//		typedef TypeInfo<Type>	SignedType;
+	//		typedef TypeInfo<Type>	GreaterType;
+	//		typedef TypeInfo<Type>	LesserType;
+	//		typedef TTrue		IsPrimitive;
+	//		static const bool	is_signed = true,
+	//			is_float = true;
+	//		//static const Type	zero;
+	//		//static const Type	max;
+	//		//static const Type	min;
+	//		//static const Type	undefined;
+	//		//static const Type	error;
+	//		//static const char*	name;
+	//	};
 
 }
 
@@ -1018,5 +790,3 @@ namespace DeltaWorks
 
 
 
-
-#endif
