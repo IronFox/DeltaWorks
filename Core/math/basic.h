@@ -587,6 +587,12 @@ namespace DeltaWorks
 			typedef T			Type;
 			typedef T			UnionCompatibleBase;	//for pointers etc
 			typedef TFalse		IsPrimitive;
+			static constexpr bool	is_signed = false,
+									is_float = false;
+			typedef TypeInfo<T>	UnsignedType;
+			typedef TypeInfo<T>	SignedType;
+			typedef TypeInfo<T>	GreaterType;
+			typedef TypeInfo<T>	LesserType;
 		};
 
 	template <>
