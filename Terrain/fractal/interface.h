@@ -7,25 +7,25 @@
 
 
 
-#include "../math/vclasses.h"
-#include "../math/object.h"
-#include "../math/object_def.h"
-#include "../general/timer.h"
-#include "../general/system.h"
-#include "../general/thread_system.h"
-#include "../general/random.h"
-#include "../container/production_pipe.h"
-#include "../container/sorter.h"
-#include "../container/buffer.h"
-#include "../io/mutex_log.h"
-#include "../io/delta_crc32.h"
-#include "../general/auto.h"
-#include "../engine/renderer/opengl.h"
-#include "../geometry/coordinates.h"
-#include "../io/log_stream.h"
+#include <math/vclasses.h>
+#include <math/object.h>
+#include <math/object_def.h>
+#include <general/timer.h>
+#include <general/system.h>
+#include <general/thread_system.h>
+#include <general/random.h>
+#include <container/production_pipe.h>
+#include <container/sorter.h>
+#include <container/vectorList.h>
+#include <io/mutex_log.h>
+#include <io/delta_crc32.h>
+#include <general/auto.h>
+#include <engine/renderer/opengl.h>
+#include <geometry/coordinates.h>
+#include <io/log_stream.h>
+//#include <io/mutex_log.h>
 
-
-#include "../engine/aspect.h"
+#include <engine/aspect.h>
 
 #include "fractal_kernel.h"
 
@@ -34,8 +34,8 @@
 //#define HYBRID_KERNEL
 
 //MAKE_SORT_CLASS(PrioritySort,priority)
-MAKE_SORT_CLASS(DepthSort,depth)
-MAKE_SORT_CLASS(RadiusSort,radius)
+//MAKE_SORT_CLASS(DepthSort,depth)
+//MAKE_SORT_CLASS(RadiusSort,radius)
 
 
 #define DEBUG_POINT(_DOMAIN_)	//CONSOLE_DEBUG_POINT
@@ -136,14 +136,14 @@ public:
 /**
 	@brief Fractal landscape generator
 */
-namespace Fractal
+namespace DeltaWorks::Fractal
 {
 	extern SynchronizedLogFile		logfile;
 	
 	extern unsigned			num_sectors;		//!< Total number of sectors created at this time
 	extern unsigned			max_sectors,		//!< Absolute number of faces allowed at any given time.
 							build_operations;	//!< Number of build or update operations registered. Available only if FRACTAL_BUILD_STATISTIC is defined
-	extern Timer::Time		build_time;			//!< Time spent performing build or update operations. Available only if FRACTAL_BUILD_STATISTIC is defined
+	extern Time::Delta		build_time;			//!< Time spent performing build or update operations. Available only if FRACTAL_BUILD_STATISTIC is defined
 	extern TContext			default_context;	//!< Empty default context passed for certain kernel operations
 
 	extern bool				mipmapping,				//!< Set true to enable automatic mipmap level generation of segment textures. True by default
@@ -164,7 +164,7 @@ namespace Fractal
 	//static const float		default_sector_size=50000.0f;
 	
 	
-	typedef Composite::sector_t	sector_t;		//!< Sector coordinate type. Typically int32
+	typedef M::Composite::sector_t	sector_t;		//!< Sector coordinate type. Typically int32
 
 	struct TMapVertex;
 	
@@ -179,7 +179,7 @@ namespace Fractal
 		class TemplateBody;
 
 	class VertexMap;
-	template <unsigned,unsigned =0>
+	template <unsigned,unsigned>
 		class TemplateMap;
 	
 	class Geometry;
@@ -350,7 +350,7 @@ namespace Fractal
 			
 			//Engine::Aspect<>	aspect;				//!< View aspect (projection, modelview matrix, etc)
 			Engine::Frustum<>	frustum;				//!< Frustrum for visibility checks. Extracted from the currently applied camera object
-			Composite::Coordinates	relative_coordinates;	//!< Central view position. Relative to the system of the applied body
+			M::Composite::Coordinates	relative_coordinates;	//!< Central view position. Relative to the system of the applied body
 			M::TVec3<float>		retraction_delta;		//!< Retraction offset from the aspect coordinates to the actual point of view. Unless the applied camera is a focused 3rd-person camera this would be a zero-vector. Note that the calculated frustum volume must already include this vector
 			bool				require_reflection;		//!< True if patch reflection should be checked for visibility
 			unsigned			min_layer;				//!< Minimum visible layer. Layers whoes depth value is less or equal to  this value are not subdivided
@@ -408,8 +408,8 @@ namespace Fractal
 			Array<ThreadObject*>		operation_field;		//!< Thread reference field used to quickly start parallel processes (passed to the kernel)*/
 
 	static	SurfaceSegment				*production;	//!< Currently produced surface patch (if any)
-	static	Timer::Time				trace_time;		//!< Global time when tracing began
-	static	Buffer<SurfaceSegment*>	need_children;	//!< Buffer containing all surface segments that have requested children during the last frame. Usually in ascending order of priority
+	static	Time::Stamp				trace_time;		//!< Global time when tracing began
+	static	Vector<SurfaceSegment*>	need_children;	//!< Buffer containing all surface segments that have requested children during the last frame. Usually in ascending order of priority
 			
 
 									
@@ -418,8 +418,8 @@ namespace Fractal
 									Body(const String&name, float sector_size_, unsigned exponent_, unsigned recursion_depth,const ArrayData<unsigned>*vbo_vertex_indices_, const ArrayData<unsigned>*triangle_field_,const VertexMap*full_map_,const VertexMap*reduced_map_);
 									
 	public:
-			Array<DataSurface*>	faces;			//!< Field of face pointers (one for each face). The pointers are managed and automatically erased if the root shape is erased. Top level faces are always data faces
-			Buffer<SurfaceSegment*>	face_buffer,		//!< Buffer containing all surfaces that have been traced during the last process() operation
+			Array<DataSurface*>		faces;			//!< Field of face pointers (one for each face). The pointers are managed and automatically erased if the root shape is erased. Top level faces are always data faces
+			Vector<SurfaceSegment*>	face_buffer,		//!< Buffer containing all surfaces that have been traced during the last process() operation
 									reflection_buffer,	//!< Buffer containing all surface reflection that have been traced during the last processReflection() operation
 									water_buffer,		//!< Buffer containing all water segments that have been traced during the last processWater() operation
 									attachment_buffer;	//!< Buffer containing all surfaces with attachments that have been traced during the last process() operation. Unlike face_buffer, surfaces with attachments are not ignored when focusing
@@ -434,10 +434,10 @@ namespace Fractal
 			String					name;				//!< Fractal body name
 			
 			
-			Buffer<TCrater,0>		craters;			//!< All craters on this body
+			Vector<TCrater>			craters;			//!< All craters on this body
 
 
-			//Composite::Coordinates		center;	
+			//M::Composite::Coordinates		center;	
 			
 			const VertexMap			*full_map,				//!< Pointer to a full map instance, describing the nature of the full fractal detail of each surface segment
 									*reduced_map;			//!< Pointer to a reduced map instance, describing the nature of the reduced (geometrical) detail of each surface segment
@@ -481,7 +481,7 @@ namespace Fractal
 				@param top_level_ttl Time (in seconds) that top level surfaces remain in memory even if not referenced. Each sub level receives 90% of the next upper level's ttl time interval
 				@param view View to adopt to
 			*/
-			void					process(const Timer::Time&time, float top_level_ttl, const Aspect&view);
+			void					process(const Time::Stamp&time, float top_level_ttl, const Aspect&view);
 			
 			/**
 				@brief Alternate version of process
@@ -494,7 +494,7 @@ namespace Fractal
 				@param top_level_ttl Time (in seconds) that top level surfaces remain in memory even if not referenced. Each sub level receives 90% of the next upper level's ttl time interval.
 					Note that the execution of this method assumes that none of the segments of this body are currently referenced
 			*/
-			void					processInvisible(const Timer::Time&time, float top_level_ttl);
+			void					processInvisible(const Time::Stamp&time, float top_level_ttl);
 			
 			
 			/**
@@ -525,26 +525,26 @@ namespace Fractal
 			/**
 				@brief Performs a recursive ray casting test on the currently available data
 				
-				Composite are required to be in planet space.
+				M::Composite are required to be in planet space.
 				
 				@param b Ray base point. Intersections before this point are ignored
 				@param d Normalized ray direction
 				@param intersection [out] Reference to an intersection object that should hold all available information of the detected intersection
 				@return true if an intersection was detected, false otherwise
 			*/
-			bool					rayCast(const Composite::Coordinates&b, const M::TVec3<>& d, TRayIntersection&intersection);
+			bool					rayCast(const M::Composite::Coordinates&b, const M::TVec3<>& d, TRayIntersection&intersection);
 
 			/**
 				@brief Performs a recursive ground query on the currently available data
 
-				Composite are required to be in planet space
+				M::Composite are required to be in planet space
 
 				@param b Point to find the nearest ground under
 				@param min_layer Depth of the most detailed surface segments that may be queried. Recursion will not continue past this layer. 0 indicates that all segments should be processed
 				@param ground [out] Reference to a ground object that should any located ground coordinates
 				@return true if a ground intersection could be located, false otherwise
 			*/
-			bool					groundQuery(const Composite::Coordinates&b, unsigned min_layer, TGroundInfo&ground);
+			bool					groundQuery(const M::Composite::Coordinates&b, unsigned min_layer, TGroundInfo&ground);
 
 			
 			void					checkLinkage();	//!< Verifies the integrity of the interface linkage. An exception of type Exception is thrown if this test fails. This test is slow and should not be called unless bugs are expected.
@@ -593,12 +593,12 @@ namespace Fractal
 	{
 	protected:
 									SurfaceSegment(unsigned exponent, unsigned vertex_count);
-									SurfaceSegment(unsigned exponent_, unsigned vertex_count_, Body*super_, SurfaceSegment*parent_,BYTE child_index_,const Timer::Time now);
-			void					modifySphere(const AbstractSphere<float>&child_sphere);	//!< Alter the local face sphere to include the given child sphere and pass the local sphere on to the respective parent recursivly.
+									SurfaceSegment(unsigned exponent_, unsigned vertex_count_, Body*super_, SurfaceSegment*parent_,BYTE child_index_,const Time::Stamp now);
+			void					modifySphere(const M::AbstractSphere<float>&child_sphere);	//!< Alter the local face sphere to include the given child sphere and pass the local sphere on to the respective parent recursivly.
 			TSurfaceSegmentLink		resolveChild(const TSurfaceSegmentLink&link, BYTE index);					//!< Returns a link to the child of the given face in the given direction \param link Link to the respective parent neighbor \param index Orientation index of the requested child (mostly opposing the index of the respective neighbor)
 			TSurfaceSegmentLink		resolveChildRec(const TSurfaceSegmentLink&link, BYTE index);
 			void					include(SurfaceSegment*child);	//!< Modifies the local SurfaceSegment::global_sphere variable so that it includes the specified child's SurfaceSegment::global_sphere
-			int						setPriority(const Aspect&view, bool override_only,const Timer::Time&);	//!< Invokes the project() callback function to determine the local priority @return local priority @param view View to apply @param override_only Indicates that this segment may have priority only if it features an override flag
+			int						setPriority(const Aspect&view, bool override_only,const Time::Stamp&);	//!< Invokes the project() callback function to determine the local priority @return local priority @param view View to apply @param override_only Indicates that this segment may have priority only if it features an override flag
 			void					setReflectionPriority(const Aspect&view);
 			void					setWaterPriority(const Aspect&view);
 
@@ -637,10 +637,10 @@ namespace Fractal
 									vertex_range,		//!< Number of vertices in one direction
 									vertex_count;		//!< Number of vertices (derivable from exponent)
 
-			AbstractSphere<float>	local_sphere,		//!< Sphere including all local vertices.
+			M::AbstractSphere<float>local_sphere,		//!< Sphere including all local vertices.
 									global_sphere;		//!< Sphere including all local and child vertices.
 			
-			Vec3<>					corner[3],			//!< Sector relative surface corner vector
+			M::Vec3<>				corner[3],			//!< Sector relative surface corner vector
 									water_center;		//!< Water sphere center (sector relative)
 	
 			Body*					super;				//!< Governing Body
@@ -668,7 +668,7 @@ namespace Fractal
 				};
 			};
 			
-			Timer::Time			referenced;			//!< Time of last project() call.
+			Time::Stamp			referenced;			//!< Time of last project() call.
 
 			struct Visibility	//! Segment visibility flags
 			{
@@ -750,7 +750,7 @@ namespace Fractal
 				@param intersection [out] Resulting closest intersection (if any)
 				@return true if an intersection has been detected, false otherwise
 			*/
-			bool					rayCast(const Composite::Coordinates&b, const M::TVec3<>& d, TRayIntersection&intersection);
+			bool					rayCast(const M::Composite::Coordinates&b, const M::TVec3<>& d, TRayIntersection&intersection);
 			/**
 				@brief Recursively determines the nearest ground coordinate of this segment (and all its children)
 
@@ -759,7 +759,7 @@ namespace Fractal
 				@param min_layer Minimum layer that the recursive process may reach. Further subdivided surface segments are ignored
 				@return true if a ground point was found among this segment and all its children, false otherwise
 			*/
-			bool					groundQuery(const Composite::Coordinates&b, const M::TVec3<>&d, unsigned min_layer, TGroundInfo&ground);
+			bool					groundQuery(const M::Composite::Coordinates&b, const M::TVec3<>&d, unsigned min_layer, TGroundInfo&ground);
 			
 //			void					synchronizeBorders();
 			
@@ -778,7 +778,7 @@ namespace Fractal
 				@param time Current time
 				@param set_flag Set true to automatically set the HasChildren flag. Set false to leave flags as they are
 			*/
-			void					createChildren(const Timer::Time&time, bool set_flag=true);
+			void					createChildren(const Time::Stamp&time, bool set_flag=true);
 
 			/**
 				@brief Recursively determines the visibility, priority, and necessity for subdivison of this surface segment and all its children
@@ -794,7 +794,7 @@ namespace Fractal
 				@param override_only Signals that this surface segment and all its children are no longer considered visible and should only be processed
 										based on their Visibility::Override visibility flag.
 			*/
-			void					project(const Aspect&view, float ttl, const Timer::Time&time, bool override_only);
+			void					project(const Aspect&view, float ttl, const Time::Stamp&time, bool override_only);
 			/**
 				@brief Recursively determines the visibility and necessity for reflection subdivison of this surface segment and all its children
 
@@ -827,7 +827,7 @@ namespace Fractal
 				@param time Current time
 				@param ttl Time (in seconds) that this surface segment can survive without being visible. This value degenerates as recursion progresses
 			*/
-			void					checkTimeouts(const Timer::Time&time, float ttl);
+			void					checkTimeouts(const Time::Stamp&time, float ttl);
 			/**
 				@brief Synchronizes edge data with all neighbors
 
@@ -873,7 +873,7 @@ namespace Fractal
 				@param t Time to assign to the referenced member variable of triggered segments
 				@param priority_to_set Priority value to assign to triggered segments
 			*/
-			void					triggerOverrideFlag(BYTE child_index, BYTE neighbor_index,const Timer::Time&t, unsigned priority_to_set);
+			void					triggerOverrideFlag(BYTE child_index, BYTE neighbor_index,const Time::Stamp&t, unsigned priority_to_set);
 			/**
 				@brief Inner method of triggerOverrideFlag(BYTE child_index, BYTE neighbor_index)
 				
@@ -883,7 +883,7 @@ namespace Fractal
 				@param priority_to_set Priority value to assign to triggered segments
 				@return true on success, false if the local segment is not existing or not ready
 			*/
-			bool					triggerOverrideFlag(const Timer::Time&t, unsigned priority_to_set);
+			bool					triggerOverrideFlag(const Time::Stamp&t, unsigned priority_to_set);
 	
 			
 			/**
@@ -895,7 +895,7 @@ namespace Fractal
 				
 				@param sphere Sphere to modify
 			*/
-			void					defaultDefineSphere(AbstractSphere<float>&sphere);
+			void					defaultDefineSphere(M::AbstractSphere<float>&sphere);
 
 			/**
 				@brief Updates @b local_sphere and @b global_sphere of this segment and all parents
@@ -1046,9 +1046,9 @@ namespace Fractal
 		public:
 									TemplateSurface();
 									TemplateSurface(Body*super_);
-									TemplateSurface(Body*super_,TemplateSurface<Exponent>*parent, BYTE child_index, const Timer::Time&time);
+									TemplateSurface(Body*super_,TemplateSurface<Exponent>*parent, BYTE child_index, const Time::Stamp&time);
 											
-									TemplateSurface(Body*super_,TemplateSurface<Exponent>*parent, BYTE child_index, const TSurfaceSegmentLink&n0, const TSurfaceSegmentLink&n1, const TSurfaceSegmentLink&n2, const Timer::Time&time);
+									TemplateSurface(Body*super_,TemplateSurface<Exponent>*parent, BYTE child_index, const TSurfaceSegmentLink&n0, const TSurfaceSegmentLink&n1, const TSurfaceSegmentLink&n2, const Time::Stamp&time);
 		};
 	
 	/**
@@ -1131,6 +1131,7 @@ namespace Fractal
 	template <unsigned Exponent>
 		class IndexPatterns:public AbstractIndexPatterns, protected CorePattern<Exponent>
 		{
+			typedef CorePattern<Exponent> Super;
 		protected:
 				
 				static UINT32			*current,
@@ -1139,6 +1140,10 @@ namespace Fractal
 																					
 				static void				makePattern(unsigned r0, unsigned r1, unsigned r2);
 		public:
+				using Super::range;
+				using Super::createCorePattern;
+
+
 				static UINT32			pattern[(Exponent+1)*(Exponent+1)*(Exponent+1)*range*range*3],	//!< Maps to AbstractIndexPatterns::pattern
 										pattern_offset[(Exponent+1)*(Exponent+1)*(Exponent+1)+1];		//!< Maps to AbstractIndexPatterns::pattern_offset
 		 
@@ -1176,19 +1181,17 @@ namespace Fractal
 		{
 		public:
 		protected:
-				#ifdef __GNUC__
-					using IndexPatterns<Exponent>::map;
-					using IndexPatterns<Exponent>::current;
-					using IndexPatterns<Exponent>::ocurrent;
-					using IndexPatterns<Exponent>::created;
-					using IndexPatterns<Exponent>::range;
-					using IndexPatterns<Exponent>::core_pattern;
-					using IndexPatterns<Exponent>::pattern;
-					using IndexPatterns<Exponent>::pattern_offset;
-					using IndexPatterns<Exponent>::createCorePattern;
-					typedef TemplateMap<Exponent>	MapType;
-				#endif
-				
+				using IndexPatterns<Exponent>::map;
+				using IndexPatterns<Exponent>::current;
+				using IndexPatterns<Exponent>::ocurrent;
+				using IndexPatterns<Exponent>::created;
+				using IndexPatterns<Exponent>::range;
+				using IndexPatterns<Exponent>::core_pattern;
+				using IndexPatterns<Exponent>::pattern;
+				using IndexPatterns<Exponent>::pattern_offset;
+				using IndexPatterns<Exponent>::createCorePattern;
+				typedef TemplateMap<Exponent>	MapType;
+
 				static void				makePattern(unsigned g0, unsigned g1, unsigned g2);
 		public:
 				static const unsigned	ext_vertices = 3*((1<<Exponent)-1),					//!< Number of additional border vertices used to smooth out gaps to neighboring segments
@@ -1245,7 +1248,7 @@ namespace Fractal
 								texture_y;		//!< Depth texture space axis pointing along the y axis of an applied texture
 			double				modal_range;		//!< Coordinate range to capture \b texture_root in. Texture coordinates generated by RollSpace can become very large and unclipped texture offsets would soon create undesired effects.
 			
-					RollSpace(double modal_range=Composite::Coordinates::default_sector_size);							//!< Creates a new roll space with texture_up pointing along the y-axis in space. \param modal_range Coordinate range to capture \b texture_root in. Texture coordinates generated by RollSpace can become very large and unclipped texture offsets would soon create undesired effects.
+					RollSpace(double modal_range=M::Composite::Coordinates::default_sector_size);							//!< Creates a new roll space with texture_up pointing along the y-axis in space. \param modal_range Coordinate range to capture \b texture_root in. Texture coordinates generated by RollSpace can become very large and unclipped texture offsets would soon create undesired effects.
 			void	roll(const M::TVec3<double>&up, const M::TVec3<double>&translation);		//!< Rolls the local system so that the new texture up coordinate matches \b up. \param up Vertical direction \param translation Observer movement
 			void	roll(const M::TVec3<float>&up, const M::TVec3<float>& translation);		//!< Rolls the local system so that the new texture up coordinate matches \b up. \param up Vertical direction \param translation Observer movement
 			void	roll(const M::TVec3<float>&up, const M::TVec3<double>&translation);		//!< Rolls the local system so that the new texture up coordinate matches \b up. \param up Vertical direction \param translation Observer movement

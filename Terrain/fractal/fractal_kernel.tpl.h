@@ -1,29 +1,37 @@
-#ifndef fractal_kernelTplH
-#define fractal_kernelTplH
+#pragma once
 
 
-inline float shoreFactor(float x)
+#include <math/sse/sse_constants.h>
+
+namespace DeltaWorks
 {
-	return -x*x*x+2*x*x;
-}
-
-namespace SSE
-{
-	inline __m128	shoreFactor(const __m128 x)
-	{
-		__m128 sqr = _mm_mul_ps(x,x);
-		return _mm_sub_ps(_mm_mul_ps(SSE::two,sqr), _mm_mul_ps(sqr,x));
-	}
-
-}
 
 
 
 namespace Fractal
 {
+	inline float shoreFactor(float x)
+	{
+		return -x * x * x + 2 * x * x;
+	}
+
+	namespace SSE
+	{
+		inline __m128	shoreFactor(const __m128 x)
+		{
+			__m128 sqr = _mm_mul_ps(x, x);
+			return _mm_sub_ps(_mm_mul_ps(M::SSE::two, sqr), _mm_mul_ps(sqr, x));
+		}
+
+	}
+
+
 
 	namespace Height
 	{
+		using namespace DeltaWorks::Math;	//M::SSE operators
+
+
 		inline	void	applyDifferentially(const M::TVec3<SSE_VECTOR>&current_position, const SSE_VECTOR&current_height, const SSE_VECTOR&target_height,M::TVec3<>&p0, M::TVec3<>&p1, M::TVec3<>&p2, M::TVec3<>&p3, const TSurfaceSegment&segment, const TContext&context)
 		{
 			SSE_VECTOR	delta = (target_height - current_height)*context.sse_variance;
@@ -217,17 +225,17 @@ namespace Fractal
 
 	inline	const unsigned char*	getTexel1Clamp(const unsigned char*texel_data, unsigned x, unsigned y, unsigned dimension)
 	{
-		return getTexel1(texel_data,vmin(x,dimension-1),vmin(y,dimension-1),dimension);
+		return getTexel1(texel_data,M::Min(x,dimension-1),M::Min(y,dimension-1),dimension);
 	}
 
 	inline	const unsigned char*	getTexel3Clamp(const unsigned char*texel_data, unsigned x, unsigned y, unsigned dimension)
 	{
-		return getTexel3(texel_data,vmin(x,dimension-1),vmin(y,dimension-1),dimension);
+		return getTexel3(texel_data,M::Min(x,dimension-1),M::Min(y,dimension-1),dimension);
 	}
 
 	inline	const unsigned char*	getTexel4Clamp(const unsigned char*texel_data, unsigned x, unsigned y, unsigned dimension)
 	{
-		return getTexel4(texel_data,vmin(x,dimension-1),vmin(y,dimension-1),dimension);
+		return getTexel4(texel_data,M::Min(x,dimension-1),M::Min(y,dimension-1),dimension);
 	}
 
 
@@ -258,7 +266,7 @@ namespace Fractal
 	}
 
 
-	inline float clamp(float rs)
+	inline float Clamp(float rs)
 	{
 	
 		#define BOUNDARY 1.0f
@@ -270,7 +278,7 @@ namespace Fractal
 			if (rs > TOP_ROUND*2)
 				rs = BOUNDARY-rs+TOP_ROUND;//-0.25f*TOP_ROUND;
 			else
-				rs = BOUNDARY-TOP_ROUND*sqr((rs)/(2*TOP_ROUND));
+				rs = BOUNDARY-TOP_ROUND*M::Sqr((rs)/(2*TOP_ROUND));
 		}	
 		
 		return rs;
@@ -292,19 +300,19 @@ namespace Fractal
 		
 		
 			// base height:
-			rs = vmin(vmin(channel.c0,channel.c1),vmin(channel.c2,channel.c3));
+			rs = M::Min(M::Min(channel.c0,channel.c1),M::Min(channel.c2,channel.c3));
 		
 		
 			rs += channel.c0*channel.c1*channel.c2*channel.c3*0.5;
 		
-			//rs = sign(rs)*powf(fabs(rs),1.25f)*0.6f; //1.5
-			rs = sign(rs)*powf(fabs(rs),1.5f)*0.6f;
+			//rs = M::Sign(rs)*powf(fabs(rs),1.25f)*0.6f; //1.5
+			rs = M::Sign(rs)*powf(fabs(rs),1.5f)*0.6f;
 		
 		
 			//rs += dbCubicStep(channel.c0,0.4,0.6)*0.1f*channel.c1;	//mountains
-			rs -= cubicStep(channel.c2*channel.c3,0.6,0.8)*0.15f*channel.c3;	//valleys
+			rs -= M::CubicStep(channel.c2*channel.c3,0.6,0.8)*0.15f*channel.c3;	//valleys
 		
-			rs -= cubicStep(channel.oceanic,0.4,0.5)*0.5f;	//oceanic basin
+			rs -= M::CubicStep(channel.oceanic,0.4,0.5)*0.5f;	//oceanic basin
 		
 		
 			//rs -= dbCubicStep(channel.oceanic,0.2,0.4)*0.045f;	//inner elevation / outer shore suppression
@@ -314,10 +322,10 @@ namespace Fractal
 				if (canyons)
 				{
 					float	riff_distance = fabs(0.5-channel.c2)*5.0f;
-					rs -= 0.02*channel.c3*(1.0-cubicStep(riff_distance,CANYON_SLOPE_BEGIN,CANYON_SLOPE_END));
+					rs -= 0.02*channel.c3*(1.0- M::CubicStep(riff_distance,CANYON_SLOPE_BEGIN,CANYON_SLOPE_END));
 				}
 			#endif
-			rs += (1.0f-cubicStep(channel.oceanic,0,0.4))*0.15;	//continental upheav
+			rs += (1.0f- M::CubicStep(channel.oceanic,0,0.4))*0.15;	//continental upheav
 		
 			rs += 0.01;
 		
@@ -332,7 +340,7 @@ namespace Fractal
 	template <>
 		inline	float	height<true>(const TChannelConfig&channel, bool canyons)
 		{
-			return clamp(height<false>(channel,canyons));
+			return Clamp(height<false>(channel,canyons));
 		}
 	
 	template <bool Clamp>
@@ -364,23 +372,23 @@ namespace Fractal
 			ALIGNED16 __m128 rs = _mm_min_ps( _mm_min_ps(c0,c1), _mm_min_ps(c2,c3));
 			rs = _mm_add_ps(rs, _mm_mul_ps(_mm_mul_ps( _mm_mul_ps(c0,c1), _mm_mul_ps(c2,c3)),half));
 		
-			//rs = _mm_mul_ps(_mm_mul_ps(rs,_mm_sqrt_ps(_mm_sqrt_ps(SSE::abs(rs)))),c06);//1.25
-			rs = _mm_mul_ps(_mm_mul_ps(rs,_mm_sqrt_ps(SSE::abs(rs))),c06);//1.5
-			//rs = _mm_mul_ps(_mm_mul_ps(rs,SSE::abs(rs)),c06);	//2.0
+			//rs = _mm_mul_ps(_mm_mul_ps(rs,_mm_sqrt_ps(_mm_sqrt_ps(M::SSE::abs(rs)))),c06);//1.25
+			rs = _mm_mul_ps(_mm_mul_ps(rs,_mm_sqrt_ps(M::SSE::Abs(rs))),c06);//1.5
+			//rs = _mm_mul_ps(_mm_mul_ps(rs,M::SSE::abs(rs)),c06);	//2.0
 		
 		
 			/*
 			_mm_store_ps(out,rs);
-			out[0] = sign(out[0])*pow(fabs(out[0]),1.3f)*0.6f;
-			out[1] = sign(out[1])*pow(fabs(out[1]),1.3f)*0.6f;
-			out[2] = sign(out[2])*pow(fabs(out[2]),1.3f)*0.6f;
-			out[3] = sign(out[3])*pow(fabs(out[3]),1.3f)*0.6f;
+			out[0] = M::Sign(out[0])*pow(fabs(out[0]),1.3f)*0.6f;
+			out[1] = M::Sign(out[1])*pow(fabs(out[1]),1.3f)*0.6f;
+			out[2] = M::Sign(out[2])*pow(fabs(out[2]),1.3f)*0.6f;
+			out[3] = M::Sign(out[3])*pow(fabs(out[3]),1.3f)*0.6f;
 			rs = _mm_load_ps(out);
 			*/
 
-			rs = _mm_sub_ps(rs,_mm_mul_ps(SSE::cubicStep(_mm_mul_ps(c2,c3),0.6,0.8),_mm_mul_ps(c015,c3)));
+			rs = _mm_sub_ps(rs,_mm_mul_ps(M::SSE::CubicStep(_mm_mul_ps(c2,c3),0.6,0.8),_mm_mul_ps(c015,c3)));
 		
-			rs = _mm_sub_ps(rs,_mm_mul_ps(SSE::cubicStep(oceanic,0.4,0.5),half));
+			rs = _mm_sub_ps(rs,_mm_mul_ps(M::SSE::CubicStep(oceanic,0.4,0.5),half));
 		
 		
 			//rs -= dbCubicStep(channel.oceanic,0.2,0.4)*0.045f;	//inner elevation / outer shore suppression
@@ -391,11 +399,11 @@ namespace Fractal
 				{
 					static const __m128	slope_begin = _mm_set1_ps(CANYON_SLOPE_BEGIN),
 										slope_end =  _mm_set1_ps(CANYON_SLOPE_END);
-					__m128	riff_distance = _mm_mul_ps(SSE::abs(_mm_sub_ps(half,c2)),c5);
-					rs = _mm_sub_ps(rs, _mm_mul_ps(_mm_mul_ps(_mm_set1_ps(0.02f),c3),_mm_sub_ps(one,SSE::cubicStep(riff_distance,slope_begin,slope_end))));
+					__m128	riff_distance = _mm_mul_ps(M::SSE::Abs(_mm_sub_ps(half,c2)),c5);
+					rs = _mm_sub_ps(rs, _mm_mul_ps(_mm_mul_ps(_mm_set1_ps(0.02f),c3),_mm_sub_ps(one, M::SSE::CubicStep(riff_distance,slope_begin,slope_end))));
 				}
 			#endif
-			rs = _mm_add_ps(rs, _mm_mul_ps(_mm_set1_ps(0.15f),_mm_sub_ps(one,SSE::cubicStep(oceanic,0,0.4))));
+			rs = _mm_add_ps(rs, _mm_mul_ps(_mm_set1_ps(0.15f),_mm_sub_ps(one,M::SSE::CubicStep(oceanic,0,0.4))));
 			rs = _mm_add_ps(rs, c001);
 		
 		
@@ -419,10 +427,10 @@ namespace Fractal
 		inline	void	polyHeight<true>(const TChannelConfig&ch0,const TChannelConfig&ch1,const TChannelConfig&ch2,const TChannelConfig&ch3, bool canyons, VMOD float result[4])
 		{
 			polyHeight<false>(ch0,ch1,ch2,ch3,canyons,result);
-			result[0] = Fractal::clamp(result[0]);
-			result[1] = Fractal::clamp(result[1]);
-			result[2] = Fractal::clamp(result[2]);
-			result[3] = Fractal::clamp(result[3]);
+			result[0] = Fractal::Clamp(result[0]);
+			result[1] = Fractal::Clamp(result[1]);
+			result[2] = Fractal::Clamp(result[2]);
+			result[3] = Fractal::Clamp(result[3]);
 		}
 
 
@@ -431,11 +439,11 @@ namespace Fractal
 	{
 		float rs = 37.5f/context.base_heightf;
 		float depth = (float)surface.depth/context.recursive_depth;
-		//float rs = (float)(1.0f/(context.base_heightf)/6*250)*0.9f;//*clamped(vmin(p0[0],p0[1]),0.1,0.2))
+		//float rs = (float)(1.0f/(context.base_heightf)/6*250)*0.9f;//*M::Clamp(M::Min(p0[0],p0[1]),0.1,0.2))
 		//rs *= 0.2f+0.8f*depth;
 		//rs *= 0.1f+0.9f*depth;
 		#if 1
-			rs *= (1.0f-sqr(1.0f-depth));
+			rs *= (1.0f-M::Sqr(1.0f-depth));
 		#else
 			rs *= depth*1.7f;
 		#endif
@@ -462,7 +470,7 @@ namespace Fractal
 	inline void		generate3inner(const TVertex&p0, const TVertex&p1, const TVertex&p2, VMOD TVertex&result, unsigned seed, const TSurfaceSegment&surface, const TContext&context, const TCrater*crater_field, count_t crater_count)
 	{
 		#if SSE_COORDINATES
-			float distance = SSE::floatDistance(p0.position,p1.position);	
+			float distance = M::SSE::floatDistance(p0.position,p1.position);	
 		#else
 			float distance = M::Vec::distance(p0.position,p1.position);
 		#endif
@@ -483,23 +491,23 @@ namespace Fractal
 		
 		
 		
-		result.channel.c0 = clamped((w0*p0.channel.c0+w1*p1.channel.c0+w2*p2.channel.c0)+noise*getRandom(random_seed)
+		result.channel.c0 = M::Clamp((w0*p0.channel.c0+w1*p1.channel.c0+w2*p2.channel.c0)+noise*getRandom(random_seed)
 			#ifdef C0_CUSTOM_NOISE_FACTOR
 				*C0_CUSTOM_NOISE_FACTOR
 			#endif
 			,0,1);
-		result.channel.c1 = clamped((w0*p0.channel.c1+w1*p1.channel.c1+w2*p2.channel.c1)+noise*getRandom(random_seed)
+		result.channel.c1 = M::Clamp((w0*p0.channel.c1+w1*p1.channel.c1+w2*p2.channel.c1)+noise*getRandom(random_seed)
 			#ifdef C1_CUSTOM_NOISE_FACTOR
 				*C1_CUSTOM_NOISE_FACTOR
 			#endif
 			,0,1);
 		result.channel.c2 = w0*p0.channel.c2+w1*p1.channel.c2+w2*p2.channel.c2;
-		result.channel.c3 = clamped((w0*p0.channel.c3+w1*p1.channel.c3+w2*p2.channel.c3)+noise*getRandom(random_seed)
+		result.channel.c3 = M::Clamp((w0*p0.channel.c3+w1*p1.channel.c3+w2*p2.channel.c3)+noise*getRandom(random_seed)
 			#ifdef C3_CUSTOM_NOISE_FACTOR
 				*C3_CUSTOM_NOISE_FACTOR
 			#endif
 			,0,1);
-		result.channel.oceanic = clamped((w0*p0.channel.oceanic+w1*p1.channel.oceanic+w2*p2.channel.oceanic)+noise*getRandom(random_seed)*context.oceanic_noise_level,0,1);
+		result.channel.oceanic = M::Clamp((w0*p0.channel.oceanic+w1*p1.channel.oceanic+w2*p2.channel.oceanic)+noise*getRandom(random_seed)*context.oceanic_noise_level,0,1);
 		
 		
 		float	riff_distance = fabsf(0.5f-result.channel.c2)*5.0f,
@@ -518,7 +526,7 @@ namespace Fractal
 				riff_noise/=(1.0f+0.25*result.channel.c3);
 		#endif
 		
-		result.channel.c2 = clamped(result.channel.c2+riff_noise,0,1);
+		result.channel.c2 = M::Clamp(result.channel.c2+riff_noise,0,1);
 
 
 		//result.channel.age = ageAt(surface.depth);
@@ -554,7 +562,7 @@ namespace Fractal
 		
 		
 		#ifdef FRACTAL_RIVERS
-			result.channel.river_depth = clamped(p0.channel.river_depth*0.25f+p1.channel.river_depth*0.25f + 0.5f*(p0.channel.river_depth*w0 + p1.channel.river_depth*w1 + p2.channel.river_depth*w2)+noise*getRandom(random_seed),0,1);
+			result.channel.river_depth = M::Clamp(p0.channel.river_depth*0.25f+p1.channel.river_depth*0.25f + 0.5f*(p0.channel.river_depth*w0 + p1.channel.river_depth*w1 + p2.channel.river_depth*w2)+noise*getRandom(random_seed),0,1);
 			
 			/*if (surface.depth == context.recursive_depth-4 && getRandom(random_seed) < -0.9)
 				result.channel.river_depth = 1.0f;*/
@@ -577,7 +585,7 @@ namespace Fractal
 		if (context.has_ocean && fabs(result.height) < 0.01f)	//shore
 		{
 			result.height*=100.0f;
-			result.height = sign(result.height) * shoreFactor(fabs(result.height));
+			result.height = M::Sign(result.height) * shoreFactor(fabs(result.height));
 				//result.height*result.height*result.height;
 			result.height/=100.0f;
 		}		
@@ -585,7 +593,7 @@ namespace Fractal
 		#if 0
 		{	//remove spikes
 			
-			float	min = vmin(vmin(p0.FRACTAL_HEIGHT,p1.FRACTAL_HEIGHT),p2.FRACTAL_HEIGHT),
+			float	min = M::Min(M::Min(p0.FRACTAL_HEIGHT,p1.FRACTAL_HEIGHT),p2.FRACTAL_HEIGHT),
 					max = vmax(vmax(p0.FRACTAL_HEIGHT,p1.FRACTAL_HEIGHT),p2.FRACTAL_HEIGHT),
 					avg = (min+max)/2.0f,
 					rng = vmax((max-min)/2.0f,0.001f)/1.5f;
@@ -624,12 +632,12 @@ namespace Fractal
 		
 		
 			/* constrain height: doesn't work
-			float	min = vmin(vmin(p0.height,p1.height),p2.height),
+			float	min = M::Min(M::Min(p0.height,p1.height),p2.height),
 					max = vmax(vmax(p0.height,p1.height),p2.height),
 					avg = (min+max)/2.0f,
 					rng = (max-min)/2.0f;
 			
-			result.height = clamped(result.height,avg-rng,avg+rng);
+			result.height = M::Clamp(result.height,avg-rng,avg+rng);
 			*/
 		}
 		#endif
@@ -649,7 +657,7 @@ namespace Fractal
 			
 			if (context.has_ocean && result.FRACTAL_HEIGHT < -0.005f)
 				result.channel.water += 0.1f;
-			result.channel.water = clamped(result.channel.water+noise*getRandom(random_seed)*WATER_NOISE,0.0f,context.fertility);
+			result.channel.water = M::Clamp(result.channel.water+noise*getRandom(random_seed)*WATER_NOISE,0.0f,context.fertility);
 			
 	}
 	
@@ -678,23 +686,23 @@ namespace Fractal
 				w0 = 1.0f/total_weight,
 				w1 = 1.0f/total_weight;
 				
-		result.channel.c0 = clamped((w0*p0.channel.c0+w1*p1.channel.c0+w2*p2.channel.c0+w3*p3.channel.c0)+noise*getRandom(random_seed) 
+		result.channel.c0 = M::Clamp((w0*p0.channel.c0+w1*p1.channel.c0+w2*p2.channel.c0+w3*p3.channel.c0)+noise*getRandom(random_seed) 
 			#ifdef C0_CUSTOM_NOISE_FACTOR
 				*C0_CUSTOM_NOISE_FACTOR
 			#endif
 			,0,1);
-		result.channel.c1 = clamped((w0*p0.channel.c1+w1*p1.channel.c1+w2*p2.channel.c1+w3*p3.channel.c1)+noise*getRandom(random_seed)
+		result.channel.c1 = M::Clamp((w0*p0.channel.c1+w1*p1.channel.c1+w2*p2.channel.c1+w3*p3.channel.c1)+noise*getRandom(random_seed)
 			#ifdef C1_CUSTOM_NOISE_FACTOR
 				*C1_CUSTOM_NOISE_FACTOR
 			#endif
 			,0,1);
 		result.channel.c2 = w0*p0.channel.c2+w1*p1.channel.c2+w2*p2.channel.c2+w3*p3.channel.c2;
-		result.channel.c3 = clamped((w0*p0.channel.c3+w1*p1.channel.c3+w2*p2.channel.c3+w3*p3.channel.c3)+noise*getRandom(random_seed)
+		result.channel.c3 = M::Clamp((w0*p0.channel.c3+w1*p1.channel.c3+w2*p2.channel.c3+w3*p3.channel.c3)+noise*getRandom(random_seed)
 			#ifdef C3_CUSTOM_NOISE_FACTOR
 				*C3_CUSTOM_NOISE_FACTOR
 			#endif
 			,0,1);
-		result.channel.oceanic = clamped((w0*p0.channel.oceanic+w1*p1.channel.oceanic+w2*p2.channel.oceanic+w3*p3.channel.oceanic)+noise*getRandom(random_seed)*context.oceanic_noise_level,0,1);
+		result.channel.oceanic = M::Clamp((w0*p0.channel.oceanic+w1*p1.channel.oceanic+w2*p2.channel.oceanic+w3*p3.channel.oceanic)+noise*getRandom(random_seed)*context.oceanic_noise_level,0,1);
 		
 		float	riff_distance = fabsf(0.5f-result.channel.c2)*5.0f,
 				riff_noise = noise*getRandom(random_seed)
@@ -708,7 +716,7 @@ namespace Fractal
 		#endif
 		
 		
-		result.channel.c2 = clamped(result.channel.c2+riff_noise,0,1);
+		result.channel.c2 = M::Clamp(result.channel.c2+riff_noise,0,1);
 
 
 		//result.channel.weight = weightAt(surface.depth);
@@ -741,9 +749,9 @@ namespace Fractal
 		
 		#ifdef FRACTAL_RIVERS
 			float mid = p0.channel.river_depth*0.5f+p1.channel.river_depth*0.5f;
-			result.channel.river_depth = clamped( mid*0.5f+ 0.5f*(p0.channel.river_depth*w0 + p1.channel.river_depth*w1 + p2.channel.river_depth*w2 + p3.channel.river_depth*w3)-fabsf(noise*10.0f*getRandom(random_seed)),0,1);
+			result.channel.river_depth = M::Clamp( mid*0.5f+ 0.5f*(p0.channel.river_depth*w0 + p1.channel.river_depth*w1 + p2.channel.river_depth*w2 + p3.channel.river_depth*w3)-fabsf(noise*10.0f*getRandom(random_seed)),0,1);
 			//result.channel.river_depth = p0.channel.river_depth*0.5f+p1.channel.river_depth*0.5f;
-			//vmin((p0.channel.river_depth*w0 + p1.channel.river_depth*w1 + p2.channel.river_depth*w2 + p3.channel.river_depth*w3),1.0f);
+			//M::Min((p0.channel.river_depth*w0 + p1.channel.river_depth*w1 + p2.channel.river_depth*w2 + p3.channel.river_depth*w3),1.0f);
 			
 			/*if (surface.depth == context.recursive_depth-4 && getRandom(random_seed) < -0.9)
 				result.channel.river_depth = 0.75f;*/
@@ -764,7 +772,7 @@ namespace Fractal
 		if (context.has_ocean && fabs(result.height) < 0.01f)	//shore
 		{
 			result.height*=100.0f;
-			result.height = sign(result.height) * shoreFactor(fabs(result.height));
+			result.height = M::Sign(result.height) * shoreFactor(fabs(result.height));
 			//result.height = result.height*result.height*result.height;
 			result.height/=100.0f;
 		}		
@@ -791,7 +799,7 @@ namespace Fractal
 		
 		if (context.has_ocean && result.FRACTAL_HEIGHT < -0.005)
 			result.channel.water += 0.1;
-		result.channel.water = clamped(result.channel.water+noise*getRandom(random_seed)*WATER_NOISE,0.0f,context.fertility);
+		result.channel.water = M::Clamp(result.channel.water+noise*getRandom(random_seed)*WATER_NOISE,0.0f,context.fertility);
 
 	}
 	
@@ -833,7 +841,7 @@ namespace Fractal
 		*/
 		
 		vout.planarity = M::Vec::dot(vout.normal,vout.up);
-		vout.temperature = (1.0f-sqr(vout.up.y))*context.temperature;
+		vout.temperature = (1.0f- M::Sqr(vout.up.y))*context.temperature;
 		float	//surficial = dbLinearStep(vertex.height,-0.01f,0.0f),
 				snow_fade,
 				general_fertility,
@@ -844,22 +852,22 @@ namespace Fractal
 		{
 
 			vout.snow_line = 1.5*vout.temperature*(1.0f-0.5f*vertex.channel.water);
-			snow_fade = 0.05+sqr((float)(surface.depth+1)/context.recursive_depth)*0.1;
-			vout.snow = (linearStep(vertex.height,vout.snow_line-0.5f,vout.snow_line)*vout.planarity+linearStep(vertex.height,0.9f,1.0f))*context.fertility;
+			snow_fade = 0.05+ M::Sqr((float)(surface.depth+1)/context.recursive_depth)*0.1;
+			vout.snow = (M::linearStep(vertex.height,vout.snow_line-0.5f,vout.snow_line)*vout.planarity+ M::linearStep(vertex.height,0.9f,1.0f))*context.fertility;
 			vout.water = vertex.channel.water+vout.snow*0.5;
-			general_fertility = linearStep(vout.water+0.3*(vout.temperature),0.3f,0.8f);
+			general_fertility = M::linearStep(vout.water+0.3*(vout.temperature),0.3f,0.8f);
 			if (context.has_ocean)
-				general_fertility *= vmin(abs_height*100.0f,1.0f);
+				general_fertility *= M::Min(abs_height*100.0f,1.0f);
 
-			general_sand = clamped(sqr(1.0f-vertex.height),0,1)*sqr(vout.temperature)*(1.0f-general_fertility);
+			general_sand = M::Clamp(M::Sqr(1.0f-vertex.height),0,1)* M::Sqr(vout.temperature)*(1.0f-general_fertility);
 			
-			vout.sand = cubicStep(vout.planarity,0.25f,0.75f)*general_sand;
+			vout.sand = M::CubicStep(vout.planarity,0.25f,0.75f)*general_sand;
 				//fertility = dbClamped(/*planarity*/dbSqr(dbClamped(snow_line-vertex.height,0.0f,1.0f)+0.1f)*general_fertility*3*dbCubicStep(planarity,0.15f,0.75f),0.0f,1.0f-sand-fabsf(vertex.height));
-			vout.fertility = clamped(sqr(clamped(vout.snow_line-vertex.height,0.0f,1.0f)+0.1f)*cubicStep(vout.planarity,0.4,0.8)*3*general_fertility,0.0f,clamped(1.0f-(vout.sand+abs_height),0,1));
-			vout.snow = linearStep(vout.snow,0.5-snow_fade,0.5+snow_fade);
+			vout.fertility = M::Clamp(M::Sqr(M::Clamp(vout.snow_line-vertex.height,0.0f,1.0f)+0.1f)* M::CubicStep(vout.planarity,0.4,0.8)*3*general_fertility,0.0f,M::Clamp(1.0f-(vout.sand+abs_height),0,1));
+			vout.snow = M::linearStep(vout.snow,0.5-snow_fade,0.5+snow_fade);
 			
 			if (context.has_ocean && vertex.height < 0.05f)
-				vout.snow *= vmax(1.0f+(-0.05f+vertex.height)*80.0f*(0.25f+0.75f*(1.0f-sqr(vout.planarity))),0.0f);
+				vout.snow *= M::Max(1.0f+(-0.05f+vertex.height)*80.0f*(0.25f+0.75f*(1.0f-M::Sqr(vout.planarity))),0.0f);
 				
 		}
 		else
@@ -868,25 +876,25 @@ namespace Fractal
 			vout.water = 0;
 			vout.snow_line = 0;
 			general_fertility = 0.0f;
-			general_sand = clamped(sqr(1.0f-(vertex.height)),0,1)*sqr(vout.temperature);
+			general_sand = M::Clamp(M::Sqr(1.0f-(vertex.height)),0,1)*M::Sqr(vout.temperature);
 			vout.fertility = 0;
-			vout.sand = cubicStep(vout.planarity,0.25f,0.75f)*general_sand;
+			vout.sand = M::CubicStep(vout.planarity,0.25f,0.75f)*general_sand;
 		}
 			
 		if (context.has_ocean)
 		{
-			const float	upper_shore_boundary = vout.planarity > 0.5f?(1.0f-sqr((vout.planarity-0.55f)/0.5f))*0.005f:0.0025f,
+			const float	upper_shore_boundary = vout.planarity > 0.5f?(1.0f-M::Sqr((vout.planarity-0.55f)/0.5f))*0.005f:0.0025f,
 						lower_shore_boundary = -0.01f,
-						sabulosity = vout.planarity > 0.7f?vout.temperature*sqr((vout.planarity-0.7f)/0.3f):0.0f;
+						sabulosity = vout.planarity > 0.7f?vout.temperature*M::Sqr((vout.planarity-0.7f)/0.3f):0.0f;
 						
 			
 			if (vertex.height < upper_shore_boundary && vertex.height > lower_shore_boundary)
 			{
 				float shore_strength = vertex.height >= 0.0f?
-											vmin((1.0f-vertex.height/upper_shore_boundary)*1.1f,1.0f):
-											vmin((1.0f-vertex.height/lower_shore_boundary)*1.1f,1.0f);
-				vout.sand = clamped(vout.sand+shore_strength*(2.0f*sabulosity-1.0f),0.0f,1.0f);
-				vout.fertility = vmax(vout.fertility-shore_strength*(0.25f+0.75f*(1.0f-vout.planarity))*4.0f,0.0f);
+											M::Min((1.0f-vertex.height/upper_shore_boundary)*1.1f,1.0f):
+											M::Min((1.0f-vertex.height/lower_shore_boundary)*1.1f,1.0f);
+				vout.sand = M::Clamp(vout.sand+shore_strength*(2.0f*sabulosity-1.0f),0.0f,1.0f);
+				vout.fertility = M::Max(vout.fertility-shore_strength*(0.25f+0.75f*(1.0f-vout.planarity))*4.0f,0.0f);
 			}
 		}
 
@@ -905,7 +913,7 @@ namespace Fractal
 			resolveDirection(v3.position,surface,context,a3.up);*/
 			resolveDirectionBlock(v0.position, v1.position, v2.position, v3.position, surface, context, a0.up, a1.up, a2.up, a3.up);
 		
-		SSE::normalizeBlock(v0.normal,v1.normal,v2.normal,v3.normal,
+		M::SSE::normalizeBlock(v0.normal,v1.normal,v2.normal,v3.normal,
 							a0.normal,a1.normal,a2.normal,a3.normal);
 		/*_c3(v0.normal,a0.normal);
 		_normalize(a0.normal);
@@ -916,11 +924,11 @@ namespace Fractal
 		_c3(v3.normal,a3.normal);
 		_normalize(a3.normal);*/
 		
-		const float snow_fade_float = 0.05+sqr((float)(surface.depth+1)/context.recursive_depth)*0.1;
+		const float snow_fade_float = 0.05+M::Sqr((float)(surface.depth+1)/context.recursive_depth)*0.1;
 		const SSE_VECTOR	height = SSE_DEFINE4(v0.height,v1.height,v2.height,v3.height),
-							abs_height = SSE::abs(height),
-							inv_height = _mm_sub_ps(SSE::one,abs_height),
-							sand_height = _mm_sub_ps(SSE::one,height),//ranging [0,2]. should be clamped after usage
+							abs_height = M::SSE::Abs(height),
+							inv_height = _mm_sub_ps(M::SSE::one,abs_height),
+							sand_height = _mm_sub_ps(M::SSE::one,height),//ranging [0,2]. should be M::Clamp after usage
 							pre_water = SSE_DEFINE4(v0.channel.water,v1.channel.water,v2.channel.water,v3.channel.water),
 							snow_fade =	_mm_set1_ps(snow_fade_float);
 
@@ -936,60 +944,60 @@ namespace Fractal
 					up_z = SSE_DEFINE4(a0.up.z,a1.up.z,a2.up.z,a3.up.z),
 				
 				planarity =			normal_x*up_x + normal_y*up_y + normal_z*up_z,
-				temperature =		(SSE::one-up_y*up_y)*context.sse_temperature,
-				surfacial =			context.has_ocean?SSE_VECTOR(SSE::factorCompareGreater(height,SSE::zero)):SSE::one,
-				snow_line =			surfacial*SSE::onepoint5*temperature*(SSE::one-SSE::half*pre_water),
-				snow =				(SSE::linearStep(height,snow_line-SSE::half,snow_line)*planarity+SSE::linearStep(height,SSE::point9,SSE::one))
+				temperature =		(M::SSE::one-up_y*up_y)*context.sse_temperature,
+				surfacial =			context.has_ocean?SSE_VECTOR(M::SSE::factorCompareGreater(height,M::SSE::zero)):M::SSE::one,
+				snow_line =			surfacial* M::SSE::onepoint5*temperature*(M::SSE::one-M::SSE::half*pre_water),
+				snow =				(M::SSE::linearStep(height,snow_line-M::SSE::half,snow_line)*planarity+M::SSE::linearStep(height,M::SSE::point9,M::SSE::one))
 									*surfacial*context.sse_fertility,
-				water = 			surfacial*(pre_water+snow*SSE::half),
-				general_fertility =	(SSE_VECTOR)SSE::linearStep(water+temperature*SSE::point3,SSE::point3,SSE::point8);
+				water = 			surfacial*(pre_water+snow*M::SSE::half),
+				general_fertility =	(SSE_VECTOR)M::SSE::linearStep(water+temperature*M::SSE::point3,M::SSE::point3,M::SSE::point8);
 		if (context.has_ocean)
-			general_fertility *= _mm_min_ps(abs_height*SSE::hundred,SSE::one)*surfacial;
+			general_fertility *= _mm_min_ps(abs_height*M::SSE::hundred,M::SSE::one)*surfacial;
 
-		SSE_VECTOR	general_sand =		SSE::clamp(sqr(sand_height),SSE::zero,SSE::one)*sqr(temperature)*(SSE::one-general_fertility),
-					sand =				SSE::cubicStep(planarity,SSE::point25,SSE::point75)*general_sand,
-					inner_fertility =	SSE::clamp(
+		SSE_VECTOR	general_sand =		M::SSE::Clamp(M::Sqr(sand_height),M::SSE::zero,M::SSE::one)*M::Sqr(temperature)*(M::SSE::one-general_fertility),
+					sand =				M::SSE::CubicStep(planarity,M::SSE::point25,M::SSE::point75)*general_sand,
+					inner_fertility =	M::SSE::Clamp(
 										snow_line-height,
-										SSE::zero,SSE::one
+										M::SSE::zero,M::SSE::one
 										)
-										+SSE::point1,
-					fertility =			SSE::clamp(
-										sqr(inner_fertility)*SSE::cubicStep(planarity,SSE::point4,SSE::point8)*general_fertility*SSE::three,
-										SSE::zero,
-										SSE::clamp(SSE::one-(sand+abs_height),SSE::zero,SSE::one)
+										+M::SSE::point1,
+					fertility =			M::SSE::Clamp(
+										M::Sqr(inner_fertility)*M::SSE::CubicStep(planarity,M::SSE::point4,M::SSE::point8)*general_fertility*M::SSE::three,
+										M::SSE::zero,
+										M::SSE::Clamp(M::SSE::one-(sand+abs_height),M::SSE::zero,M::SSE::one)
 										);
 							
-		snow =	SSE::linearStep(snow,0.5f-snow_fade_float, 0.5+snow_fade_float);
+		snow =	M::SSE::linearStep(snow,0.5f-snow_fade_float, 0.5+snow_fade_float);
 		
-		__m128	snow_keep =	SSE::one-SSE_DEFINE1(context.has_ocean)*SSE::factorCompareGreater(SSE_DEFINE1(0.05f),height);
+		__m128	snow_keep =	M::SSE::one-SSE_DEFINE1(context.has_ocean)*M::SSE::factorCompareGreater(SSE_DEFINE1(0.05f),height);
 		
 		snow =	snow*_mm_max_ps(
 						snow_keep,
-						SSE::clamp(SSE::one+(SSE_DEFINE1(-0.05f)+height)*SSE_DEFINE1(80.0f)*(SSE::point25+SSE::point75*(SSE::one-sqr(planarity))),SSE::zero,SSE::one)
+						M::SSE::Clamp(M::SSE::one+(SSE_DEFINE1(-0.05f)+height)*SSE_DEFINE1(80.0f)*(M::SSE::point25+M::SSE::point75*(M::SSE::one-M::Sqr(planarity))),M::SSE::zero,M::SSE::one)
 					);
 					
 			
 		if (context.has_ocean)
 		{
-			const SSE_VECTOR	mostly_planar =					SSE::factorCompareGreater(planarity,SSE::half),
-								planar = 						SSE::factorCompareGreater(planarity,SSE::point7),
-								planar_upper_shore_boundary =	(SSE::one-sqr((planarity-SSE_DEFINE1(0.55f))/SSE::half))*SSE_DEFINE1(0.005f),
+			const SSE_VECTOR	mostly_planar =					M::SSE::factorCompareGreater(planarity,M::SSE::half),
+								planar = 						M::SSE::factorCompareGreater(planarity,M::SSE::point7),
+								planar_upper_shore_boundary =	(M::SSE::one-M::Sqr((planarity-SSE_DEFINE1(0.55f))/M::SSE::half))*SSE_DEFINE1(0.005f),
 								upper_shore_boundary =			mostly_planar*planar_upper_shore_boundary
 																+
-																(SSE::one-mostly_planar)*SSE_DEFINE1(0.0025f),
+																(M::SSE::one-mostly_planar)*SSE_DEFINE1(0.0025f),
 								lower_shore_boundary =			SSE_DEFINE1(-0.01f),
-								sabulosity =					planar*temperature*sqr((planarity-SSE::point7)/SSE::point3),
-								is_shore =						(SSE_VECTOR)SSE::factorCompareGreater(upper_shore_boundary,height)*SSE::factorCompareGreater(height,lower_shore_boundary),
-								not_shore =						SSE::one-is_shore,
-								boundary =						surfacial*upper_shore_boundary + (SSE::one-surfacial)*lower_shore_boundary,
+								sabulosity =					planar*temperature*M::Sqr((planarity-M::SSE::point7)/M::SSE::point3),
+								is_shore =						(SSE_VECTOR)M::SSE::factorCompareGreater(upper_shore_boundary,height)*M::SSE::factorCompareGreater(height,lower_shore_boundary),
+								not_shore =						M::SSE::one-is_shore,
+								boundary =						surfacial*upper_shore_boundary + (M::SSE::one-surfacial)*lower_shore_boundary,
 								shore_strength =				_mm_min_ps(
-																(SSE::one-height/boundary)*SSE::onepoint1,
-																SSE::one
+																(M::SSE::one-height/boundary)*M::SSE::onepoint1,
+																M::SSE::one
 															);
-			sand =		is_shore*SSE::clamp(sand+shore_strength*(SSE::two*sabulosity-SSE::one),SSE::zero,SSE::one)
+			sand =		is_shore*M::SSE::Clamp(sand+shore_strength*(M::SSE::two*sabulosity-M::SSE::one),M::SSE::zero,M::SSE::one)
 						+
 						not_shore*sand;
-			fertility = is_shore*_mm_max_ps(fertility-shore_strength*(SSE::point25+SSE::point75*(SSE::one-planarity))*SSE::four,SSE::zero)
+			fertility = is_shore*_mm_max_ps(fertility-shore_strength*(M::SSE::point25+M::SSE::point75*(M::SSE::one-planarity))*M::SSE::four,M::SSE::zero)
 						+
 						not_shore*fertility;
 		}
@@ -1039,10 +1047,10 @@ namespace Fractal
 		}
 		//return (x0-1)*crater.depth;
 		
-		float	x1 = vmax(x0*2-1,0),
-				x2 = vmax(x0*2.8f-2.026944824306054581095813539164f,0.0f);
+		float	x1 = M::Max(x0*2-1,0),
+				x2 = M::Max(x0*2.8f-2.026944824306054581095813539164f,0.0f);
 		imprint = ((x0*x0*x0*x0*x0 - x1*x1*x1*x1*x1 + x2*x2*x2*x2*x2)/0.27609113417640907818006659315573f-1.0f)*crater.depth;
-		strength = (1.0f-cubicFactor(linearStep(x0,0.7f,1.0f)))*0.9f;
+		strength = (1.0f- M::CubicFactor(M::linearStep(x0,0.7f,1.0f)))*0.9f;
 	}
 	
 	inline void	resolveCraterDeltaBlock(const SSE_VECTOR&x, const SSE_VECTOR&y, const SSE_VECTOR&z, const TSSECrater&crater, SSE_VECTOR&imprint, SSE_VECTOR&strength)
@@ -1055,25 +1063,24 @@ namespace Fractal
 							radial;
 		//_subtract(crater.base,p,d1);
 		M::Vec::cross(crater.orientation,d1,radial);
-		SSE_VECTOR	x0 = _mm_max_ps(_mm_min_ps(_mm_sqrt_ps(radial.x*radial.x+radial.y*radial.y+radial.z*radial.z)/crater.radius*SSE::two-SSE::one,SSE::one),SSE::zero);
+		SSE_VECTOR	x0 = _mm_max_ps(_mm_min_ps(_mm_sqrt_ps(radial.x*radial.x+radial.y*radial.y+radial.z*radial.z)/crater.radius*M::SSE::two-M::SSE::one,M::SSE::one),M::SSE::zero);
 		
-		//return (x0-SSE::one)*crater.depth;
+		//return (x0-M::SSE::one)*crater.depth;
 		
-		SSE_VECTOR	x1 = _mm_max_ps(x0*SSE::two - SSE::one , SSE::zero),
-					x2 = _mm_max_ps(x0*c0-c1,SSE::zero);
-		imprint = ((x0*x0*x0*x0*x0 - x1*x1*x1*x1*x1 + x2*x2*x2*x2*x2)/c2-SSE::one)*crater.depth;
-		strength = (SSE::one-SSE::cubicFactor(SSE::linearStep(x0,SSE::point7,SSE::one)))*SSE::point9;
+		SSE_VECTOR	x1 = _mm_max_ps(x0*M::SSE::two - M::SSE::one , M::SSE::zero),
+					x2 = _mm_max_ps(x0*c0-c1,M::SSE::zero);
+		imprint = ((x0*x0*x0*x0*x0 - x1*x1*x1*x1*x1 + x2*x2*x2*x2*x2)/c2-M::SSE::one)*crater.depth;
+		strength = (M::SSE::one-M::SSE::CubicFactor(M::SSE::linearStep(x0,M::SSE::point7,M::SSE::one)))*M::SSE::point9;
 
 		
 	}
 	
 	/*
-		float	r2 = (vmin(r*8.0f,1.0f));
-	return (vmin(r*r*r*r*r*r*2,(r-1.0f)*(r-1.0f)*4.0f+1.0f)+(1.0f+2.0f*r2*r2*r2-3.0f*r2*r2)*0.5f)-1;
+		float	r2 = (M::Min(r*8.0f,1.0f));
+	return (M::Min(r*r*r*r*r*r*2,(r-1.0f)*(r-1.0f)*4.0f+1.0f)+(1.0f+2.0f*r2*r2*r2-3.0f*r2*r2)*0.5f)-1;
 */
 	
 }
 
 
-
-#endif
+}

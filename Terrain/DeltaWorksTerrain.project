@@ -1,5 +1,6 @@
-<project type="StaticLibrary">
-	<referenceProject name="DeltaWorksEngine" />
+<project type="StaticLibrary" extraProjectOptions="/std:c++latest /Zc:__cplusplus">
+	<referenceProject name="DeltaWorksEngine"  include="true" />
+	<referenceProject name="DeltaWorksCore" include="true" />
 
 	<source path="." include="true">
 		<exclude find="mvc"/>

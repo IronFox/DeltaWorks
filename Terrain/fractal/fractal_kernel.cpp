@@ -2,13 +2,13 @@
 #define _CRT_SECURE_NO_DEPRECATE 1
 #define _CRT_NONSTDC_NO_DEPRECATE 1
 
-#include "../image/converter/png.h"
+#include "../../Core/image/converter/png.h"
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
-#include "../general/parallel_for.h"
+#include <general/parallel_for.h>
 //#include <ppl.h>
 
 #ifdef _WIN32
@@ -17,7 +17,7 @@
 #endif
 
 #include "fractal_kernel.h"
-#include "../math/vector.h"
+#include <math/vector.h>
 
 #include "kernel/config.h"
 
@@ -35,6 +35,9 @@ ALIGNED16 VMOD static float c3exported[4];
 ALIGNED16 VMOD static float oceanicexported[4];
 ALIGNED16 VMOD static float waterexported[4];
 */
+
+namespace DeltaWorks
+{
 
 auto intAdd(int x, int y) -> int
 {
@@ -63,7 +66,7 @@ namespace Fractal
 	
 
 
-	static inline INT32	seedDelta(UINT32 vertex_index)
+	INT32	seedDelta(UINT32 vertex_index)
 	{
 		//return (((vertex_index*15+3)*(vertex_index*11+2)));
 		return vertex_index*vertex_index*167 + vertex_index*61 + 5;
@@ -109,7 +112,7 @@ namespace Fractal
 		if (context.has_ocean && fabs(result.height) < 0.01f)	//shore
 		{
 			result.height*=100.0f;
-			result.height = sign(result.height) * shoreFactor(fabs(result.height));
+			result.height = M::Sign(result.height) * shoreFactor(fabs(result.height));
 			//result.height = result.height*result.height*result.height;
 			result.height/=100.0f;
 		}		
@@ -133,23 +136,23 @@ namespace Fractal
 							w_others = FRACTAL_DEGENERATION/w_total,
 							w_self = 1.0f/w_total;
 				
-		result.channel.c0 = clamped((p0.channel.c0+p1.channel.c0+p2.channel.c0+p3.channel.c0+p4.channel.c0+p5.channel.c0)*w_others+result.channel.c0*w_self+noise*getRandom(random_seed) 
+		result.channel.c0 = M::Clamp((p0.channel.c0 + p1.channel.c0 + p2.channel.c0 + p3.channel.c0 + p4.channel.c0 + p5.channel.c0) * w_others + result.channel.c0 * w_self + noise * getRandom(random_seed)
 			#ifdef C0_CUSTOM_NOISE_FACTOR
 				*C0_CUSTOM_NOISE_FACTOR
 			#endif
 			,0,1);
-		result.channel.c1 = clamped((p0.channel.c1+p1.channel.c1+p2.channel.c1+p3.channel.c1+p4.channel.c1+p5.channel.c1)*w_others+result.channel.c1*w_self+noise*getRandom(random_seed)
+		result.channel.c1 = M::Clamp((p0.channel.c1+p1.channel.c1+p2.channel.c1+p3.channel.c1+p4.channel.c1+p5.channel.c1)*w_others+result.channel.c1*w_self+noise*getRandom(random_seed)
 			#ifdef C1_CUSTOM_NOISE_FACTOR
 				*C1_CUSTOM_NOISE_FACTOR
 			#endif
 			,0,1);
 		result.channel.c2 = (p0.channel.c2+p1.channel.c2+p2.channel.c2+p3.channel.c2+p4.channel.c2+p5.channel.c2)*w_others + result.channel.c2*w_self;
-		result.channel.c3 = clamped((p0.channel.c3+p1.channel.c3+p2.channel.c3+p3.channel.c3+p4.channel.c3+p5.channel.c3)*w_others + result.channel.c3*w_self+noise*getRandom(random_seed)
+		result.channel.c3 = M::Clamp((p0.channel.c3+p1.channel.c3+p2.channel.c3+p3.channel.c3+p4.channel.c3+p5.channel.c3)*w_others + result.channel.c3*w_self+noise*getRandom(random_seed)
 			#ifdef C3_CUSTOM_NOISE_FACTOR
 				*C3_CUSTOM_NOISE_FACTOR
 			#endif
 			,0,1);
-		result.channel.oceanic = clamped((p0.channel.oceanic+p1.channel.oceanic+p2.channel.oceanic+p3.channel.oceanic+p4.channel.oceanic+p5.channel.oceanic)*w_others+result.channel.oceanic*w_self+noise*getRandom(random_seed)*context.oceanic_noise_level,0,1);
+		result.channel.oceanic = M::Clamp((p0.channel.oceanic+p1.channel.oceanic+p2.channel.oceanic+p3.channel.oceanic+p4.channel.oceanic+p5.channel.oceanic)*w_others+result.channel.oceanic*w_self+noise*getRandom(random_seed)*context.oceanic_noise_level,0,1);
 		
 		float	riff_distance = fabsf(0.5f-result.channel.c2)*5.0f,
 				riff_noise = noise*getRandom(random_seed)
@@ -162,7 +165,7 @@ namespace Fractal
 			riff_noise/=(1.0f+0.25*result.channel.c3);
 		
 		
-		result.channel.c2 = clamped(result.channel.c2+riff_noise,0,1);
+		result.channel.c2 = M::Clamp(result.channel.c2+riff_noise,0,1);
 
 
 		//result.channel.weight = weightAt(surface.depth);
@@ -195,9 +198,9 @@ namespace Fractal
 		
 		#ifdef FRACTAL_RIVERS
 			float mid = p0.channel.river_depth*0.5f+p1.channel.river_depth*0.5f;
-			result.channel.river_depth = clamped( mid*0.5f+ 0.5f*(p0.channel.river_depth*w0 + p1.channel.river_depth*w1 + p2.channel.river_depth*w2 + p3.channel.river_depth*w3)-fabsf(noise*10.0f*getRandom(random_seed)),0,1);
+			result.channel.river_depth = M::Clamp( mid*0.5f+ 0.5f*(p0.channel.river_depth*w0 + p1.channel.river_depth*w1 + p2.channel.river_depth*w2 + p3.channel.river_depth*w3)-fabsf(noise*10.0f*getRandom(random_seed)),0,1);
 			//result.channel.river_depth = p0.channel.river_depth*0.5f+p1.channel.river_depth*0.5f;
-			//vmin((p0.channel.river_depth*w0 + p1.channel.river_depth*w1 + p2.channel.river_depth*w2 + p3.channel.river_depth*w3),1.0f);
+			//M::Min((p0.channel.river_depth*w0 + p1.channel.river_depth*w1 + p2.channel.river_depth*w2 + p3.channel.river_depth*w3),1.0f);
 			
 			/*if (surface.depth == context.recursive_depth-4 && getRandom(random_seed) < -0.9)
 				result.channel.river_depth = 0.75f;*/
@@ -219,7 +222,7 @@ namespace Fractal
 		if (context.has_ocean && fabs(result.height) < 0.01f)	//shore
 		{
 			result.height*=100.0f;
-			result.height = sign(result.height) * shoreFactor(fabs(result.height));
+			result.height = M::Sign(result.height) * shoreFactor(fabs(result.height));
 			//result.height = result.height*result.height*result.height;
 			result.height/=100.0f;
 		}		
@@ -233,7 +236,7 @@ namespace Fractal
 	namespace Kernel
 	{
 
-		SSE::version_t	current_sse_version = SSE::V3;
+		M::SSE::version_t	current_sse_version = M::SSE::V3;
 		volatile bool	background=false;	//!< Indicates that the reduced thread loop should be used. This frees one core for other tasks. False by default
 
 
@@ -257,7 +260,7 @@ namespace Fractal
 		namespace Operation
 		{
 	
-
+			const TVertex empty_vertex = { 0,0,0,0,0,0,0,0,0,0,0,0,0 };
 			//static System::HyperKernel		kernel(2);//no speed gain
 			//static System::Kernel		kernel;
 
@@ -267,7 +270,7 @@ namespace Fractal
 			
 			
 			//static THostSurface			*signal_surface = NULL;
-			static Mutex				mutex;
+			static System::Mutex				mutex;
 			
 			//static UnifiedOperationParameter		parameter;
 			
@@ -376,7 +379,7 @@ namespace Fractal
 							max = h;
 					}
 					avg = (min+max)/2.0f;
-					rng = vmax((max-min)/2.0f,0.001f);//0.75f;
+					rng = M::vmax((max-min)/2.0f,0.001f);//0.75f;
 				}
 				
 				
@@ -453,6 +456,8 @@ namespace Fractal
 
 			PARALLEL_OPERATION degenerateVertexBlock(unsigned iteration,const UnifiedOperationParameter&parameter)
 			{
+				using namespace M::SSE;
+
 				ALIGNED16 float interchange[4];
 					
 					
@@ -616,24 +621,24 @@ namespace Fractal
 				{
 					SSE_VECTOR imprint, strength;
 					resolveCraterDeltaBlock(v.x,v.y,v.z,parameter.generateVertex.sse_crater_field[i],imprint,strength);
-					crater_depth *= (SSE::one-strength);
+					crater_depth *= (M::SSE::one-strength);
 					crater_depth += imprint;
 				}
 				h+=crater_depth;
 					
 				if (context.has_ocean)
 				{
-					__m128 shore = SSE::factorCompareGreater(_mm_set1_ps(0.01f),SSE::abs(h)),
-							shore_relative = _mm_mul_ps(h,SSE::hundred);
+					__m128 shore = M::SSE::factorCompareGreater(_mm_set1_ps(0.01f),M::SSE::Abs(h)),
+							shore_relative = _mm_mul_ps(h, M::SSE::hundred);
 							
-					__m128 sign = _mm_sub_ps(_mm_mul_ps(SSE::factorCompareGreater(shore_relative,SSE::zero),SSE::two),SSE::one);
-					shore_relative = _mm_mul_ps(SSE::shoreFactor(SSE::abs(shore_relative)),sign);
+					__m128 sign = _mm_sub_ps(_mm_mul_ps(M::SSE::factorCompareGreater(shore_relative,M::SSE::zero),M::SSE::two),M::SSE::one);
+					shore_relative = _mm_mul_ps(SSE::shoreFactor(M::SSE::Abs(shore_relative)),sign);
 					//shore_relative = _mm_mul_ps(_mm_mul_ps(shore_relative,shore_relative),shore_relative);
 
 
-					shore_relative = _mm_div_ps(shore_relative,SSE::hundred);
+					shore_relative = _mm_div_ps(shore_relative,M::SSE::hundred);
 					h = _mm_add_ps(
-							_mm_mul_ps(h,_mm_sub_ps(SSE::one,shore)),
+							_mm_mul_ps(h,_mm_sub_ps(M::SSE::one,shore)),
 							_mm_mul_ps(shore_relative,shore)
 							);	
 				}
@@ -682,7 +687,6 @@ namespace Fractal
 
 
 			
-			static const TVertex empty_vertex={0,0,0,0,0,0,0,0,0,0,0,0,0};
 
 			
 
@@ -923,8 +927,8 @@ namespace Fractal
 								&p1 = these_vertices[this_info.parent1],
 								&p1b = those_vertices[that_info.parent0];
 						
-						ASSERT3__(similar(p0.height,p0b.height),linear,p0.height,p0b.height);
-						ASSERT3__(similar(p1.height,p1b.height),linear,p1.height,p1b.height);
+						ASSERT3__(M::Similar(p0.height,p0b.height),linear,p0.height,p0b.height);
+						ASSERT3__(M::Similar(p1.height,p1b.height),linear,p1.height,p1b.height);
 						/*p0b.channel.weight = p0.channel.weight = (p0.channel.weight+p0b.channel.weight)/2.0f;
 						p1b.channel.weight = p1.channel.weight = (p1.channel.weight+p1b.channel.weight)/2.0f;*/
 						
@@ -1027,7 +1031,7 @@ namespace Fractal
 				
 				//if (!this_info.grid_vertex)
 				{
-					//ASSERT3__(SSE::floatDistance(source_v.position-parameter.copyEdge.edge_transition,destination_v.position)<parameter.context->variance*2,SSE::ToString(source_v.position),SSE::ToString(parameter.copyEdge.edge_transition),SSE::ToString(destination_v.position));
+					//ASSERT3__(M::SSE::floatDistance(source_v.position-parameter.copyEdge.edge_transition,destination_v.position)<parameter.context->variance*2,M::SSE::ToString(source_v.position),M::SSE::ToString(parameter.copyEdge.edge_transition),M::SSE::ToString(destination_v.position));
 					destination_v.channel = source_v.channel;
 					destination_v.height = source_v.height;
 					
@@ -1346,12 +1350,12 @@ namespace Fractal
 							ny = SSE_DEFINE4(vertex0.normal.y,vertex1.normal.y,vertex2.normal.y,vertex3.normal.y),
 							nz = SSE_DEFINE4(vertex0.normal.z,vertex1.normal.z,vertex2.normal.z,vertex3.normal.z),
 							nfc = _mm_rsqrt_ps(nx*nx + ny*ny + nz*nz),
-							normal_color0 = SSE::c128+nx*nfc*SSE::c127,
-							normal_color1 = SSE::c128+ny*nfc*SSE::c127,
-							normal_color2 = SSE::c128+nz*nfc*SSE::c127;
-							/*normal_color0 = SSE::c255 * (SSE::half+SSE::half*nx*nfc),
-							normal_color1 = SSE::c255 * (SSE::half+SSE::half*ny*nfc),
-							normal_color2 = SSE::c255 * (SSE::half+SSE::half*nz*nfc);*/
+							normal_color0 = M::SSE::c128+nx*nfc*M::SSE::c127,
+							normal_color1 = M::SSE::c128+ny*nfc*M::SSE::c127,
+							normal_color2 = M::SSE::c128+nz*nfc*M::SSE::c127;
+							/*normal_color0 = M::SSE::c255 * (M::SSE::half+M::SSE::half*nx*nfc),
+							normal_color1 = M::SSE::c255 * (M::SSE::half+M::SSE::half*ny*nfc),
+							normal_color2 = M::SSE::c255 * (M::SSE::half+M::SSE::half*nz*nfc);*/
 				ALIGNED16	float exported[4];
 				
 				#define EXPORT_NORMAL_COMPONENT(_COORD_)\
@@ -1524,9 +1528,9 @@ namespace Fractal
 				if (beta >= 0 && gamma >= 0 && beta+gamma <= 1 && alpha >= 0)
 				{
 					TBaseRayIntersection&intersection = *parameter.cast.intersection;
-					if (!intersection.isset)
+					if (!intersection.isSet)
 					{
-						intersection.isset = true;
+						intersection.isSet = true;
 						intersection.vertex[0] = &v0;
 						intersection.vertex[1] = &v1;
 						intersection.vertex[2] = &v2;
@@ -1571,9 +1575,9 @@ namespace Fractal
 				{
 					TBaseGroundInfo&ground = *parameter.groundCast.ground;
 					parameter.output_mutex->lock();
-					if (!ground.isset)
+					if (!ground.isSet)
 					{
-						ground.isset = true;
+						ground.isSet = true;
 						ground.height_over_ground = alpha;
 						ground.ground_height = v0.height + (v1.height-v0.height)*gamma + (v2.height-v0.height)*beta;
 						M::Vec::mad((v0.position),d0,gamma,ground.position);
@@ -1597,16 +1601,16 @@ namespace Fractal
 		
 		
 		
-		bool			setSSE(SSE::version_t version)
+		bool			setSSE(M::SSE::version_t version)
 		{
 			#ifndef __GNUC__
-				if (version >= SSE::V4)
+				if (version >= M::SSE::V4)
 				{
 					/*Operation::subdivideVertexBlock = Operation::subdivideVertexBlockSSE4;
 					Operation::subdivideParentVertexBlock = Operation::subdivideParentVertexBlockSSE4;
 					Operation::topLevelSubdivideVertexBlock = Operation::subdivideVertexBlock;*/
 				}
-				elif (version >= SSE::V3Supplemental)
+				elif (version >= M::SSE::V3Supplemental)
 				{
 					/*Operation::subdivideVertexBlock = Operation::subdivideVertexBlockSSSE3;
 					Operation::subdivideParentVertexBlock = Operation::subdivideParentVertexBlockSSSE3;
@@ -1614,7 +1618,7 @@ namespace Fractal
 				}
 				else
 			#endif
-			if (version >= SSE::V3)
+			if (version >= M::SSE::V3)
 			{
 				/*Operation::subdivideVertexBlock = Operation::subdivideVertexBlockSSE3;
 				Operation::subdivideParentVertexBlock = Operation::subdivideParentVertexBlockSSE3;
@@ -1640,12 +1644,12 @@ namespace Fractal
 			parameter.generateVertex.parent_vertex_field = NULL;
 			
 			
-			if (segment.crater_field.length() > static_crater_field.length())
+			if (segment.crater_field.GetLength() > static_crater_field.GetLength())
 			{
-				static_crater_field.SetSize(segment.crater_field.length());
+				static_crater_field.SetSize(segment.crater_field.GetLength());
 
 			}
-			for (unsigned i = 0; i < segment.crater_field.length(); i++)
+			for (unsigned i = 0; i < segment.crater_field.GetLength(); i++)
 			{
 				const VMOD TCrater&from = segment.crater_field[i];
 				TSSECrater&to = static_crater_field[i];
@@ -1661,11 +1665,11 @@ namespace Fractal
 			
 			parameter.generateVertex.sse_crater_field = static_crater_field.pointer();
 			parameter.generateVertex.crater_field = segment.crater_field.pointer();
-			parameter.generateVertex.crater_count = unsigned(segment.crater_field.length());
+			parameter.generateVertex.crater_count = unsigned(segment.crater_field.GetLength());
 			
 			/*Kernel::parameter.generateVertex.sse_crater_field = static_crater_pointer;
 			Kernel::parameter.generateVertex.crater_field = segment.crater_field.pointer();
-			Kernel::parameter.generateVertex.crater_count = segment.crater_field.length();*/
+			Kernel::parameter.generateVertex.crater_count = segment.crater_field.GetLength();*/
 			
 			
 			
@@ -1677,19 +1681,19 @@ namespace Fractal
 			//Kernel::Operation::execute(Kernel::Operation::topLevelSubdivideVertexBlock,num_iterations,128);	//128 seems fine here
 			switch (current_sse_version)
 			{
-				case SSE::V3:
+				case M::SSE::V3:
 					Concurrency::parallel_for(unsigned(0),num_iterations,[&](unsigned i)
 					{
 						Kernel::Operation::subdivideVertexBlock<CSSE3Random>(i,parameter);
 					});
 				break;
-				case SSE::V3Supplemental:
+				case M::SSE::V3Supplemental:
 					Concurrency::parallel_for(unsigned(0),num_iterations,[&](unsigned i)
 					{
 						Kernel::Operation::subdivideVertexBlock<SupplementalSSE3Random>(i,parameter);
 					});
 				break;
-				case SSE::V4:
+				case M::SSE::V4:
 					Concurrency::parallel_for(unsigned(0),num_iterations,[&](unsigned i)
 					{
 						Kernel::Operation::subdivideVertexBlock<CSSE4Random>(i,parameter);
@@ -1718,12 +1722,12 @@ namespace Fractal
 			
 			
 
-			if (segment.crater_field.length() > static_crater_field.length())
+			if (segment.crater_field.GetLength() > static_crater_field.GetLength())
 			{
-				static_crater_field.SetSize(segment.crater_field.length());
+				static_crater_field.SetSize(segment.crater_field.GetLength());
 
 			}
-			for (unsigned i = 0; i < segment.crater_field.length(); i++)
+			for (unsigned i = 0; i < segment.crater_field.GetLength(); i++)
 			{
 				const VMOD TCrater&from = segment.crater_field[i];
 				TSSECrater&to = static_crater_field[i];
@@ -1739,7 +1743,7 @@ namespace Fractal
 			
 			parameter.generateVertex.sse_crater_field = static_crater_field.pointer();
 			parameter.generateVertex.crater_field = segment.crater_field.pointer();
-			parameter.generateVertex.crater_count = unsigned(segment.crater_field.length());
+			parameter.generateVertex.crater_count = unsigned(segment.crater_field.GetLength());
 			
 			
 			M::TVec3<> delta;
@@ -1763,19 +1767,19 @@ namespace Fractal
 			//Kernel::Operation::execute(Kernel::Operation::subdivideVertexBlock,num_iterations,128);	//128 seems fine here
 			switch (current_sse_version)
 			{
-				case SSE::V3:
+				case M::SSE::V3:
 					Concurrency::parallel_for(unsigned(0),num_iterations,[&](unsigned i)
 					{
 						Kernel::Operation::subdivideVertexBlock<CSSE3Random>(i,parameter);
 					});
 				break;
-				case SSE::V3Supplemental:
+				case M::SSE::V3Supplemental:
 					Concurrency::parallel_for(unsigned(0),num_iterations,[&](unsigned i)
 					{
 						Kernel::Operation::subdivideVertexBlock<SupplementalSSE3Random>(i,parameter);
 					});
 				break;
-				case SSE::V4:
+				case M::SSE::V4:
 					Concurrency::parallel_for(unsigned(0),num_iterations,[&](unsigned i)
 					{
 						Kernel::Operation::subdivideVertexBlock<CSSE4Random>(i,parameter);
@@ -1808,12 +1812,12 @@ namespace Fractal
 			
 			
 
-			if (segment.crater_field.length() > static_crater_field.length())
+			if (segment.crater_field.GetLength() > static_crater_field.GetLength())
 			{
-				static_crater_field.SetSize(segment.crater_field.length());
+				static_crater_field.SetSize(segment.crater_field.GetLength());
 
 			}
-			for (unsigned i = 0; i < segment.crater_field.length(); i++)
+			for (unsigned i = 0; i < segment.crater_field.GetLength(); i++)
 			{
 				const VMOD TCrater&from = segment.crater_field[i];
 				TSSECrater&to = static_crater_field[i];
@@ -1829,7 +1833,7 @@ namespace Fractal
 			
 			parameter.generateVertex.sse_crater_field = static_crater_field.pointer();
 			parameter.generateVertex.crater_field = segment.crater_field.pointer();
-			parameter.generateVertex.crater_count = unsigned(segment.crater_field.length());
+			parameter.generateVertex.crater_count = unsigned(segment.crater_field.GetLength());
 			
 			
 
@@ -1932,7 +1936,7 @@ namespace Fractal
 					if (merge_forward)
 					{
 						parameter.mergeEdge.crater_field = segment.crater_field.pointer();
-						parameter.mergeEdge.crater_count = unsigned(segment.crater_field.length());
+						parameter.mergeEdge.crater_count = unsigned(segment.crater_field.GetLength());
 
 						parameter.mergeEdge.vertex_field = segment.vertex_field.pointer();
 						parameter.mergeEdge.neighbor_vertex_field = neighbor->vertex_field.pointer();
@@ -1947,7 +1951,7 @@ namespace Fractal
 					else
 					{
 						parameter.mergeEdge.crater_field = neighbor->crater_field.pointer();
-						parameter.mergeEdge.crater_count = unsigned(neighbor->crater_field.length());
+						parameter.mergeEdge.crater_count = unsigned(neighbor->crater_field.GetLength());
 
 						parameter.mergeEdge.neighbor_vertex_field = segment.vertex_field.pointer();
 						parameter.mergeEdge.vertex_field = neighbor->vertex_field.pointer();
@@ -2139,7 +2143,7 @@ namespace Fractal
 				Kernel::Operation::parameter.generateMIPMAP.out_texture_size = mipmap_image_width;
 				Kernel::Operation::parameter.generateMIPMAP.out_num_texels = mipmap_num_texels;
 				
-				if (Kernel::current_sse_version >= SSE::V3Supplemental)
+				if (Kernel::current_sse_version >= M::SSE::V3Supplemental)
 					Kernel::Operation::loop.execute(Kernel::Operation::generateMIPMAPBlock16,numBlockIterations(mipmap_num_texels,16),128);
 				else
 					FATAL__("Not implemented");
@@ -2158,9 +2162,9 @@ namespace Fractal
 			BEGIN
 			static Array<float,Primitive>	write_buffer;
 
-			Arrays::count_t	new_size = vbo_indices.count();
+			Arrays::count_t	new_size = vbo_indices.Count();
 
-			Arrays::count_t edge_depth = vmax(segment.vbo_edge[0].count(),vmax(segment.vbo_edge[1].count(),segment.vbo_edge[2].count())),
+			Arrays::count_t edge_depth = M::vmax(segment.vbo_edge[0].Count(),M::vmax(segment.vbo_edge[1].Count(),segment.vbo_edge[2].Count())),
 							edge_vertices = ((1<<vbo_map.exponent)-(1<<(vbo_map.exponent-edge_depth)))*3;
 
 			ASSERT2__(edge_depth <= vbo_map.exponent,edge_depth,vbo_map.exponent);
@@ -2190,16 +2194,16 @@ namespace Fractal
 			parameter.generateVBO.stretch = 1.0f-parameter.generateVBO.base;	//stretch minus seam
 			parameter.generateVBO.stretch /= (float)full_map.vertex_maximum;	//normalize grid coordinates to the range [0=left edge, 1=right edge]
 			
-			//Kernel::Operation::execute(Kernel::Operation::generateVBO,vbo_indices.count());
-			//Kernel::Operation::execute(Kernel::Operation::generateVBO,unsigned(vbo_indices.count()),192);
-			Concurrency::parallel_for(unsigned(0),unsigned(vbo_indices.count()),[&](unsigned i)
+			//Kernel::Operation::execute(Kernel::Operation::generateVBO,vbo_indices.Count());
+			//Kernel::Operation::execute(Kernel::Operation::generateVBO,unsigned(vbo_indices.Count()),192);
+			Concurrency::parallel_for(unsigned(0),unsigned(vbo_indices.Count()),[&](unsigned i)
 			{
 				Kernel::Operation::generateVBO(i,parameter);
 			});
 			
 				
 
-			float*offset = write_buffer + vbo_indices.count()*TSurfaceSegment::floats_per_vbo_vertex;
+			float*offset = write_buffer + vbo_indices.Count()*TSurfaceSegment::floats_per_vbo_vertex;
 
 			for (Arrays::count_t i = 0; i < edge_depth; i++)
 			{
@@ -2207,14 +2211,14 @@ namespace Fractal
 								edge_length = copy_length+TSurfaceSegment::floats_per_vbo_vertex;
 				for (BYTE k = 0; k < 3; k++)
 				{
-					if (segment.vbo_edge[k].count() > i)
+					if (segment.vbo_edge[k].Count() > i)
 					{
-						ASSERT_EQUAL__(edge_length,segment.vbo_edge[k][i].length());
+						ASSERT_EQUAL__(edge_length,segment.vbo_edge[k][i].GetLength());
 						memcpy(offset,segment.vbo_edge[k][i].pointer(),copy_length*sizeof(float));
 						offset += copy_length;
 
 
-						if (segment.vbo_edge[(k+2)%3].count() > i)
+						if (segment.vbo_edge[(k+2)%3].Count() > i)
 						{
 							const float	*predecessor_corner = segment.vbo_edge[(k+2)%3][i].pointer()+copy_length,
 										*successor_corner = segment.vbo_edge[k][i].pointer();
@@ -2224,7 +2228,7 @@ namespace Fractal
 					}
 					else
 					{
-						if (segment.vbo_edge[(k+2)%3].count() > i)	//copy first vertex from last neighbor edge vertex
+						if (segment.vbo_edge[(k+2)%3].Count() > i)	//copy first vertex from last neighbor edge vertex
 						{
 							memcpy(offset,segment.vbo_edge[(k+2)%3][i].pointer()+copy_length,TSurfaceSegment::floats_per_vbo_vertex*sizeof(float));
 						}
@@ -2233,7 +2237,7 @@ namespace Fractal
 				}
 			}
 
-			ASSERT__(offset <= write_buffer.pointer()+write_buffer.length());
+			ASSERT__(offset <= write_buffer.pointer()+write_buffer.GetLength());
 			ASSERT_EQUAL__(offset-write_buffer.pointer(),new_size);
 
 
@@ -2245,14 +2249,14 @@ namespace Fractal
 		/*
 		void	updateCloudVBO(TSurfaceSegment&segment, const TContext&context, DeviceArray<unsigned>&device_cloud_triangles, unsigned range)
 		{
-			ASSERT1__(device_cloud_triangles.length()>0 && !(device_cloud_triangles.length()%3),device_cloud_triangles.length());
+			ASSERT1__(device_cloud_triangles.GetLength()>0 && !(device_cloud_triangles.GetLength()%3),device_cloud_triangles.GetLength());
 			TDeviceSurface	this_surface;
 			((TBaseSurface&)this_surface) = segment;
 			this_surface.vertex = segment.vertex_field.pointer();
 			
-			segment.cloud_vbo.resize(device_cloud_triangles.length()/3*9*sizeof(float));	//3 base + 3 ceiling + 3 norm
+			segment.cloud_vbo.resize(device_cloud_triangles.GetLength()/3*9*sizeof(float));	//3 base + 3 ceiling + 3 norm
 		
-			unsigned blocks = ceilDiv(device_cloud_triangles.length()/3,block_size);
+			unsigned blocks = ceilDiv(device_cloud_triangles.GetLength()/3,block_size);
 			dim3 block(block_dimension, block_dimension, 1);
 			dim3 grid(blocks, 1, 1);
 
@@ -2260,7 +2264,7 @@ namespace Fractal
 			
 			segment.cloud_vbo.registerAndMap(vertex_data);
 			
-			generateCloudVBO<<< grid, block >>>(vertex_data,this_surface, context, device_cloud_triangles.pointer(),device_cloud_triangles.length(), range-1);
+			generateCloudVBO<<< grid, block >>>(vertex_data,this_surface, context, device_cloud_triangles.pointer(),device_cloud_triangles.GetLength(), range-1);
 		
 			segment.cloud_vbo.release();
 		}
@@ -2269,7 +2273,7 @@ namespace Fractal
 		void	retrieveCover(const TSurfaceSegment&segment, const TContext&context, const ArrayData<unsigned>&cover_indices, ArrayData<TCoverVertex>&out_cover)
 		{
 			BEGIN
-			out_cover.SetSize(cover_indices.count());
+			out_cover.SetSize(cover_indices.Count());
 			
 			UnifiedOperationParameter parameter;
 			parameter.segment = &segment;
@@ -2280,9 +2284,9 @@ namespace Fractal
 			parameter.generateCover.in_vertices = segment.vertex_field.pointer();
 			parameter.generateCover.index_field = cover_indices.pointer();
 			
-			//Kernel::Operation::execute(Kernel::Operation::generateCover,cover_indices.count());
-			//Kernel::Operation::execute(Kernel::Operation::generateCover,unsigned(cover_indices.count()),192);
-			Concurrency::parallel_for(unsigned(0),unsigned(cover_indices.count()),[&](unsigned i)
+			//Kernel::Operation::execute(Kernel::Operation::generateCover,cover_indices.Count());
+			//Kernel::Operation::execute(Kernel::Operation::generateCover,unsigned(cover_indices.Count()),192);
+			Concurrency::parallel_for(unsigned(0),unsigned(cover_indices.Count()),[&](unsigned i)
 			{
 				Kernel::Operation::generateCover(i,parameter);
 			});
@@ -2311,7 +2315,7 @@ namespace Fractal
 			if (segment.neighbor_link[0].primary && segment.neighbor_link[1].primary && segment.neighbor_link[2].primary)	//all edges belong to this segment
 			{
 				//out_cover.SetSize(map.vertex_count);
-				ASSERT_EQUAL__(out_cover.count(),map.vertex_count);
+				ASSERT_EQUAL__(out_cover.Count(),map.vertex_count);
 				
 				unsigned num_iterations = numBlockIterations(map.vertex_count);
 				
@@ -2352,7 +2356,7 @@ namespace Fractal
 				ASSERT_CONCLUSION(out_cover,parameter.generateCover.out_vertices);
 			}
 			//no chance to do it fully parallel. have to generate core, then outer edges in each a separate operation. may however distinguish the special case of all three edges being primary
-			//Kernel::Operation::execute(Kernel::Operation::generateCover,cover_indices.count());
+			//Kernel::Operation::execute(Kernel::Operation::generateCover,cover_indices.Count());
 			END
 		}
 		
@@ -2365,7 +2369,7 @@ namespace Fractal
 			parameter.context = NULL;
 			parameter.map = NULL;
 
-			static Mutex mutex;
+			static System::Mutex mutex;
 			parameter.output_mutex = &mutex;
 			
 			parameter.cast.triangle_indices = triangles.pointer();
@@ -2374,8 +2378,8 @@ namespace Fractal
 			M::Vec::copy(b,parameter.cast.b);
 			M::Vec::copy(d,parameter.cast.d);
 			
-			//Kernel::Operation::execute(Kernel::Operation::cast,unsigned(triangles.count()/3));
-			Concurrency::parallel_for(unsigned(0),unsigned(triangles.count()/3),[&](unsigned i)
+			//Kernel::Operation::execute(Kernel::Operation::cast,unsigned(triangles.Count()/3));
+			Concurrency::parallel_for(unsigned(0),unsigned(triangles.Count()/3),[&](unsigned i)
 			{
 				Kernel::Operation::cast(i,parameter);
 			});
@@ -2390,14 +2394,14 @@ namespace Fractal
 				lout << "  v[2]="<<_toString(intersection.vertex[2].position)<<nl;
 			}*/
 			END
-			return intersection.isset;
+			return intersection.isSet;
 		}
 		
 		bool	groundQuery(const TSurfaceSegment&segment, const M::TVec3<>&b, const M::TVec3<>&down, const ArrayData<unsigned>&triangles, TBaseGroundInfo&ground)
 		{
 			BEGIN
 			UnifiedOperationParameter parameter;
-			static Mutex	mutex;
+			static System::Mutex	mutex;
 
 			parameter.output_mutex = &mutex;
 			parameter.segment = &segment;
@@ -2412,16 +2416,17 @@ namespace Fractal
 			
 			
 		
-			//Kernel::Operation::execute(Kernel::Operation::groundCast,unsigned(triangles.count()/3));
-			Concurrency::parallel_for(index_t(0),(triangles.count()/3),[&](index_t i)
+			//Kernel::Operation::execute(Kernel::Operation::groundCast,unsigned(triangles.Count()/3));
+			Concurrency::parallel_for(index_t(0),(triangles.Count()/3),[&](index_t i)
 			{
 				Kernel::Operation::groundCast(i,parameter);
 			});
 
 			END
-			return ground.isset;
+			return ground.isSet;
 		}
 		
 	}
 	
+}
 }

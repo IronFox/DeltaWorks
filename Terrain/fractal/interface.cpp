@@ -1,6 +1,8 @@
-#include "../global_root.h"
+#include <global_root.h>
 #include "interface.h"
 
+
+#include <container/sorter.h>
 
 #undef EXCEPTION
 #define EXCEPTION(message)	FRAC_FATAL(message)
@@ -40,7 +42,7 @@ const char*spaces(unsigned length)
 #endif
 
 
-namespace Fractal
+namespace DeltaWorks::Fractal
 {
 	#include "kernel/config.h"
 	
@@ -49,22 +51,22 @@ namespace Fractal
 
 	
 
-	SynchronizedLogFile								logfile("fractal.log",true);
+	SynchronizedLogFile								logfile(L"fractal.log",true);
 	SurfaceSegment									*Body::production(NULL);
 	bool											Body::can_update=true;
 	unsigned										num_sectors=0,
 													max_sectors=2000,
 													build_operations=1;
 	static const float								ttl_loss_per_level = 0.8f;
-	Timer::Time									build_time = 1000000;
+	Time::Delta										build_time = Time::Delta::FromSeconds( 1000000);
 	
 	bool											mipmapping = true,
 													texture_compression = false,
 													background_subdiv = true;
 
 	//::TContext										default_context = {10,1,10000,32};
-	Timer::Time									Body::trace_time;		//!< Global time when tracing began
-	Buffer<SurfaceSegment*>						Body::need_children;
+	Time::Stamp										Body::trace_time;		//!< Global time when tracing began
+	Vector<SurfaceSegment*>							Body::need_children;
 
 	static PointerSet								array_table,
 													segment_table;
@@ -82,11 +84,11 @@ namespace Fractal
 		bool										signaled = false;
 											
 
-		BlockingPipe								begin_tickets,
+		System::BlockingPipe								begin_tickets,
 													end_tickets;
 
 
-		class Process:public ThreadMainObject
+		class Process:public System::ThreadMainObject
 		{
 		public:
 		virtual	void								ThreadMain();
@@ -95,7 +97,7 @@ namespace Fractal
 
 		Process										process;
 
-		Thread										thread(process,true);
+		System::Thread								thread(process,true);
 
 		void										begin();
 		void										end();
@@ -111,11 +113,11 @@ namespace Fractal
 	void		registerSegment(TSurfaceSegment*segment)
 	{
 		return;	//disabled
-		if (segment_table.isSet(segment))
+		if (segment_table.IsSet(segment))
 			FATAL__("Trying to reregister segment "+PointerToStr(segment));
 		
 		std::cout << "register "<<segment<<std::endl;
-		segment_table.set(segment);
+		segment_table.Set(segment);
 	}
 	
 	void		unregisterSegment(TSurfaceSegment*segment)
@@ -130,7 +132,7 @@ namespace Fractal
 		return;	//disabled
 		if (array_table.IsSet(field))
 			FATAL__("Trying to reregister array "+PointerToStr(field));
-		array_table.set(field);
+		array_table.Set(field);
 	}
 
 	void		registerArray(Array<TVertex>&field)
@@ -138,7 +140,7 @@ namespace Fractal
 		return;	//disabled
 		if (array_table.IsSet(field.pointer()))
 			FATAL__("Trying to reregister array "+PointerToStr(field.pointer()));
-		array_table.set(field.pointer());
+		array_table.Set(field.pointer());
 	}
 	
 	
@@ -157,7 +159,7 @@ namespace Fractal
 	bool		isRegistered(TSurfaceSegment*segment)
 	{
 		return true;	//disabled
-		return segment_table.isSet(segment) && array_table.isSet(segment->vertex_field.pointer());
+		return segment_table.IsSet(segment) && array_table.IsSet(segment->vertex_field.pointer());
 	}
 	
 	
@@ -171,7 +173,7 @@ namespace Fractal
 	
 	void				reportFatalException(const TCodeLocation&location, const String&message)
 	{
-		Except::fatal(location,message);
+		Except::Fatal(location,message);
 	}
 			
 
@@ -208,7 +210,7 @@ namespace Fractal
 		
 		len = M::Vec::length(absolute_vector);
 		delta = height-len;
-		if (vabs(len) < GetError<double>())
+		if (M::vabs(len) < M::GetError<double>())
 			return;
 		M::Vec::mult(absolute_vector,delta/len,delta_vector);
 		M::Vec::add(v,delta_vector);
@@ -221,9 +223,9 @@ namespace Fractal
 		Random random;
 		BYTE len = random.Next(3,32);
 		String result;
-		result.resize(len);
+		result.Resize(len);
 		for (BYTE k = 0; k < len; k++)
-			result.set(k,alpha[random.NextIndex(strlen(alpha))]);
+			result.Set(k,alpha[random.NextIndex(strlen(alpha))]);
 		return result;
 	}
 	
@@ -239,7 +241,7 @@ namespace Fractal
 		
 	UINT32				DynamicSeed::toInt()	const
 	{
-		return CRC32::getChecksum(value.pointer(),value.length());
+		return CRC32::Sequence(value.pointer(),value.GetLength()).Finish();
 	}
 	
 	String			DynamicSeed::toHex()	const
@@ -249,8 +251,8 @@ namespace Fractal
 	
 	DynamicSeed&			DynamicSeed::hash(const String&string)
 	{
-		value.SetSize(string.length());
-		value.copyFrom(string.c_str(),string.length());
+		value.SetSize(string.GetLength());
+		value.copyFrom(string.c_str(),string.GetLength());
 		as_int = toInt();
 		return *this;
 	}
@@ -264,18 +266,18 @@ namespace Fractal
 	
 	void			DynamicSeed::implant(const DynamicSeed&seed, BYTE child_id)
 	{
-		value.SetSize(seed.value.length()+1);
-		value.copyFrom(seed.value.pointer(),seed.value.length());
-		value.last() = child_id;
+		value.SetSize(seed.value.GetLength()+1);
+		value.copyFrom(seed.value.pointer(),seed.value.GetLength());
+		value.Last() = child_id;
 		as_int = toInt();
-		//cout << seed.array.length() <<" -> "<<array.length()<<endl;
+		//cout << seed.array.GetLength() <<" -> "<<array.GetLength()<<endl;
 	}
 	
 	void			DynamicSeed::rotate(unsigned depth, BYTE orientation)
 	{
 		BYTE step = (BYTE)depth;
 		for (unsigned i = 0;
-				i < value.length();
+				i < value.GetLength();
 				i++)
 		{
 			value[i]+=step;
@@ -330,7 +332,7 @@ namespace Fractal
 	
 	Seed64&			Seed64::hash(const String&string)
 	{
-		value = hashFunction(string.c_str(),string.length());
+		value = hashFunction(string.c_str(),string.GetLength());
 		as_int = toInt();
 		return *this;
 	}
@@ -346,7 +348,7 @@ namespace Fractal
 	{
 		this->value = (seed.value << 2) | child_id;
 		as_int = toInt();
-		//cout << seed.array.length() <<" -> "<<array.length()<<endl;
+		//cout << seed.array.GetLength() <<" -> "<<array.GetLength()<<endl;
 	}
 	
 	void			Seed64::rotate(unsigned depth, BYTE orientation)
@@ -374,7 +376,7 @@ namespace Fractal
 
 	
 
-	SurfaceSegment::SurfaceSegment(unsigned exponent_, unsigned vertex_count_, Body*super_, SurfaceSegment*parent_,BYTE child_index_,const Timer::Time now):
+	SurfaceSegment::SurfaceSegment(unsigned exponent_, unsigned vertex_count_, Body*super_, SurfaceSegment*parent_,BYTE child_index_,const Time::Stamp now):
 						exponent(exponent_),vertex_range((1<<exponent_)+1),vertex_count(vertex_count_),super(super_),
 						noisiness(0),
 						c0(NULL),c1(NULL),c2(NULL),c3(NULL),priority(0), delay_counter(frame_delay),
@@ -395,7 +397,7 @@ namespace Fractal
 			sector = parent->sector;
 		else
 			M::Vec::clear(sector);
-		//central_height = Composite::build(0,0);
+		//central_height = M::Composite::build(0,0);
 		flags = RequiresUpdate;
 		num_sectors++;
 		//surface_list.append(this);
@@ -415,7 +417,7 @@ namespace Fractal
 		depth = 0;
 		child_index = 0;
 		M::Vec::clear(sector);
-		//central_height = Composite::build(0,0);
+		//central_height = M::Composite::build(0,0);
 		flags = RequiresUpdate;
 		num_sectors++;
 		//surface_list.append(this);
@@ -441,7 +443,7 @@ namespace Fractal
 	
 	void SurfaceSegment::finishBuild()
 	{
-		/*ASSERT__(vertex_field.length() > 0);
+		/*ASSERT__(vertex_field.GetLength() > 0);
 		if (vertex_field.onDevice())
 			ASSERT_NOT_NULL__(vertex_field.devicePointer())
 		else
@@ -500,20 +502,20 @@ namespace Fractal
 								vertex_field[map.getIndex(x,y-step)].height
 								+
 								vertex_field[map.getIndex(x,y+step)].height)/6.0f;
-					noisiness += sqr(vertex_field[map.getIndex(x,y)].height-h);
-					//noisiness = vmax(noisiness,sqr(vertex_field[map.getIndex(x,y)].height-h));
+					noisiness += M::Sqr(vertex_field[map.getIndex(x,y)].height-h);
+					//noisiness = M::vmax(noisiness,M::Sqr(vertex_field[map.getIndex(x,y)].height-h));
 					samples++;
 				}
-				noisiness = sqr(noisiness /samples)*super->context->variance/local_sphere.radius*1e7f;
-				//noisiness = vmin(vpow(noisiness*super->context->variance/local_sphere.radius*1000.0f,2.0f),1.0f);
+				noisiness = M::Sqr(noisiness /samples)*super->context->variance/local_sphere.radius*1e7f;
+				//noisiness = M::Min(M::vpow(noisiness*super->context->variance/local_sphere.radius*1000.0f,2.0f),1.0f);
 			/*
 
-			for (unsigned i = resolution; i < vertex_field.length(); i+=resolution)
+			for (unsigned i = resolution; i < vertex_field.GetLength(); i+=resolution)
 			{
 				float h = h0 + hx*float(map.vertex_descriptor[i].x)/float(map.vertex_maximum) + hy*(1.0f-float(map.vertex_descriptor[i].y)/float(map.vertex_maximum));
-				variance = vmax(variance,vabs(h-vertex_field[i].height));
+				variance = M::vmax(variance,vabs(h-vertex_field[i].height));
 			}
-			variance = vpow(variance*super->context->variance/local_sphere.radius,10.0f);*/
+			variance = M::vpow(variance*super->context->variance/local_sphere.radius,10.0f);*/
 			//noisiness /= ;
 		}
 
@@ -539,7 +541,7 @@ namespace Fractal
 		ASSERT_NOT_NULL__(super);
 		
 		#ifdef FRACTAL_BUILD_STATISTIC
-			Timer::Time t = timer.now();
+			Time::Stamp t;
 		#endif
 		
 		vertex_field.SetSize(super->full_map->vertex_count);
@@ -551,7 +553,7 @@ namespace Fractal
 		finishBuild();
 		
 		#ifdef FRACTAL_BUILD_STATISTIC
-			build_time += timer.now()-t;
+			build_time += Time::Stamp()-t;
 			build_operations++;
 		#endif
 	}
@@ -564,12 +566,12 @@ namespace Fractal
 				ASSERT2__(isRegistered(neighbor_link[k].segment),k,neighbor_link[k].segment);
 	
 		#ifdef FRACTAL_BUILD_STATISTIC
-			Timer::Time t = timer.now();
+			Time::Stamp t;
 		#endif
 		if (Kernel::mergeEdges(*this,*super->context,*super->full_map))
 		{
 			#ifdef FRACTAL_BUILD_STATISTIC
-				build_time += timer.now()-t;
+				build_time += Time::Stamp()-t;
 				build_operations++;
 			#endif
 		}
@@ -593,7 +595,7 @@ namespace Fractal
 			allow_non_crucial_texture_update = false;
 			
 			#ifdef FRACTAL_BUILD_STATISTIC
-				Timer::Time t = timer.now();
+				Time::Stamp t;
 			#endif
 			Kernel::updateTexture(*this,*super->context,*super->full_map,Fractal::mipmapping,Fractal::texture_compression);
 			
@@ -604,7 +606,7 @@ namespace Fractal
 				flags &= ~RequiresUpdate;
 
 				#ifdef FRACTAL_BUILD_STATISTIC
-					build_time += timer.now()-t;
+					build_time += Time::Stamp()-t;
 					build_operations++;
 				#endif
 				if (onUpdate)
@@ -614,7 +616,7 @@ namespace Fractal
 			else
 			{
 
-				build_time += timer.now()-t;
+				build_time += Time::Stamp() - t;
 				build_operations++;
 			}
 			#endif
@@ -636,8 +638,8 @@ namespace Fractal
 	
 	bool SurfaceSegment::orderOfEdge(BYTE edge)	const
 	{
-		const Vec3<>	&c0 = corner[(edge+1)%3],
-						&c1 = corner[edge];
+		const auto	&c0 = corner[(edge+1)%3],
+					&c1 = corner[edge];
 		if (c0.x > c1.x)
 			return true;
 		if (c0.x < c1.x)
@@ -654,7 +656,7 @@ namespace Fractal
 		return false;
 	}
 		
-	void SurfaceSegment::createChildren(const Timer::Time&time, bool set_flag)
+	void SurfaceSegment::createChildren(const Time::Stamp&time, bool set_flag)
 	{
 		if (!(flags & HasData))
 			reportFatalException(CLOCATION,"children requested but data not yet generated");
@@ -729,7 +731,7 @@ namespace Fractal
 		//only copy geometrical edge. textural edge is irrelevant to us:
 		const unsigned geometrical_exponent = super->reduced_map->exponent;
 		//copy edge(s) from parent but only up to the geometrical exponent. we add one new edge at the bottom, directly 
-		vbo_edge[edge].resizePreserveContent(vmin(parent->vbo_edge[edge].count()+1,geometrical_exponent));
+		vbo_edge[edge].ResizePreserveContent(M::Min(parent->vbo_edge[edge].Count()+1,geometrical_exponent));
 
 
 		static const unsigned	seam_texels = 1+TEXTURE_SEAM_EXTENSION;
@@ -745,14 +747,14 @@ namespace Fractal
 		M::Vec::sub(parent->sector,sector,transition);
 		M::Vec::mult(transition,super->context->sector_size);
 
-		ASSERT__(vbo_edge[edge].count() > 0);
+		ASSERT__(vbo_edge[edge].Count() > 0);
 		{
 			
 			unsigned 	num_vertices = ((1<<(geometrical_exponent-1))+1),
 						num_floats = num_vertices*floats_per_vbo_vertex;
 			ASSERT__(num_floats>0);
-			vbo_edge[edge].first().SetSize(num_floats);
-			float*to = vbo_edge[edge].first().pointer();
+			vbo_edge[edge].First().SetSize(num_floats);
+			float*to = vbo_edge[edge].First().pointer();
 			for (unsigned j = 0; j < num_vertices; j++)
 			{
 				ASSERT2__(j*2 < super->reduced_map->vertex_range,j*2,super->reduced_map->vertex_range);
@@ -761,17 +763,17 @@ namespace Fractal
 				const TMapVertex&info = super->reduced_map->vertex_descriptor[geometrical_index];
 				ASSERT__(info.grid_vertex);
 				ASSERT__(child_index < 4);
-				ASSERT2__(info.parent_space[child_index].match<super->vbo_vertex_indices->count(),info.parent_space[child_index].match,super->vbo_vertex_indices->count());
+				ASSERT2__(info.parent_space[child_index].match<super->vbo_vertex_indices->Count(),info.parent_space[child_index].match,super->vbo_vertex_indices->Count());
 				UINT32 index = (*super->vbo_vertex_indices)[info.parent_space[child_index].match];
 				ASSERT_NOT_NULL__(parent);
-				ASSERT2__(index < parent->vertex_field.length(),index,parent->vertex_field.length());
+				ASSERT2__(index < parent->vertex_field.GetLength(),index,parent->vertex_field.GetLength());
 				compileVBOVertex(parent->vertex_field[index],info,parameter,to);
 				M::Vec::add(M::Vec::ref3(to),transition);
 				to += floats_per_vbo_vertex;
 			}
 		}
 
-		for (unsigned i = 1; i < vbo_edge[edge].count(); i++)
+		for (unsigned i = 1; i < vbo_edge[edge].Count(); i++)
 		{
 			unsigned 	num_inner_vertices = 1<<(geometrical_exponent-i-1),
 						num_vertices = (num_inner_vertices+1),
@@ -790,7 +792,7 @@ namespace Fractal
 			fractal_log<<" parent_edge_end="<<((SurfaceSegment*)parent)->corner[(edge+1)%3].ToString()<<endl;*/
 			vbo_edge[edge][i].SetSize(num_floats);
 
-			ASSERT_EQUAL__(parent->vbo_edge[edge][i-1].length(),2*num_floats-floats_per_vbo_vertex);
+			ASSERT_EQUAL__(parent->vbo_edge[edge][i-1].GetLength(),2*num_floats-floats_per_vbo_vertex);
 			const float	*from = parent->vbo_edge[edge][i-1].pointer()+offset;
 			float*to = vbo_edge[edge][i].pointer();
 			for (unsigned j = 0; j < num_vertices; j++)
@@ -840,25 +842,25 @@ namespace Fractal
 
 			M::TVec3<sector_t> sdelta;
 			
-			sdelta.x = Round(center.x/super->context->sector_size);
-			sdelta.y = Round(center.y/super->context->sector_size);
-			sdelta.z = Round(center.z/super->context->sector_size);
+			sdelta.x = M::Round(center.x/super->context->sector_size);
+			sdelta.y = M::Round(center.y/super->context->sector_size);
+			sdelta.z = M::Round(center.z/super->context->sector_size);
 			//M::Vec::div(center,super->context->sector_size,sdelta);
 			M::Vec::add(sector,sdelta);
 			
-			if (parent->crater_field.length())
+			if (parent->crater_field.GetLength())
 			{
 				M::TVec3<double>	absolute;
 				M::Vec::copy(sdelta,absolute);
 				M::Vec::mult(absolute,super->context->sector_size);
 				float radius = M::Vec::distance(corner[0],center);
 				
-				for (unsigned j = 0; j < parent->crater_field.count(); j++)
+				for (unsigned j = 0; j < parent->crater_field.Count(); j++)
 				{
 					if (M::Vec::distance(parent->crater_field[j].base,center)-parent->crater_field[j].radius > radius*1.2)
 						continue;
 					
-					TCrater&spawn = crater_field.append();
+					TCrater&spawn = crater_field.Append();
 					spawn = parent->crater_field[j];
 					M::Vec::sub(spawn.base,absolute);
 				}
@@ -923,7 +925,7 @@ namespace Fractal
 		TSurfaceSegment::outer_int_seed[2] = outer_seed[2].as_int;
 		
 		
-		//lout << "central height is now <"<<central_height.offset<<", "<<central_height.remainder<<"> ("<<Composite::toDouble(central_height,super->context->sector_size)<<")"<<nl;
+		//lout << "central height is now <"<<central_height.offset<<", "<<central_height.remainder<<"> ("<<M::Composite::toDouble(central_height,super->context->sector_size)<<")"<<nl;
 		
 
 		/*outer_seed[0].implant(seed,0);
@@ -947,7 +949,7 @@ namespace Fractal
 		return rs;
 	}
 	
-	void			SurfaceSegment::modifySphere(const AbstractSphere<float>&child_sphere)
+	void			SurfaceSegment::modifySphere(const M::AbstractSphere<float>&child_sphere)
 	{
 		global_sphere.Merge(child_sphere);
 		if (parent)
@@ -972,7 +974,7 @@ namespace Fractal
 	SurfaceSegment::~SurfaceSegment()
 	{
 		BEGIN
-		if (vertex_field.length())
+		if (vertex_field.GetLength())
 			unregisterArray(vertex_field);
 		unregisterSegment(this);
 		if (Body::production == this)
@@ -1257,7 +1259,7 @@ namespace Fractal
 		updateSphere();
 	}
 	
-	int			SurfaceSegment::setPriority(const Aspect&view,bool override_only,const Timer::Time&time)
+	int			SurfaceSegment::setPriority(const Aspect&view,bool override_only,const Time::Stamp&time)
 	{
 		ASSERT__(flags & HasData);
 		
@@ -1294,17 +1296,17 @@ namespace Fractal
 			M::Vec::sub(view_relative_center,view.retraction_delta,axis);
 
 			M::Vec::sub(view.retraction_delta,translation,sector_relative_view);
-			float d = Obj::quadraticTriangleDistance(corner[0],corner[1],corner[2],sector_relative_view,normal);
+			float d = M::Obj::quadraticTriangleDistance(corner[0],corner[1],corner[2],sector_relative_view,normal);
 			M::Vec::normalize0(normal);
 		#endif
-		float	r = sqr(global_sphere.radius);
+		float	r = M::Sqr(global_sphere.radius);
 		float	fc = (float)(depth+1)/(float)super->context->recursive_depth,
-				fc2 = vpow(2.0,-double(super->context->recursive_depth-depth));
+				fc2 = M::vpow(2.0,-double(super->context->recursive_depth-depth));
 		
 		M::Vec::normalize(axis);
 		float	effective_distance = d,
-				focus_barrier = r*sqr(2*(0.35+0.65*fc)*view.lod);//*(1.0f+noisiness);	//vmax(0.0f,-_dot(axis,normal))+
-				//focus_barrier = r*variance*sqr(2*view.lod*(fc+(1.0f-fc)*vmax(0.0f,-_dot(axis,normal))));
+				focus_barrier = r*M::Sqr(2*(0.35+0.65*fc)*view.lod);//*(1.0f+noisiness);	//M::vmax(0.0f,-_dot(axis,normal))+
+				//focus_barrier = r*variance*M::Sqr(2*view.lod*(fc+(1.0f-fc)*M::vmax(0.0f,-_dot(axis,normal))));
 		/*if (effective_distance > 2*focus_barrier && depth < super->context->recursive_depth-1)
 			return 0;*/
 		//visibility = Visibility::Range;
@@ -1384,7 +1386,7 @@ namespace Fractal
 		return priority;
 	}
 	
-	bool			SurfaceSegment::triggerOverrideFlag(const Timer::Time&now, unsigned priority_to_set)
+	bool			SurfaceSegment::triggerOverrideFlag(const Time::Stamp&now, unsigned priority_to_set)
 	{
 		//cout << "triggerOverrideFlag(): setting flag"<<endl;
 		BEGIN
@@ -1428,7 +1430,7 @@ namespace Fractal
 		return true;
 	}
 	
-	void			SurfaceSegment::triggerOverrideFlag(BYTE child_index, BYTE neighbor_index,const Timer::Time&now, unsigned priority_to_set)
+	void			SurfaceSegment::triggerOverrideFlag(BYTE child_index, BYTE neighbor_index,const Time::Stamp&now, unsigned priority_to_set)
 	{
 		BEGIN
 		ASSERT__(!!(flags&HasChildren));	//how on earth could this thing fire...???
@@ -1480,7 +1482,7 @@ namespace Fractal
 
 		
 		float	d = distance_square = M::Vec::dot(axis),
-				r = sqr(global_sphere.radius);
+				r = M::Sqr(global_sphere.radius);
 		float fc = (float)(depth+1)/(float)super->context->recursive_depth;
 		
 		M::Vec::normalize(axis);
@@ -1494,7 +1496,7 @@ namespace Fractal
 		if (h+global_sphere.radius > 0 /*&& h-global_sphere.radius < super->context->variance/4*/)
 		{
 			float	effective_distance = d,
-					focus_barrier = r*10.0f*64.0f/(1<<super->exponent) *sqr((0.35+0.65*fc)*(view.lod*0.8))*(fc+(1.0f-fc)*vmax(0.0f,-M::Vec::dot(axis,normal)));
+					focus_barrier = r*10.0f*64.0f/(1<<super->exponent) *M::Sqr((0.35+0.65*fc)*(view.lod*0.8))*(fc+(1.0f-fc)*M::vmax(0.0f,-M::Vec::dot(axis,normal)));
 				
 			M::TVec3<> reflected_center;
 			M::Vec::copy(global_sphere.center,reflected_center);
@@ -1556,7 +1558,7 @@ namespace Fractal
 
 		
 		float	d = distance_square = M::Vec::dot(axis),
-				r = sqr(global_sphere.radius);
+				r = M::Sqr(global_sphere.radius);
 		float fc = (float)(depth+1)/(float)super->context->recursive_depth;
 		
 		M::Vec::normalize(axis);
@@ -1566,7 +1568,7 @@ namespace Fractal
 		if (h-global_sphere.radius < 0)
 		{
 			float	effective_distance = d,
-					focus_barrier = r*10.0f*64.0f/(1<<super->exponent) *sqr((0.35+0.65*fc)*(view.lod*0.9))*(fc+(1.0f-fc)*vmax(0.0f,-M::Vec::dot(axis,normal)));
+					focus_barrier = r*10.0f*64.0f/(1<<super->exponent) *M::Sqr((0.35+0.65*fc)*(view.lod*0.9))*(fc+(1.0f-fc)*M::vmax(0.0f,-M::Vec::dot(axis,normal)));
 		
 			M::TVec3<> water_center;
 			M::Vec::add(this->water_center,translation,water_center);
@@ -1599,7 +1601,7 @@ namespace Fractal
 	}
 
 
-	void		SurfaceSegment::project(const Aspect&view, float ttl, const Timer::Time&time, bool override_only)
+	void		SurfaceSegment::project(const Aspect&view, float ttl, const Time::Stamp&time, bool override_only)
 	{
 		//LBEGIN
 		ASSERT__(!BackgroundSubDiv::active);
@@ -1782,9 +1784,9 @@ namespace Fractal
 		//END
     }
 	
-	void		SurfaceSegment::checkTimeouts(const Timer::Time&time, float ttl)
+	void		SurfaceSegment::checkTimeouts(const Time::Stamp&time, float ttl)
 	{
-		float delta = timer.toSecondsf(time-referenced);
+		float delta = (time-referenced).ToSeconds();
 		if ((delta > ttl || delta < 0) && !(visibility & Visibility::Override))
 		{
 			dropChildren();
@@ -1809,15 +1811,15 @@ namespace Fractal
 		global_sphere.Include(center,child->global_sphere.radius);
 	}
 	
-	void		SurfaceSegment::defaultDefineSphere(AbstractSphere<float>&sphere)
+	void		SurfaceSegment::defaultDefineSphere(M::AbstractSphere<float>&sphere)
 	{
 		M::Vec::center(corner[0],corner[1],corner[2],sphere.center);
-		sphere.radius = sqrt(vmax(vmax(M::Vec::quadraticDistance(corner[0],sphere.center),M::Vec::quadraticDistance(corner[1],sphere.center)),M::Vec::quadraticDistance(corner[2],sphere.center)));
+		sphere.radius = sqrt(M::vmax(M::vmax(M::Vec::quadraticDistance(corner[0],sphere.center),M::Vec::quadraticDistance(corner[1],sphere.center)),M::Vec::quadraticDistance(corner[2],sphere.center)));
 	}
 	
-	bool		SurfaceSegment::rayCast(const Composite::Coordinates&b_, const M::TVec3<>&d, TRayIntersection&intersection)
+	bool		SurfaceSegment::rayCast(const M::Composite::Coordinates&b_, const M::TVec3<>&d, TRayIntersection&intersection)
 	{
-		intersection.isset = false;
+		intersection.isSet = false;
 		if (!(flags&HasData))
 			return false;
 		M::TVec3<> b;
@@ -1825,29 +1827,29 @@ namespace Fractal
 		M::Vec::mult(b,super->context->sector_size);
 		M::Vec::add(b,b_.remainder);
 		//lout << "inner base ("<<_toString(b_.sector)<<"relative to "<<_toString(sector)<<") is "<<_toString(b)<<nl;
-		if (!Obj::detectOpticalSphereIntersection(global_sphere.center, global_sphere.radius, b, d))
+		if (!M::Obj::detectOpticalSphereIntersection(global_sphere.center, global_sphere.radius, b, d))
 			return false;
 		
 		if ((flags&HasChildren))
 		{
 			bool changed = false;
 			TRayIntersection	my_intersection;
-			if (c0->rayCast(b_,d,my_intersection) && (!intersection.isset || my_intersection.fc[2] < intersection.fc[2]))
+			if (c0->rayCast(b_,d,my_intersection) && (!intersection.isSet || my_intersection.fc[2] < intersection.fc[2]))
 			{
 				intersection = my_intersection;
 				changed = true;
 			}
-			if (c1->rayCast(b_,d,my_intersection) && (!intersection.isset || my_intersection.fc[2] < intersection.fc[2]))
+			if (c1->rayCast(b_,d,my_intersection) && (!intersection.isSet || my_intersection.fc[2] < intersection.fc[2]))
 			{
 				intersection = my_intersection;
 				changed = true;
 			}
-			if (c2->rayCast(b_,d,my_intersection) && (!intersection.isset || my_intersection.fc[2] < intersection.fc[2]))
+			if (c2->rayCast(b_,d,my_intersection) && (!intersection.isSet || my_intersection.fc[2] < intersection.fc[2]))
 			{
 				intersection = my_intersection;
 				changed = true;
 			}
-			if (c3->rayCast(b_,d,my_intersection) && (!intersection.isset || my_intersection.fc[2] < intersection.fc[2]))
+			if (c3->rayCast(b_,d,my_intersection) && (!intersection.isSet || my_intersection.fc[2] < intersection.fc[2]))
 			{
 				intersection = my_intersection;
 				changed = true;
@@ -1864,7 +1866,7 @@ namespace Fractal
 		return false;
 	}
 
-	bool		SurfaceSegment::groundQuery(const Composite::Coordinates&b_, const M::TVec3<>&d, unsigned min_layer, TGroundInfo&ground)
+	bool		SurfaceSegment::groundQuery(const M::Composite::Coordinates&b_, const M::TVec3<>&d, unsigned min_layer, TGroundInfo&ground)
 	{
 		if (!(flags&HasData))
 			return false;
@@ -1873,8 +1875,8 @@ namespace Fractal
 		M::Vec::mult(b,super->context->sector_size);
 		M::Vec::add(b,b_.remainder);
 		float b2 = M::Vec::dot(b);
-		if (b2 > sqr(super->context->base_heightf)*1.5)
-		//if (b2 > sqr(global_sphere.radius)*1.5)
+		if (b2 > M::Sqr(super->context->base_heightf)*1.5)
+		//if (b2 > M::Sqr(global_sphere.radius)*1.5)
 		{
 			return false;
 		}
@@ -1885,19 +1887,19 @@ namespace Fractal
 		
 		M::TVec3<>	d1,r;
 		M::Vec::subtract(b,global_sphere.center,d1);
-		if (M::Vec::dot(d1) > sqr(super->context->base_heightf)*1.5)
-		//if (b2 > sqr(global_sphere.radius)*1.5)
+		if (M::Vec::dot(d1) > M::Sqr(super->context->base_heightf)*1.5)
+		//if (b2 > M::Sqr(global_sphere.radius)*1.5)
 		{
 			return false;
 		}
 		
 		M::Vec::cross(d,d1,r);
 		float dist2 = M::Vec::dot(r);
-		if (dist2 > sqr(global_sphere.radius))
+		if (dist2 > M::Sqr(global_sphere.radius))
 			return false;
 			
 		M::TVec3<> fc;
-		if (!Obj::detTriangleRayIntersection(corner[0], corner[1], corner[2], b, d, fc))
+		if (!M::Obj::detTriangleRayIntersection(corner[0], corner[1], corner[2], b, d, fc))
 			return false;
 		if (fc.x < -0.01 || fc.y < -0.01 || fc.x+fc.y>1.01)
 			return false;
@@ -1918,10 +1920,10 @@ namespace Fractal
 			return false;
 		}
 
-		if (/*depth > 2 ||*/ M::Vec::quadraticDistance(global_sphere.center,b) > sqr(global_sphere.radius*2.5))
+		if (/*depth > 2 ||*/ M::Vec::quadraticDistance(global_sphere.center,b) > M::Sqr(global_sphere.radius*2.5))
 		{
 			ground.segment = this;
-			ground.isset = true;
+			ground.isSet = true;
 			ground.height_over_ground = fc.z;
 			ground.ground_height = 0; //erm...
 			M::Vec::mad(b,d,fc.z,ground.position);
@@ -2079,7 +2081,7 @@ namespace Fractal
 								vertex_field[root_map->getIndex(2*step,y+step)],
 								v,
 								seed,*this,*super->context,
-								crater_field.pointer(),unsigned(crater_field.length())
+								crater_field.pointer(),unsigned(crater_field.GetLength())
 								);
 				
 				
@@ -2097,7 +2099,7 @@ namespace Fractal
 								vertex_field[root_map->getIndex(x-2*step,y-step)],vertex_field[root_map->getIndex(x+2*step,y+step)],
 								v,
 								seed,*this,*super->context,
-								crater_field.pointer(),unsigned(crater_field.length())
+								crater_field.pointer(),unsigned(crater_field.GetLength())
 								);
 				Height::apply(	v.position,v.height*super->context->variance,*this,*super->context);
 			}
@@ -2111,7 +2113,7 @@ namespace Fractal
 								vertex_field[root_map->getIndex(y-step,y+step)],
 								v,
 								seed,*this,*super->context,
-								crater_field.pointer(),unsigned(crater_field.length())
+								crater_field.pointer(),unsigned(crater_field.GetLength())
 								);
 				
 				Height::apply(	v.position,v.height*super->context->variance,*this,*super->context);
@@ -2125,7 +2127,7 @@ namespace Fractal
 								vertex_field[root_map->getIndex(x-step,y+step)],vertex_field[root_map->getIndex(x+step,y-step)],
 								v,
 								seed,*this,*super->context,
-								crater_field.pointer(),unsigned(crater_field.length())
+								crater_field.pointer(),unsigned(crater_field.GetLength())
 								);
 				Height::apply(	v.position,v.height*super->context->variance,*this,*super->context);
 			}
@@ -2140,7 +2142,7 @@ namespace Fractal
 								vertex_field[root_map->getIndex(x-step,y-2*step)],vertex_field[root_map->getIndex(x+step,y+2*step)],
 								v,
 								seed,*this,*super->context,
-								crater_field.pointer(),unsigned(crater_field.length())
+								crater_field.pointer(),unsigned(crater_field.GetLength())
 								);
 				Height::apply(	v.position,v.height*super->context->variance,*this,*super->context);
 			}
@@ -2154,7 +2156,7 @@ namespace Fractal
 							vertex_field[root_map->getIndex(x-step,vertex_range-1-2*step)],
 							v,
 							seed,*this,*super->context,
-							crater_field.pointer(),unsigned(crater_field.length())
+							crater_field.pointer(),unsigned(crater_field.GetLength())
 							);
 			Height::apply(	v.position,v.height*super->context->variance,*this,*super->context);
 		}
@@ -2184,7 +2186,7 @@ namespace Fractal
 								vertex_field[root_map->getIndex(2*step,y+step)],
 								v,
 								seed,*this,*super->context,
-								crater_field.pointer(),unsigned(crater_field.length())
+								crater_field.pointer(),unsigned(crater_field.GetLength())
 								);
 				updateHeight(v);
 			}
@@ -2197,7 +2199,7 @@ namespace Fractal
 								vertex_field[root_map->getIndex(x-2*step,y-step)],vertex_field[root_map->getIndex(x+2*step,y+step)],
 								v,
 								seed,*this,*super->context,
-								crater_field.pointer(),unsigned(crater_field.length())
+								crater_field.pointer(),unsigned(crater_field.GetLength())
 								);
 				updateHeight(v);
 			}
@@ -2211,7 +2213,7 @@ namespace Fractal
 								vertex_field[root_map->getIndex(y-step,y+step)],
 								v,
 								seed,*this,*super->context,
-								crater_field.pointer(),unsigned(crater_field.length())
+								crater_field.pointer(),unsigned(crater_field.GetLength())
 								);
 				
 				updateHeight(v);
@@ -2225,7 +2227,7 @@ namespace Fractal
 								vertex_field[root_map->getIndex(x-step,y+step)],vertex_field[root_map->getIndex(x+step,y-step)],
 								v,
 								seed,*this,*super->context,
-								crater_field.pointer(),unsigned(crater_field.length())
+								crater_field.pointer(),unsigned(crater_field.GetLength())
 								);
 				updateHeight(v);
 			}
@@ -2240,7 +2242,7 @@ namespace Fractal
 								vertex_field[root_map->getIndex(x-step,y-2*step)],vertex_field[root_map->getIndex(x+step,y+2*step)],
 								v,
 								seed,*this,*super->context,
-								crater_field.pointer(),unsigned(crater_field.length())
+								crater_field.pointer(),unsigned(crater_field.GetLength())
 								);
 				updateHeight(v);
 			}
@@ -2254,7 +2256,7 @@ namespace Fractal
 							vertex_field[root_map->getIndex(x-step,vertex_range-1-2*step)],
 							v,
 							seed,*this,*super->context,
-							crater_field.pointer(),unsigned(crater_field.length())
+							crater_field.pointer(),unsigned(crater_field.GetLength())
 							);
 			updateHeight(v);
 		}
@@ -2336,7 +2338,7 @@ namespace Fractal
 	
 	void		Body::clearFaces()
 	{
-		for (index_t i = 0; i < faces.count(); i++)
+		for (index_t i = 0; i < faces.Count(); i++)
 		{
 			INVOKING_DISCARD(faces[i]);
 			Discard(faces[i]);
@@ -2351,7 +2353,7 @@ namespace Fractal
 		if (!this)
 			return NULL;
 		SurfaceSegment*result;
-		for (index_t i = 0; i < faces.count(); i++)
+		for (index_t i = 0; i < faces.Count(); i++)
 		{
 			if (result = faces[i]->anyChild(depth))
 				return result;
@@ -2364,7 +2366,7 @@ namespace Fractal
 		if (!this)
 			return;
 		need_children.reset();
-		for (index_t i = 0; i < faces.count(); i++)
+		for (index_t i = 0; i < faces.Count(); i++)
 			faces[i]->registerLeafSegments();
 		bool original_can_update = can_update;
 		can_update = generate_render_data;
@@ -2376,32 +2378,32 @@ namespace Fractal
 
 	void		Body::purgeSegments()
 	{
-		for (index_t i = 0; i < faces.count(); i++)
+		for (index_t i = 0; i < faces.Count(); i++)
 			faces[i]->dropChildren();
 	}
 	
-	bool		Body::rayCast(const Composite::Coordinates&b, const M::TVec3<>&d, TRayIntersection&intersection)
+	bool		Body::rayCast(const M::Composite::Coordinates&b, const M::TVec3<>&d, TRayIntersection&intersection)
 	{
 		
-		intersection.isset = false;
+		intersection.isSet = false;
 		TRayIntersection my_intersection;
-		for (index_t i = 0; i < faces.count(); i++)
+		for (index_t i = 0; i < faces.Count(); i++)
 		{
-			if (faces[i]->rayCast(b,d,my_intersection) && (!intersection.isset || my_intersection.fc[2] < intersection.fc[2]))
+			if (faces[i]->rayCast(b,d,my_intersection) && (!intersection.isSet || my_intersection.fc[2] < intersection.fc[2]))
 				intersection = my_intersection;
 		}
-		return intersection.isset;
+		return intersection.isSet;
 	}
 	
-	bool		Body::groundQuery(const Composite::Coordinates&b, unsigned min_layer, TGroundInfo&ground)
+	bool		Body::groundQuery(const M::Composite::Coordinates&b, unsigned min_layer, TGroundInfo&ground)
 	{
 		BackgroundSubDiv::end();
 		M::TVec3<> d;
-		ground.isset = false;
+		ground.isSet = false;
 		b.convertToAbsolute(d,context->sector_size);
 		M::Vec::normalize0(d);
 		M::Vec::mult(d,-1);
-		for (index_t i = 0; i < faces.count(); i++)
+		for (index_t i = 0; i < faces.Count(); i++)
 			if (faces[i]->groundQuery(b,d,min_layer,ground))
 				return true;
 		return false;
@@ -2425,8 +2427,8 @@ namespace Fractal
 	void		Body::rebuildFromGeometry(const Geometry&geometry, pInit init_function)
 	{
 		lout << "building shape from geometry"<<nl;
-		lout << " vertices="<<geometry.vertexField.length()<<nl;
-		lout << " triangles="<<geometry.triangleField.length()/3<<nl;
+		lout << " vertices="<<geometry.vertexField.GetLength()<<nl;
+		lout << " triangles="<<geometry.triangleField.GetLength()/3<<nl;
 		
 		context->sse_fertility = _mm_set1_ps(context->fertility);
 		context->sse_temperature = _mm_set1_ps(context->temperature);
@@ -2437,8 +2439,8 @@ namespace Fractal
 		
 		
 		clearFaces();
-		faces.SetSize(geometry.triangleField.length()/3);
-		for (index_t i = 0; i < faces.count(); i++)
+		faces.SetSize(geometry.triangleField.GetLength()/3);
+		for (index_t i = 0; i < faces.Count(); i++)
 		{
 			faces[i] = makeFace();
 			ASSERT2__(isRegistered(faces[i]),i,faces[i]);
@@ -2454,7 +2456,7 @@ namespace Fractal
 		
 
 		
-		for (unsigned i = 0; i < faces.count(); i++)
+		for (unsigned i = 0; i < faces.Count(); i++)
 		{
 			unsigned num_craters = random.Next(context->crater_min_count, context->crater_max_count);
 			if (!num_craters)
@@ -2480,7 +2482,7 @@ namespace Fractal
 				{
 					x = random.NextFloat(0,1);
 					y = random.NextFloat(0,1);
-					r = vpow(random.NextFloat(0,1),20);
+					r = M::vpow(random.NextFloat(0,1),20);
 					if (x+y <= 1 && r >= context->crater_min_radius)
 						break;
 				}
@@ -2489,16 +2491,17 @@ namespace Fractal
 				M::Vec::mad(d,dy,y);
 				M::Vec::normalize0(d);
 				
-				TCrater&crater = craters.append();
+				TCrater&crater = craters.Append();
 				crater.orientation = d;
 				crater.radius = context->crater_radius*r;
 				crater.depth = context->crater_depth;
 				M::Vec::mult(crater.orientation,context->base_heightf,crater.base);
 			}
 		}
-		
-		Sort<RadiusSort>::quickSortField(craters.pointer(),craters.count());	//smallest to largest
-		craters.revert();	//revert to largest -> smallest
+
+
+		Sorting::ByMethod::QuickSort(craters);//smallest to largest
+		craters.Revert();	//revert to largest -> smallest
 		
 		
 		
@@ -2506,8 +2509,8 @@ namespace Fractal
 		
 
 		
-		Array<TVertex>		vertex_field(geometry.vertexField.length());
-		for (index_t i = 0; i < geometry.vertexField.length(); i++)
+		Array<TVertex>		vertex_field(geometry.vertexField.GetLength());
+		for (index_t i = 0; i < geometry.vertexField.GetLength(); i++)
 		{
 			init_function(vertex_field[i].channel,random,context);
 			vertex_field[i].height = height<CLAMP_HEIGHT>(vertex_field[i].channel,context->has_canyons);
@@ -2515,12 +2518,12 @@ namespace Fractal
 		
 		//link neighbors:
 		
-		typedef Mesh<TFaceGraphDef<TDef<float> > >	GraphMesh;
+		typedef M::Mesh<M::TFaceGraphDef<TDef<float> > >	GraphMesh;
 		GraphMesh	graph;
 		
 		_oMakeGraph(graph,geometry.triangleField,Array<unsigned>());
 
-		for (index_t i = 0; i < faces.count(); i++)
+		for (index_t i = 0; i < faces.Count(); i++)
 		{
 			SurfaceSegment*f = faces[i];
 			f->inner_seed.implant(root_seed,(BYTE)i);
@@ -2530,7 +2533,7 @@ namespace Fractal
 		}
 		
 		
-		for (index_t i = 0; i < faces.count(); i++)
+		for (index_t i = 0; i < faces.Count(); i++)
 		{
 			DataSurface*f = faces[i];
 			f->child_index = (BYTE)i;
@@ -2555,7 +2558,7 @@ namespace Fractal
 				}
 				//logfile << __LINE__<<nl;
 				
-				if (geometry.triangleField[i * 3 + k] >= geometry.vertexField.length())
+				if (geometry.triangleField[i * 3 + k] >= geometry.vertexField.GetLength())
 					EXCEPTION("index exception");
 				//logfile << "0x"<<PointerToHex(faces[i]->root_map)<<nl;
 				//logfile << i<<"/"<<sector_count<<", "<<k<<nl;
@@ -2569,7 +2572,7 @@ namespace Fractal
 			M::TVec3<> center;
 			M::Vec::center((corner_field[0]->position),(corner_field[1]->position),(corner_field[2]->position),center);
 			float radius =  M::Vec::distance((corner_field[0]->position),center);
-			for (index_t j = 0; j < craters.count(); j++)
+			for (index_t j = 0; j < craters.Count(); j++)
 			{
 				if (M::Vec::distance(craters[j].base,center)-craters[j].radius > radius)
 					continue;
@@ -2621,17 +2624,17 @@ namespace Fractal
 		
 		for (unsigned j = exponent-1; j >0; j--)
 		{
-			for (index_t i = 0; i < faces.count(); i++)
+			for (index_t i = 0; i < faces.Count(); i++)
 			{
 				faces[i]->generateLayer(j);
 				//exit(0);
 			}
-			for (index_t i = 0; i < faces.count(); i++)
+			for (index_t i = 0; i < faces.Count(); i++)
 				faces[i]->syncGeneratedBorders(j);
 		}
-		for (index_t i = 0; i < faces.count(); i++)
+		for (index_t i = 0; i < faces.Count(); i++)
 			Kernel::generateFinalLayer(*faces[i], *context,*full_map);
-		for (index_t i = 0; i < faces.count(); i++)
+		for (index_t i = 0; i < faces.Count(); i++)
 			faces[i]->syncGeneratedBorders(0);
 		
 		
@@ -2639,11 +2642,11 @@ namespace Fractal
 
 		/*lout << "calculating normals"<<nl;
 		
-		for (unsigned i = 0; i < faces.count(); i++)
+		for (unsigned i = 0; i < faces.Count(); i++)
 			faces[i]->fillAllNormals();*/
 		//lout << "finalizing"<<nl;
 		//logfile << __LINE__<<nl;
-		for (index_t i = 0; i < faces.count(); i++)
+		for (index_t i = 0; i < faces.Count(); i++)
 		{
 			//faces[i]->mergeBorderNormals();
 			DataSurface*f = faces[i];
@@ -2659,7 +2662,7 @@ namespace Fractal
 					f->flags |= (TBaseSurfaceSegment::Edge0Open << k);
 			//faces[i]->requires_update = true;
 		}
-		for (index_t i = 0; i < faces.count(); i++)
+		for (index_t i = 0; i < faces.Count(); i++)
 			faces[i]->SurfaceSegment::update();
 		//logfile << __LINE__<<nl;
 		
@@ -2683,7 +2686,7 @@ namespace Fractal
 	void		Body::clearChildren(unsigned depth)
 	{
 		least_traced_level = depth;
-		for (unsigned i = 0; i < faces.count(); i++)
+		for (unsigned i = 0; i < faces.Count(); i++)
         	faces[i]->dropChildren();
 	}
 	*/
@@ -2712,7 +2715,7 @@ namespace Fractal
 		{
 			case 0:
 				//DEBUG_POINT
-				if (!need_children.count())
+				if (!need_children.Count())
 				{
 					END
 					return false;
@@ -2729,7 +2732,7 @@ namespace Fractal
 					//need_children.reset();
 					//this case happens if a segment that just finished constructing has re-requested children during the last frame (which, in fact, is quite likely)
 					production = NULL;
-					return need_children.count()>0;
+					return need_children.Count()>0;
 				}
 
 				production->createChildren(trace_time,false);
@@ -2868,7 +2871,7 @@ namespace Fractal
 	void	Body::subdivide(float time_frame)
 	{
 		BEGIN
-		if (!need_children.count() && !production)
+		if (!need_children.Count() && !production)
 		{
 			END
 			return;
@@ -2882,12 +2885,12 @@ namespace Fractal
 		}
 
 		
-		//lout << "processing "<<need_children.length()<<" entries"<<nl;
-		if (need_children.count())
-			Sort<PrioritySort>::quickSortField(need_children.pointer(),need_children.length());
+		//lout << "processing "<<need_children.GetLength()<<" entries"<<nl;
+		if (need_children.IsNotEmpty())
+			Sorting::ByComparator::QuickSort(need_children, [](const SurfaceSegment* a, const SurfaceSegment* b) {return a->priority - b->priority; });
 
 		
-		Timer::Time started = timer.now();
+		Time::Stamp started;
 		do
 		{
 			if (!processStep())
@@ -2896,7 +2899,7 @@ namespace Fractal
 				return;
 			}
 		}
-		while (timer.toSecondsf(timer.now()-started) < time_frame /*&& production*/);
+		while ((Time::Stamp()-started).ToSeconds() < time_frame /*&& production*/);
 		
 		if (background_subdiv)
 			BackgroundSubDiv::begin();
@@ -2906,7 +2909,7 @@ namespace Fractal
 	}
 
 	
-	void		Body::process(const Timer::Time&time, float top_level_ttl, const Aspect&view)
+	void		Body::process(const Time::Stamp&time, float top_level_ttl, const Aspect&view)
 	{
 		BEGIN
 		BackgroundSubDiv::end();
@@ -2916,7 +2919,7 @@ namespace Fractal
 		//cout << "Body::process(...): projecting"<<endl;
 		SurfaceSegment::allow_non_crucial_texture_update = true;
 	
-		for (index_t i = 0; i < faces.count(); i++)
+		for (index_t i = 0; i < faces.Count(); i++)
 		{
 			/*faces[i]->project_parameters.time = &trace_time;
 			faces[i]->project_parameters.ttl = top_level_ttl;
@@ -2948,7 +2951,7 @@ namespace Fractal
 			face_buffer[i]->update();*/
 		
 	
-		for (index_t i = 0; i < faces.count(); i++)
+		for (index_t i = 0; i < faces.Count(); i++)
 		{
 			faces[i]->resolve();
 			faces[i]->resolveReflection();
@@ -2963,7 +2966,7 @@ namespace Fractal
 	}
 	
 
-	void		Body::processInvisible(const Timer::Time&time, float top_level_ttl)
+	void		Body::processInvisible(const Time::Stamp&time, float top_level_ttl)
 	{
 		BEGIN
 		BackgroundSubDiv::end();
@@ -2972,7 +2975,7 @@ namespace Fractal
 		reset();
 		//cout << "Body::process(...): projecting"<<endl;
 	
-		for (unsigned i = 0; i < faces.count(); i++)
+		for (unsigned i = 0; i < faces.Count(); i++)
 			faces[i]->checkTimeouts(time,top_level_ttl);
 		
 		END
@@ -2984,14 +2987,14 @@ namespace Fractal
 	{
 		ASSERT__(!BackgroundSubDiv::active);
 		float rs = 0;
-		for (unsigned i = 0; i < need_children.count(); i++)
+		for (unsigned i = 0; i < need_children.Count(); i++)
 			rs += need_children[i]->priority;
 		return rs;
 	}
 	
 	void		Body::checkLinkage()
 	{
-		for (unsigned i = 0; i < faces.count(); i++)
+		for (unsigned i = 0; i < faces.Count(); i++)
 			faces[i]->checkLinkage();
 	}
 	/*
@@ -3042,7 +3045,7 @@ namespace Fractal
 				return rs;
 			}
 		}
-		for (unsigned i = 0; i < faces.count(); i++)
+		for (unsigned i = 0; i < faces.Count(); i++)
 			if (rs = faces[i]->recursiveLookup(callback,depth))
 			{
 				last_match = rs;
@@ -3070,7 +3073,7 @@ namespace Fractal
             d1 = exponent;
         if (d2 > exponent)
             d2 = exponent;
-		//logfile << "clamped: "<<d0<<", "<<d1<<", "<<d2<<nl;
+		//logfile << "M::Clamp: "<<d0<<", "<<d1<<", "<<d2<<nl;
         return  d0*step0 + d1*step1 + d2;
 	}
 	
@@ -3087,7 +3090,7 @@ namespace Fractal
             d1 = exponent;
         if (d2 > exponent)
             d2 = exponent;
-		//logfile << "clamped: "<<d0<<", "<<d1<<", "<<d2<<nl;
+		//logfile << "M::Clamp: "<<d0<<", "<<d1<<", "<<d2<<nl;
         return  d0*step0 + d1*step1 + d2;
 	}
 	

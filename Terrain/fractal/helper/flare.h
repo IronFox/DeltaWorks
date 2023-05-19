@@ -2,10 +2,10 @@
 #define flareH
 
 
-#include "../../engine/renderer/opengl.h"
-#include "../../engine/display.h"
-#include "../../image/img_generators.h"
-#include "../../general/random.h"
+#include <engine/renderer/opengl.h>
+#include <engine/display.h>
+#include <image/img_generators.h>
+#include <general/random.h>
 
 using namespace Engine;
 
@@ -46,10 +46,10 @@ namespace Flare
 							was_clipped,	//!< True if the light was outside the screen clipping area before the last map() call. Reset (to false) by render() in case it is now visible
 							occluded,		//!< Specifies whether or not this light is occluded by some object in the viewport. Valid only if @a clipped is false
 							tagged;			//!< Custom tag. Used to match the currently known lights with the lights of the active light scenario
-			Engine::LightData*	reference;		//!< Pointer to the actual light structure
+			Engine::PLight	reference;		//!< Pointer to the actual light structure
 		
 			/**/			LightInfo():scale(100),visibility(1),intensity(1),distance(1),clipped(false),occluded(false),tagged(false),reference(NULL)	{}
-			/**/			LightInfo(Engine::LightData*reference_):scale(100),visibility(1),intensity(1),distance(1),clipped(false),occluded(false),tagged(false),reference(reference_)	{}
+			/**/			LightInfo(Engine::PLight reference_):scale(100),visibility(1),intensity(1),distance(1),clipped(false),occluded(false),tagged(false),reference(reference_)	{}
 
 			float			GetSize()	const	{return scale * reference->GetSize();}
 	};
@@ -120,8 +120,8 @@ namespace Flare
 	};
 
 	void			SetFlareSequence(const FlareCenter*centers, count_t numCenters);
-	inline void		SetFlareSequence(const ArrayData<FlareCenter>&centers)	{SetFlareSequence(centers.pointer(),centers.count());}
-	inline void		SetFlareSequence(const BasicBuffer<FlareCenter>&centers){SetFlareSequence(centers.pointer(),centers.count());}
+	inline void		SetFlareSequence(const ArrayData<FlareCenter>&centers)	{SetFlareSequence(centers.pointer(),centers.Count());}
+	inline void		SetFlareSequence(const BasicVector<FlareCenter>&centers){SetFlareSequence(centers.pointer(),centers.Count());}
 }
 
 

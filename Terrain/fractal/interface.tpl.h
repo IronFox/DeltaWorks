@@ -1,5 +1,4 @@
-#ifndef CudaFractal_mapTplH
-#define CudaFractal_mapTplH
+#pragma once
 
 /******************************************************************
 
@@ -7,6 +6,10 @@ Fractal-Core for generation of Fractal landscapes.
 Use in combination with EveCudaFractalModule.
 
 ******************************************************************/
+
+namespace DeltaWorks
+{
+
 
 template <unsigned Exponent>
 	Fractal::TemplateSurface<Exponent>::TemplateSurface():DataSurface(Exponent,TemplateMap<Exponent>::vertices)
@@ -19,7 +22,7 @@ template <unsigned Exponent>
 	}
 
 template <unsigned Exponent>
-	Fractal::TemplateSurface<Exponent>::TemplateSurface(Body*super_,TemplateSurface<Exponent>*parent_,BYTE child_index, const Timer::Time&time):DataSurface(Exponent,TemplateMap<Exponent>::vertices)
+	Fractal::TemplateSurface<Exponent>::TemplateSurface(Body*super_,TemplateSurface<Exponent>*parent_,BYTE child_index, const Time::Stamp&time):DataSurface(Exponent,TemplateMap<Exponent>::vertices)
 	{
 		super = super_;
 		parent = parent_;
@@ -29,7 +32,14 @@ template <unsigned Exponent>
 	
 	
 template <unsigned Exponent>
-	Fractal::TemplateSurface<Exponent>::TemplateSurface(Body*super_,TemplateSurface<Exponent>*parent_,BYTE child_index, const TSurfaceSegmentLink&n0_, const TSurfaceSegmentLink&n1_, const TSurfaceSegmentLink&n2_, const Timer::Time&time):DataSurface(Exponent,TemplateMap<Exponent>::vertices)
+	Fractal::TemplateSurface<Exponent>::TemplateSurface(Body*super_,
+		TemplateSurface<Exponent>*parent_,
+		BYTE child_index, 
+		const TSurfaceSegmentLink&n0_, 
+		const TSurfaceSegmentLink&n1_, 
+		const TSurfaceSegmentLink&n2_, 
+		const Time::Stamp&time
+	):DataSurface(Exponent,TemplateMap<Exponent>::vertices)
 	{
 		referenced = time;
 		super = super_;
@@ -59,16 +69,16 @@ template <unsigned Exponent>
 	    {
 	        for (unsigned x = 1; x < y-2; x++)
 	        {
-	            (*p++) = MapType::getIndex(x,y);
-	            (*p++) = MapType::getIndex(x+1,y);
-	            (*p++) = MapType::getIndex(x,y-1);
-	            (*p++) = MapType::getIndex(x+1,y);
-	            (*p++) = MapType::getIndex(x+1,y-1);
-	            (*p++) = MapType::getIndex(x,y-1);
+	            (*p++) = MapType::getStaticIndex(x,y);
+	            (*p++) = MapType::getStaticIndex(x+1,y);
+	            (*p++) = MapType::getStaticIndex(x,y-1);
+	            (*p++) = MapType::getStaticIndex(x+1,y);
+	            (*p++) = MapType::getStaticIndex(x+1,y-1);
+	            (*p++) = MapType::getStaticIndex(x,y-1);
 	        }
-	        (*p++) = MapType::getIndex(y-2,y);
-	        (*p++) = MapType::getIndex(y-1,y);
-	        (*p++) = MapType::getIndex(y-2,y-1);
+	        (*p++) = MapType::getStaticIndex(y-2,y);
+	        (*p++) = MapType::getStaticIndex(y-1,y);
+	        (*p++) = MapType::getStaticIndex(y-2,y-1);
 	    }
 
 	    if (p != core_pattern + ARRAYSIZE(core_pattern))
@@ -440,7 +450,7 @@ template <unsigned Exponent>
 			return;
 		BEGIN
 		created = true;
-		cout << "createCorePattern()"<<endl;
+		std::cout << "createCorePattern()"<< std::endl;
 		createCorePattern();
 
 		for (unsigned g0 = 0; g0 <= Exponent; g0++)
@@ -506,7 +516,7 @@ template <unsigned Exponent, unsigned ExponentReduction>
 		}
 		ASSERT__(at_index == ReducedMap::vertices);
 		
-		Buffer<unsigned>	triangle_indices;
+		Vector<unsigned>	triangle_indices;
 		unsigned step = 1<<lookup_reduction;
 		for (unsigned y = step; y < FullMap::range; y+=step)
 			for (unsigned x = 0; x < y; x+=step)
@@ -570,6 +580,4 @@ template <unsigned Exponent, unsigned ExponentReduction>
 
 
 
-
-
-#endif
+}

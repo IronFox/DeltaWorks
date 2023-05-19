@@ -184,7 +184,7 @@ PARALLEL_OPERATION subdivideVertexBlock(unsigned iteration,const UnifiedOperatio
 			p3_weight = _mm_mul_ps(secondary_weight,_mm_load_ps(p3_exists)),
 			weight_sum = _mm_add_ps(_mm_set1_ps(2.0f+SECONDARY_PARENT_WEIGHT),p3_weight),
 			//w0 = _mm_rcp_ps(weight_sum),	//oookay. Obviously <-This line does not do the same as...
-			w0 = _mm_div_ps(SSE::one,weight_sum), //...<-This line. It should, shouldn't it? The difference is subtle, but there
+			w0 = _mm_div_ps(M::SSE::one,weight_sum), //...<-This line. It should, shouldn't it? The difference is subtle, but there
 			w1 = w0,
 			w2 = _mm_div_ps(secondary_weight,weight_sum),
 			w3 = _mm_div_ps(p3_weight,weight_sum);
@@ -214,9 +214,9 @@ PARALLEL_OPERATION subdivideVertexBlock(unsigned iteration,const UnifiedOperatio
 							random.advance()\
 						)\
 					);\
-		_CHANNEL_ = SSE::clamp(\
+		_CHANNEL_ = M::SSE::Clamp(\
 						_CHANNEL_,\
-						SSE::zero,SSE::one);	
+						M::SSE::zero,M::SSE::one);	
 
 	#undef SET_NOISE_CHANNEL
 	#define SET_NOISE_CHANNEL(_CHANNEL_,_CUSTOM_FACTOR_)\
@@ -233,9 +233,9 @@ PARALLEL_OPERATION subdivideVertexBlock(unsigned iteration,const UnifiedOperatio
 							_mm_set1_ps(_CUSTOM_FACTOR_)\
 						)\
 					);\
-		_CHANNEL_ = SSE::clamp(\
+		_CHANNEL_ = M::SSE::Clamp(\
 						_CHANNEL_,\
-						SSE::zero,SSE::one);
+						M::SSE::zero,M::SSE::one);
 		//CHECK_SSE_IS_CONSTRAINED(_CHANNEL_,0,1);
 
 	#undef SET_NOISE_CHANNEL2
@@ -253,9 +253,9 @@ PARALLEL_OPERATION subdivideVertexBlock(unsigned iteration,const UnifiedOperatio
 							_CUSTOM_FACTOR_\
 						)\
 					);\
-		_CHANNEL_ = SSE::clamp(\
+		_CHANNEL_ = M::SSE::Clamp(\
 						_CHANNEL_,\
-						SSE::zero,SSE::one);
+						M::SSE::zero,M::SSE::one);
 		
 						
 
@@ -290,18 +290,18 @@ PARALLEL_OPERATION subdivideVertexBlock(unsigned iteration,const UnifiedOperatio
 		{
 			static const __m128	canyon_slope_end = _mm_set1_ps(CANYON_SLOPE_END),
 								canyon_slope_begin = _mm_set1_ps(CANYON_SLOPE_BEGIN);
-			__m128	riff_distance = _mm_mul_ps(SSE::abs(_mm_sub_ps(SSE::half,interpolated_c2)),SSE::five),
-					reduce_noise = _mm_mul_ps(SSE::factorCompareGreater(riff_distance,canyon_slope_begin),SSE::factorCompareGreater(canyon_slope_end,riff_distance));
+			__m128	riff_distance = _mm_mul_ps(M::SSE::Abs(_mm_sub_ps(M::SSE::half,interpolated_c2)),M::SSE::five),
+					reduce_noise = _mm_mul_ps(M::SSE::factorCompareGreater(riff_distance,canyon_slope_begin),M::SSE::factorCompareGreater(canyon_slope_end,riff_distance));
 			riff_noise = _mm_add_ps(
-							_mm_mul_ps(_mm_sub_ps(SSE::one,reduce_noise),riff_noise),
+							_mm_mul_ps(_mm_sub_ps(M::SSE::one,reduce_noise),riff_noise),
 							_mm_mul_ps(
 								reduce_noise,
 								_mm_div_ps(
 									riff_noise,
 									_mm_add_ps(
-										SSE::one,
+										M::SSE::one,
 										_mm_mul_ps(
-											SSE::point25,
+											M::SSE::point25,
 											c3
 										)
 									)
@@ -311,9 +311,9 @@ PARALLEL_OPERATION subdivideVertexBlock(unsigned iteration,const UnifiedOperatio
 		}
 	#endif
 
-	__m128 c2 = SSE::clamp(
+	__m128 c2 = M::SSE::Clamp(
 			_mm_add_ps(interpolated_c2,riff_noise),
-			SSE::zero,SSE::one);
+			M::SSE::zero,M::SSE::one);
 		
 	/*
 	result[0]->channel.water = 0;
@@ -373,11 +373,11 @@ PARALLEL_OPERATION subdivideVertexBlock(unsigned iteration,const UnifiedOperatio
 		
 		M::TVec3<SSE_VECTOR>	v = 
 					{
-						(p0_position.x+p1_position.x)*SSE::half,
-						(p0_position.y+p1_position.y)*SSE::half,
-						(p0_position.z+p1_position.z)*SSE::half
+						(p0_position.x+p1_position.x)* M::SSE::half,
+						(p0_position.y+p1_position.y)* M::SSE::half,
+						(p0_position.z+p1_position.z)* M::SSE::half
 					};
-		SSE_VECTOR current_height = (h0+h1)*SSE::half;
+		SSE_VECTOR current_height = (h0+h1)*M::SSE::half;
 	#else
 	
 
@@ -456,10 +456,10 @@ PARALLEL_OPERATION subdivideVertexBlock(unsigned iteration,const UnifiedOperatio
 								_mm_setr_ps(norm3[0][1],norm3[1][1],norm3[2][1],norm3[3][1]),
 								_mm_setr_ps(norm3[0][2],norm3[1][2],norm3[2][2],norm3[3][2])
 							};
-			quad.build(p0_position,n0,p3_position,n3,p1_position,n1,p2_position,n2,SSE::point4);
-			SSE::resolveSplineQuadCenter(quad, v);
+			quad.build(p0_position,n0,p3_position,n3,p1_position,n1,p2_position,n2, M::SSE::point4);
+			M::SSE::resolveSplineQuadCenter(quad, v);
 		}
-		SSE_VECTOR current_height = (h0+h1+h2+h3)*SSE::point25;
+		SSE_VECTOR current_height = (h0+h1+h2+h3)* M::SSE::point25;
 		#endif
 
 		#if 0
@@ -488,8 +488,8 @@ PARALLEL_OPERATION subdivideVertexBlock(unsigned iteration,const UnifiedOperatio
 			_cross(delta,n1,t);
 			_cross(n1,t,d1);
 			
-			SSE::normalize(d0);
-			SSE::normalize(d1);
+			M::SSE::normalize(d0);
+			M::SSE::normalize(d1);
 
 			/*_normalize(d0);
 			_normalize(d1);
@@ -497,20 +497,20 @@ PARALLEL_OPERATION subdivideVertexBlock(unsigned iteration,const UnifiedOperatio
 				FATAL__("d0 inverted");
 			if (_dot(d1,delta)<=0)
 				FATAL__("d1 inverted");*/
-			/*control0[0] = p0x+d0[0]*distance*SSE::point3;
-			control0[1] = p0y+d0[1]*distance*SSE::point3;
-			control0[2] = p0z+d0[2]*distance*SSE::point3;
+			/*control0[0] = p0x+d0[0]*distance*M::SSE::point3;
+			control0[1] = p0y+d0[1]*distance*M::SSE::point3;
+			control0[2] = p0z+d0[2]*distance*M::SSE::point3;
 			
-			control1[0] = p1x-d1[0]*distance*SSE::point3;
-			control1[1] = p1y-d1[1]*distance*SSE::point3;
-			control1[2] = p1z-d1[2]*distance*SSE::point3;*/
+			control1[0] = p1x-d1[0]*distance*M::SSE::point3;
+			control1[1] = p1y-d1[1]*distance*M::SSE::point3;
+			control1[2] = p1z-d1[2]*distance*M::SSE::point3;*/
 			
-			ByReference::_mad(p0_position,d0,distance*SSE::point3,control0);
-			ByReference::_mad(p1_position,d1,-distance*SSE::point3,control1);
+			ByReference::_mad(p0_position,d0,distance*M::SSE::point3,control0);
+			ByReference::_mad(p1_position,d1,-distance*M::SSE::point3,control1);
 			
 			//_resolveNURBS(p0.final_position, control0, control1, p1.final_position, 0.5, v.uniform_position);			//!< Resolves a NURB-Spline point. \param p0 Curve start point \param p1 First curve control point \param p2 Second curve control point \param p3 Curve end point \param t Position scalar along the curve (0-1) \param out Out vector for the resolved NURBS position
 			
-			SSE::nurbsCenter(p0_position,control0,control1,p1_position,v);
+			M::SSE::nurbsCenter(p0_position,control0,control1,p1_position,v);
 		}
 		#endif
 	#endif
@@ -530,23 +530,23 @@ PARALLEL_OPERATION subdivideVertexBlock(unsigned iteration,const UnifiedOperatio
 	{
 		SSE_VECTOR imprint, strength;
 		resolveCraterDeltaBlock(v.x,v.y,v.z,parameter.generateVertex.sse_crater_field[i],imprint,strength);
-		crater_depth *= (SSE::one-strength);
+		crater_depth *= (M::SSE::one-strength);
 		crater_depth += imprint;
 	}
 	h+=crater_depth;
 		
 	if (context.has_ocean)
 	{
-		__m128 shore = SSE::factorCompareGreater(_mm_set1_ps(0.01f),SSE::abs(h)),
-				shore_relative = _mm_mul_ps(h,SSE::hundred);
+		__m128 shore = M::SSE::factorCompareGreater(_mm_set1_ps(0.01f),M::SSE::Abs(h)),
+				shore_relative = _mm_mul_ps(h,M::SSE::hundred);
 					
-		__m128 sign = _mm_sub_ps(_mm_mul_ps(SSE::factorCompareGreater(shore_relative,SSE::zero),SSE::two),SSE::one);
-		shore_relative = _mm_mul_ps(SSE::shoreFactor(SSE::abs(shore_relative)),sign);
+		__m128 sign = _mm_sub_ps(_mm_mul_ps(M::SSE::factorCompareGreater(shore_relative,M::SSE::zero),M::SSE::two),M::SSE::one);
+		shore_relative = _mm_mul_ps(Fractal::SSE::shoreFactor(M::SSE::Abs(shore_relative)), sign);
 		//shore_relative = _mm_mul_ps(_mm_mul_ps(shore_relative,shore_relative),shore_relative);
 
-		shore_relative = _mm_div_ps(shore_relative,SSE::hundred);
+		shore_relative = _mm_div_ps(shore_relative,M::SSE::hundred);
 		h = _mm_add_ps(
-				_mm_mul_ps(h,_mm_sub_ps(SSE::one,shore)),
+				_mm_mul_ps(h,_mm_sub_ps(M::SSE::one,shore)),
 				_mm_mul_ps(shore_relative,shore)
 				);	
 	}
@@ -564,7 +564,7 @@ PARALLEL_OPERATION subdivideVertexBlock(unsigned iteration,const UnifiedOperatio
 			
 	#undef ADD_PARENT_WATER
 	#define ADD_PARENT_WATER(_PINDEX_)\
-		beneath_parent = SSE::factorCompareGreater((const SSE_VECTOR&)h##_PINDEX_,h);\
+		beneath_parent = M::SSE::factorCompareGreater((const SSE_VECTOR&)h##_PINDEX_,h);\
 		water = _mm_add_ps(\
 					water,\
 					_mm_mul_ps(\
@@ -577,7 +577,7 @@ PARALLEL_OPERATION subdivideVertexBlock(unsigned iteration,const UnifiedOperatio
 									gain_down\
 								),\
 								_mm_mul_ps(\
-									_mm_sub_ps(SSE::one,beneath_parent),\
+									_mm_sub_ps(M::SSE::one,beneath_parent),\
 									gain_up\
 								)\
 							)\
@@ -599,11 +599,11 @@ PARALLEL_OPERATION subdivideVertexBlock(unsigned iteration,const UnifiedOperatio
 
 	if (context.has_ocean)
 	{
-		__m128	add_oceanic_water = SSE::factorCompareGreater(_mm_set1_ps(-0.005f),h);
-		water = _mm_add_ps(water,_mm_mul_ps(add_oceanic_water,SSE::point1));
+		__m128	add_oceanic_water = M::SSE::factorCompareGreater(_mm_set1_ps(-0.005f),h);
+		water = _mm_add_ps(water,_mm_mul_ps(add_oceanic_water,M::SSE::point1));
 	}
 			
-	water = SSE::clamp(
+	water = M::SSE::Clamp(
 				_mm_add_ps(
 					water,
 					_mm_mul_ps(

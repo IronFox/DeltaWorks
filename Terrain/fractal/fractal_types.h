@@ -1,20 +1,20 @@
-#ifndef fractal_typesH
-#define fractal_typesH
+#pragma once
 
 /*
 	This module implements the more basic data structures required by the fractal interface in order to communicate with the kernel
 */
 
-#include "../container/array.h"
-#include "../container/aligned_array.h"
-#include "../engine/gl/buffer_object.h"
-#include "../engine/gl/texture.h"
-#include "../math/sse.h"
-#include "../geometry/coordinates.h"
+#include <container/array.h>
+#include <container/aligned_array.h>
+#include <engine/gl/buffer_object.h>
+#include <engine/gl/texture.h>
+#include <math/sse.h>
+#include <geometry/coordinates.h>
+#include <math/vector.h>
 
 #include "kernel/config.h"
 
-namespace Fractal
+namespace DeltaWorks::Fractal
 {
 #if 0
 	/**
@@ -138,10 +138,22 @@ namespace Fractal
 	*/
 	struct TCrater
 	{
-		M::TVec3<>			orientation,	//!< Normalized crater orientation vector
+		M::TVec3<>		orientation,	//!< Normalized crater orientation vector
 						base;			//!< Crater base point
 		float			radius,			//!< Crater radius
 						depth;			//!< Crater depth. This would usually relate to the radius but is not required to do so.
+
+
+		int				CompareTo(const TCrater& other) const
+		{
+			if (radius > other.radius)
+				return 1;
+			if (radius < other.radius)
+				return -1;
+			return 0;
+
+
+		}
 	};
 	
 	/**
@@ -163,7 +175,7 @@ namespace Fractal
 	*/
 	struct TBaseRayIntersection
 	{
-		bool			isset;		//!< true if an intersection was detected, false otherwise
+		bool			isSet;		//!< true if an intersection was detected, false otherwise
 		const TVertex	*vertex[3];	//!< Corner vertices of the intersected triangle
 		float			fc[3];		//!< Intersection factors (fc[0] <> vertex[0]->vertex[1]; fc[1] <> vertex[0]->vertex[2]; fc[2] <> ray)
 	};
@@ -173,10 +185,10 @@ namespace Fractal
 	*/
 	struct TBaseGroundInfo
 	{
-		bool			isset;						//!< true if the ground was detected, false otherwise
+		bool			isSet;						//!< true if the ground was detected, false otherwise
 		float			height_over_ground,			//!< Height of the querying point over the detected ground as a factor of the direction vector used during detection
 						ground_height;				//!< Ground height factor
-		M::TVec3<>			normal,					//!< Interpolated normal
+		M::TVec3<>		normal,					//!< Interpolated normal
 						position;				//!< Sector relative ground position
 	};
 	
@@ -235,7 +247,7 @@ namespace Fractal
 		};
 	
 	
-		M::TVec3<Composite::sector_t>	sector;		//!< Sector coordinates of this surface
+		M::TVec3<M::Composite::sector_t>	sector;		//!< Sector coordinates of this surface
 		//TComposite		central_height;	//!< Absolute height of the center of this surface
 		unsigned		depth;			//!< Face depth with 0 being the deepest possible face
 		unsigned char	child_index;	//!< Index of this child as seen from its parent
@@ -272,7 +284,7 @@ namespace Fractal
 		static const unsigned		floats_per_vbo_vertex=9;	//!< Total number of floats per compiled VBO geometry vertex
 
 		Array<TVertex>				vertex_field;		//!< Raw device space vertex data
-		Buffer<TCrater,0>			crater_field;		//!< Applied crater field
+		Vector<TCrater>				crater_field;		//!< Applied crater field
 		Engine::GLVertexBufferObject	vbo;				//!< Vertex buffer object containing renderable vertex floats. Each vertex provides 9 floats, the first 3 for the sector relative position, 1 for the height, 3 for the normal, the final 2 for texture coordinates
 		Engine::GLTexture			texture;			//!< Color/normal texture assigned to this surface
 		TSurfaceSegmentLink			neighbor_link[3];	//!< Links to adjacent host surfaces
@@ -349,4 +361,3 @@ namespace Fractal
 	};
 }
 	
-#endif

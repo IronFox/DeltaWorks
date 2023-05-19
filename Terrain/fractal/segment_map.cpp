@@ -1,4 +1,4 @@
-#include "../global_root.h"
+#include <global_root.h>
 #include "segment_map.h"
 
 #ifndef BEGIN
@@ -9,7 +9,7 @@
 	#define END
 #endif
 
-namespace Fractal
+namespace DeltaWorks::Fractal
 {
 	void VertexMap::build()
 	{

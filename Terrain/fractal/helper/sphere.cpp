@@ -1,4 +1,4 @@
-#include "../../global_root.h"
+#include <global_root.h>
 #include "sphere.h"
 
 
@@ -7,7 +7,7 @@ const double ::Sphere::relative_height_step = 2.36e-4;
 ::Sphere::Sphere():built(false)
 {}
 
-::Sphere::Sphere(const Frustum<>&frustum, double radius, double height, const M::TVec3<double>&delta)
+::Sphere::Sphere(const Engine::Frustum<>&frustum, double radius, double height, const M::TVec3<double>&delta)
 {
 	apply(frustum,radius,height, delta);
 }
@@ -41,9 +41,9 @@ void			::Sphere::apply(const Frustum<>&frustrum_, double radius_, double height_
 	
 	y_fov = M::Vec::angle(axis0,axis1)*M_PI/180/2*1.35;
 	view_x = M::Vec::angle2PI(axis.y,axis.x);
-	view_y = atan2(vsqrt(sqr(axis.x)+sqr(axis.y)),-axis.z);
-	float  fc = vmin(vabs(view_y/M_PI*2),1.0f);
-	x_fov = y_fov/sqr(0.01+fc*0.99)*0.65;
+	view_y = atan2(M::vsqrt(M::Sqr(axis.x)+M::Sqr(axis.y)),-axis.z);
+	float  fc = M::Min(M::vabs(view_y/M_PI*2),1.0f);
+	x_fov = y_fov/M::Sqr(0.01+fc*0.99)*0.65;
 	
 }
 /*
@@ -137,20 +137,20 @@ bool			SphereSector::isVisible(::Sphere*super, double distance)		const
 		dist -= 2*M_PI;
 	if (dist < -M_PI)
 		dist += 2*M_PI;
-	if (vabs(dist)-(aend-abegin)/2 > super->x_fov)
+	if (M::vabs(dist)-(aend-abegin)/2 > super->x_fov)
 		return false;
 	
 	
 	dist = (rbegin+rend)/2-super->view_y;
 	if (dist > 0)
 	{
-		if (vabs(dist)-(rend-rbegin)/2 > super->y_fov)
+		if (M::vabs(dist)-(rend-rbegin)/2 > super->y_fov)
 			return false;
 	}
 	else
 	{
 		float effective_fov = super->y_fov/((super->height-super->radius)/distance);
-		if (vabs(dist)-(rend-rbegin)/2 > effective_fov)
+		if (M::vabs(dist)-(rend-rbegin)/2 > effective_fov)
 			return false;
 	
 	}
@@ -171,8 +171,8 @@ bool			SphereSector::isVisible(::Sphere*super, double distance)		const
 	super->radialPoint(aend,rend,distance,p2);
 	super->radialPoint(abegin,rend,distance,p3);
 	super->radialPoint((abegin+aend)/2,(rbegin+rend)/2,distance,sphere_center);
-	sphere_radius = vsqrt(vmax(vmax(M::Vec::quadraticDistance(p0,sphere_center),M::Vec::quadraticDistance(p1,sphere_center)),vmax(M::Vec::quadraticDistance(p2,sphere_center),M::Vec::quadraticDistance(p3,sphere_center))));
-	M::Mat::transform(super->world_system,sphere_center,center);
+	sphere_radius = M::vsqrt(M::vmax(M::vmax(M::Vec::quadraticDistance(p0,sphere_center),M::Vec::quadraticDistance(p1,sphere_center)), M::vmax(M::Vec::quadraticDistance(p2,sphere_center),M::Vec::quadraticDistance(p3,sphere_center))));
+	M::Mat::Transform(super->world_system,sphere_center,center);
 	bool rs = super->frustum.IsVisible(center,sphere_radius);
 	return rs;
 	
@@ -215,7 +215,7 @@ void		SphereSector::renderOutline(::Sphere*super, float r, float g, float b, dou
 void		SphereSector::build(double distance, ::Sphere*super, float resolution)
 {
 	//static const unsigned xres = 30;
-	unsigned yres = vmax((unsigned)(10*resolution),2);
+	unsigned yres = M::vmax((unsigned)(10*resolution),2);
 	double	r = rbegin,
 			h = super->radius+distance,
 			rstep = (rend-rbegin)/(double)yres,
@@ -230,20 +230,20 @@ void		SphereSector::build(double distance, ::Sphere*super, float resolution)
 
 	//cout << "begin constructing segment "<<abegin<<", "<<aend<<" / "<<rbegin<<", "<<rend<<endl;
 	glNewList(display_list,GL_COMPILE);
-		unsigned res0= (unsigned)vmax(Round(0.4*M_PI*r/rad_res*resolution),2);
+		unsigned res0= (unsigned)M::vmax(M::Round(0.4*M_PI*r/rad_res*resolution),2);
 		//xres(r,distance);
 		for (unsigned strip = 0; strip < yres; strip++)
 		{
 			double r2 = r+rstep;
 			{
 				unsigned	
-							res1 = (unsigned)vmax(Round(0.4*M_PI*r2/rad_res*resolution),2);
+							res1 = (unsigned)M::vmax(M::Round(0.4*M_PI*r2/rad_res*resolution),2);
 				glBegin(GL_TRIANGLE_STRIP);
 					//float down_sample = (float)res1/res0;
 					for (unsigned i = 0; i < res1; i++)
 					{
 						float	fx1 = abegin+(float)i/(res1-1)*(aend-abegin),
-								fx0 = abegin+(float)Round((float)i*res0/res1)/(res0-1)*(aend-abegin);
+								fx0 = abegin+(float)M::Round((float)i*res0/res1)/(res0-1)*(aend-abegin);
 						super->radialPoint(fx1,r2,distance);
 						super->radialPoint(fx0,r,distance);
 					}
@@ -378,7 +378,7 @@ void			::Sphere::renderCircular(unsigned min_level)
 	}
 
 
-	int index = (unsigned)(log(vabs((height-radius)/root_step))/log(1.8));
+	int index = (unsigned)(log(M::vabs((height-radius)/root_step))/log(1.8));
 	if (index < (int)min_level)
 		index = (int)min_level;
 	if (index >= ARRAYSIZE(phase))
@@ -406,7 +406,7 @@ void			::Sphere::renderOutline(float r, float g, float b)
 	}
 
 
-	int index = (unsigned)(log(vabs((height-radius)/root_step))/log(1.8));
+	int index = (unsigned)(log(M::vabs((height-radius)/root_step))/log(1.8));
 	if (index < 0)
 		index = 0;
 	if (index >= ARRAYSIZE(phase))

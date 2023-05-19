@@ -2,9 +2,9 @@
 #define sphereH
 
 
-#include "../../engine/renderer/opengl.h"
-#include "../../engine/display.h"
-#include "../../io/log_stream.h"
+#include <engine/renderer/opengl.h>
+#include <engine/display.h>
+#include <io/log_stream.h>
 
 using namespace Engine;
 
@@ -102,13 +102,13 @@ inline	void			radialPoint(float angular, float radial, double dh, M::TVec3<>&pos
 									p = -2*ca*h,
 									q = h*h-radius*radius,
 									rs[2];
-							BYTE num_rs = solveSqrEquation(p,q,rs);
+							BYTE num_rs = M::solveSqrEquation(p,q,rs);
 							if (!num_rs)
 							{
 								std::cout << "No results for sqr("<<p<<", "<<q<<") with h="<<h<<", ca="<<ca<<", radial="<<radial*180/M_PI<<", dh="<<dh<<std::endl;
 								FATAL__("equation fault");
 							}
-							double	x = smallestPositiveResult(rs,num_rs),
+							double	x = M::smallestPositiveResult(rs,num_rs),
 									v = h-ca*x,
 									beta = acos(v/radius);
 							if (x > h)

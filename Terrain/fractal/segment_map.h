@@ -1,5 +1,4 @@
-#ifndef fractal_mapH
-#define fractal_mapH
+#pragma once
 
 /*
 	This module implements the segment map structure, based on the base vertex map structures specified in 'fractal_types.h'
@@ -7,7 +6,7 @@
 
 #include "fractal_types.h"
 
-namespace Fractal
+namespace DeltaWorks::Fractal
 {
 	#define NUM_VERTICES2(VMAX) ((((VMAX)*(VMAX)) + 3LL*((VMAX)) +2LL)/2LL)
 	//#define NUM_VERTICES(exponent) (((1LL<<(2*(exponent))) + 3LL*(1LL<<(exponent)) +2LL)/2LL)
@@ -195,7 +194,7 @@ namespace Fractal
 				@param row Row of the vertex in the range [0,vertex_maximum]
 				@return Linear vertex index
 			*/
-			inline static unsigned			getIndex(unsigned col, unsigned row)
+			inline static unsigned			getStaticIndex(unsigned col, unsigned row)
 											{
 												if (row >= range || col > row)
 													FATAL__("Index-Retrival-Error for ("+IntToStr(col)+", "+IntToStr(row)+") range="+IntToStr(range));
@@ -211,7 +210,7 @@ namespace Fractal
 				@param row Row of the vertex in the range [0,vertex_maximum]
 				@return Linear vertex index or 0xFFFFFFFF if the specified grid coordinates are invalid
 			*/
-			inline static unsigned			getIndexC(unsigned col, unsigned row)
+			inline static unsigned			getStaticIndexC(unsigned col, unsigned row)
 											{
 												if (row >= range || col > row)
 													return UNSIGNED_UNDEF;
@@ -228,11 +227,12 @@ namespace Fractal
 	template <unsigned Exponent, unsigned RangeReduction =0>
 		class TemplateMap:public VertexMap, public BaseTemplateMap<Exponent,RangeReduction>
 		{
+			typedef BaseTemplateMap<Exponent, RangeReduction> Super;
 		public:
 		
 										TemplateMap()
 										{
-											Create(*this);
+											Super::Create(*this);
 
 										}
 
@@ -262,4 +262,3 @@ namespace Fractal
 }
 
 
-#endif

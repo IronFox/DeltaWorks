@@ -36,11 +36,11 @@
 
 #define SSE_COORDINATES			0	//!< Set 1 to enable 4d SSE coordinates
 
-#define TEXTURE_SEAM_EXTENSION	2	//!< Additional separation texels on both sides of the diagonal of a segment texture. Filled with clamped vertex data
+#define TEXTURE_SEAM_EXTENSION	2	//!< Additional separation texels on both sides of the diagonal of a segment texture. Filled with M::Clamp vertex data
 
 //#define	RIVERS						//!< Define to simulate rivers
 
-#define CLAMP_HEIGHT			true	//!< Causes resulting height values to be clamped to the range [0,1], using rounded off inversion
+#define CLAMP_HEIGHT			true	//!< Causes resulting height values to be M::Clamp to the range [0,1], using rounded off inversion
 
 
 #if CANYON_LOOPS

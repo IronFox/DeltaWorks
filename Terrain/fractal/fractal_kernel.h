@@ -1,5 +1,4 @@
-#ifndef fractal_kernelH
-#define fractal_kernelH
+#pragma once
 
 /*
 	This module implements all parallel functions that the fractal system operates on.
@@ -7,22 +6,26 @@
 */
 
 
-#include "../general/exception.h"
-#include "../global_string.h"
+#include <general/exception.h>
+#include <global_string.h>
 
 //#include "../math/composite.h"
-#include "../math/sse.h"
+#include <math/sse.h>
 
-#include "../engine/gl/texture.h"
-#include "../engine/gl/buffer_object.h"
+#include <engine/gl/texture.h>
+#include <engine/gl/buffer_object.h>
 #include "fractal_types.h"
 #include "segment_map.h"
+#include <math/vector.h>
+#include <math/sse/sse_operators.h>
+#include <math/sse/sse_constants.h>
+//#include <general/thread_system.h>
 
 
 
 
 
-namespace Fractal
+namespace DeltaWorks::Fractal
 {
 
 	class CSSE3Random
@@ -56,7 +59,7 @@ namespace Fractal
 													),
 													random_result_factor
 												),
-												SSE::one
+												M::SSE::one
 											);
 								}
 	};
@@ -90,7 +93,7 @@ namespace Fractal
 														),
 														random_result_factor
 													),
-													SSE::one
+													M::SSE::one
 												);
 									}
 		};
@@ -119,7 +122,7 @@ namespace Fractal
 														),
 														random_result_factor
 													),
-													SSE::one
+													M::SSE::one
 												);
 									}
 		};
@@ -163,10 +166,19 @@ namespace Fractal
 	inline	const unsigned char*	getTexel3(const unsigned char*texel_data, unsigned x, unsigned y, unsigned dimension);	//!< Retrieves a texel of an RGB texture
 	inline	const unsigned char*	getTexel4(const unsigned char*texel_data, unsigned x, unsigned y, unsigned dimension);	//!< Retrieves a texel of an RGBA texture
 
-	inline	const unsigned char*	getTexel1Clamp(const unsigned char*texel_data, unsigned x, unsigned y, unsigned dimension);	//!< Retrieves a texel of a luminance texture. Texture coordinates are clamped to the valid range
-	inline	const unsigned char*	getTexel3Clamp(const unsigned char*texel_data, unsigned x, unsigned y, unsigned dimension);	//!< Retrieves a texel of an RGB texture. Texture coordinates are clamped to the valid range
-	inline	const unsigned char*	getTexel4Clamp(const unsigned char*texel_data, unsigned x, unsigned y, unsigned dimension);	//!< Retrieves a texel of an RGBA texture. Texture coordinates are clamped to the valid range
+	inline	const unsigned char*	getTexel1Clamp(const unsigned char*texel_data, unsigned x, unsigned y, unsigned dimension);	//!< Retrieves a texel of a luminance texture. Texture coordinates are M::Clamp to the valid range
+	inline	const unsigned char*	getTexel3Clamp(const unsigned char*texel_data, unsigned x, unsigned y, unsigned dimension);	//!< Retrieves a texel of an RGB texture. Texture coordinates are M::Clamp to the valid range
+	inline	const unsigned char*	getTexel4Clamp(const unsigned char*texel_data, unsigned x, unsigned y, unsigned dimension);	//!< Retrieves a texel of an RGBA texture. Texture coordinates are M::Clamp to the valid range
 
+	inline float	getNoiseFactor(const TSurfaceSegment& surface, const TContext& context);
+	inline float shoreFactor(float x);
+	INT32	seedDelta(UINT32 vertex_index);
+
+
+	namespace SSE
+	{
+		inline SSE_VECTOR shoreFactor(const SSE_VECTOR x);
+	}
 
 	namespace Height
 	{
@@ -186,11 +198,11 @@ namespace Fractal
 		@return random value
 	*/
 	inline	float		getRandom(int&seed);
-	inline	float		clamp(float height);		//!< Clamps a height scalar to the range [-1,+1]. Uses rounded clamping to prevent sharp edges. @param height Current vertex height @return Vertex height in the range [-1,+1]
+	inline	float		Clamp(float height);		//!< Clamps a height scalar to the range [-1,+1]. Uses rounded clamping to prevent sharp edges. @param height Current vertex height @return Vertex height in the range [-1,+1]
 	template <bool Clamp>
-		inline	float	height(const TChannelConfig&channel, bool canyons);	//!< Determines the (clamped) scalar height of a vertex based on its channel configuration @param channel Vertex channel configuration @return Scalar vertex height in the range [-1,+1]
+		inline	float	height(const TChannelConfig&channel, bool canyons);	//!< Determines the (M::Clamp) scalar height of a vertex based on its channel configuration @param channel Vertex channel configuration @return Scalar vertex height in the range [-1,+1]
 	template <bool Clamp>
-		inline	void	polyHeight(const VMOD TChannelConfig&ch0,const VMOD TChannelConfig&ch1,const VMOD TChannelConfig&ch2,const VMOD TChannelConfig&ch3, bool canyons, VMOD float result[4]);	//!< Determines the clamped scalar heights of four vertices at once using SSE
+		inline	void	polyHeight(const VMOD TChannelConfig&ch0,const VMOD TChannelConfig&ch1,const VMOD TChannelConfig&ch2,const VMOD TChannelConfig&ch3, bool canyons, VMOD float result[4]);	//!< Determines the M::Clamp scalar heights of four vertices at once using SSE
 	inline	float		getNoise(float distance, const TSurfaceSegment&segment, const TContext&context);	//!< Determines the noise level of a vertex, based on the distance between its primary parents, as well as segment and context configurations. @param distance Absolute distance between the two primary vertex parents @param segment Parent segment of the new child vertex @param context Parent context configuration
 	inline	void		generate3inner(const TVertex&p0, const TVertex&p1, const TVertex&p2, VMOD TVertex&result, unsigned seed, const TSurfaceSegment&segment, const TContext&context, const TCrater*crater_field, count_t crater_count);				//!< Generates an edge vertex based on three parents @param p0 First primary parent @param p1 Second primary parent @param p2 First (and only) secondary parent @param result [out] Resulting vertex. The vertex will be configured but not positioned @param seed Integer seed to use for the generation process @param segment Parent segment of the new vertex @param context Parent context
 	inline	void		generate3center(const TVertex&p0, const TVertex&p1, const TVertex&p2, VMOD TVertex&result, unsigned seed, const TSurfaceSegment&segment, const TContext&context, const TCrater*crater_field, count_t crater_count);		//!< Identical to the above but positions the new vertex between its primary parents first. The resulting height is @b not applied
@@ -226,10 +238,10 @@ namespace Fractal
 		class UnifiedOperationParameter
 		{
 		public:
-				const VertexMap				*map;			//!< Pointer to the matching mapping structure
+				const VertexMap			*map;			//!< Pointer to the matching mapping structure
 				const TContext			*context;		//!< Pointer to the calling context (typically owned by a fractal body/planet)
 				const TSurfaceSegment	*segment;		//!< Segment that is immediately responsible for the invocation
-				Mutex					*output_mutex;	//!< Output serialization. Required by certain operations (e.g. groundQuery). Undefined otherwise
+				System::Mutex			*output_mutex;	//!< Output serialization. Required by certain operations (e.g. groundQuery). Undefined otherwise
 				bool					*touched;		//!< Debug array. Allows to mark processed elements
 
 
@@ -332,6 +344,10 @@ namespace Fractal
 		*/
 		namespace Operation
 		{
+			extern const TVertex empty_vertex;
+
+
+
 			#define PARALLEL_OPERATION	void
 
 			#define LINEAR_INTERPOLATION	1
@@ -371,7 +387,7 @@ namespace Fractal
 			@param version	SSE version to apply.
 			@return true if the provided SSE version is accepted by the fractal system, false otherwise. The current implementation rejects SSE versions below 3
 		*/
-		bool			setSSE(SSE::version_t version);
+		bool			setSSE(M::SSE::version_t version);
 
 
 
@@ -549,4 +565,3 @@ namespace Fractal
 
 #include "fractal_kernel.tpl.h"
 
-#endif
