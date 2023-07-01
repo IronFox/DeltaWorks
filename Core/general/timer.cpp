@@ -136,6 +136,32 @@ namespace DeltaWorks::Time
 		//DBG_ASSERT__(internal > Details::Now() - TICKS_PER_SECONDS*1000);
 	}
 
+	bool			Stamp::operator>(const Stamp& other) const
+	{
+		return internal > other.internal;
+	}
+
+	bool			Stamp::operator>=(const Stamp& other) const
+	{
+		return internal >= other.internal;
+	}
+	bool			Stamp::operator<(const Stamp& other) const
+	{
+		return internal < other.internal;
+	}
+	bool			Stamp::operator<=(const Stamp& other) const
+	{
+		return internal <= other.internal;
+	}
+	bool			Stamp::operator==(const Stamp& other) const
+	{
+		return internal == other.internal;
+	}
+		bool			Stamp::operator!=(const Stamp& other) const
+	{
+		return internal != other.internal;
+	}
+
 
 	Delta			Stamp::operator-(const Stamp&other) const
 	{
@@ -194,6 +220,20 @@ namespace DeltaWorks::Time
 	void Stamp::Update()
 	{
 		internal = Details::Now();
+	}
+
+	Delta Stamp::UpdateGetElapsed()
+	{
+		auto now = Details::Now();
+		auto delta = Details::delta_t(now - internal);
+		DBG_ASSERT__(delta > Details::ZeroDelta());
+		internal = now;
+		return Delta(delta, false);
+	}
+
+	float Stamp::UpdateGetElapsedSeconds()
+	{
+		return UpdateGetElapsed().ToSeconds();
 	}
 
 

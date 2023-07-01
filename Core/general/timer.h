@@ -99,12 +99,27 @@ namespace DeltaWorks::Time
 		Stamp					operator-(const Delta&delta) const;
 		Stamp&					operator+=(const Delta&delta);
 		Stamp&					operator-=(const Delta&delta);
+		bool					operator>(const Stamp& other) const;
+		bool					operator>=(const Stamp& other) const;
+		bool					operator<(const Stamp& other) const;
+		bool					operator<=(const Stamp& other) const;
+		bool					operator!=(const Stamp& other) const;
+		bool					operator==(const Stamp& other) const;
 
 		/**
 		Updates the local time stamp to the current time.
 		Semantically identical to *this = Stamp();
 		*/
 		void					Update();
+		/**
+		Updates the local time stamp to the current time and returns the time it skipped ahead.
+		*/
+		Delta					UpdateGetElapsed();
+		/**
+		Updates the local time stamp to the current time and returns the time in seconds it skipped ahead.
+		*/
+		float					UpdateGetElapsedSeconds();
+
 
 		/**
 		Calculates the delta between the current timestamp and the local one
@@ -122,6 +137,14 @@ namespace DeltaWorks::Time
 		and updates if so. Returns true if updated, false if not outdated and unchanged.
 		*/
 		bool					CheckIfOutdatedAndUpdate(const Delta&maxAge);
+
+
+		friend const Stamp&		max(const Stamp& a, const Stamp& b)
+		{
+			if (a <= b)
+				return b;
+			return a;
+		}
 	private:
 		friend class Delta;
 
