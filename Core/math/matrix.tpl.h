@@ -24,6 +24,9 @@ Collection of template matrix-math-functions.
 	template <typename T>
 		const	TMatrix4<T>	Matrix<T>::eye4 = {1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1};
 
+	template <class C, count_t Dimensions, index_t DY = Dimensions, index_t DX = Dimensions> 
+		class MQEye;
+
 
 
     template <class C, count_t Step, count_t Count> class MQSwap
@@ -1628,7 +1631,7 @@ Collection of template matrix-math-functions.
 
     
 
-    template <class C, count_t Dimensions, index_t DY=Dimensions, index_t DX=Dimensions> class MQEye
+    template <class C, count_t Dimensions, index_t DY, index_t DX> class MQEye
     {
     public:
             static MF_DECLARE	(void)    perform(C*out)
