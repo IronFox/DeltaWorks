@@ -306,7 +306,7 @@ namespace DeltaWorks::Time
 	}
 
 
-	/*static*/ Delta			Delta::FromSeconds(long long s)
+	/*static*/ Delta			Delta::FromSeconds(long double s)
 	{
 		return Delta(Details::SecondsToDelta(s));
 	}

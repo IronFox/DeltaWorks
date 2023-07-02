@@ -174,7 +174,7 @@ namespace DeltaWorks::Time
 		double					ToSecondsD() const;
 
 		static Delta			FromMilliseconds(long long ms);
-		static Delta			FromSeconds(long long s);
+		static Delta			FromSeconds(long double s);
 
 		bool					IsInRange(const Delta&min, const Delta&max) const;
 		Delta					operator+(const Delta&other) const;
