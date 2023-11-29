@@ -779,6 +779,12 @@ Collection of template matrix-math-functions.
 		}
 
 
+		MFUNC3 (void)    rotate(const TMatrix3<C0>&system, const TVec2<C1>&vec, TVec2<C2>&result)
+		{
+			result.x = system.x.x*vec.x + system.y.x*vec.y;
+			result.y = system.x.y*vec.x + system.y.y*vec.y;
+		}
+
 		MFUNC3 (void)    rotate(const TMatrix4<C0>&system, const TVec3<C1>&vec, TVec3<C2>&result)
 		{
 			result.x = system.x.x*vec.x + system.y.x*vec.y + system.z.x*vec.z;
@@ -795,6 +801,11 @@ Collection of template matrix-math-functions.
 		{
 			rotate(system,vec);
 		}
+		MFUNC2 (void)    Rotate(const TMatrix3<C0>&system, TVec2<C1>&vec)
+		{
+			rotate(system,vec);
+		}
+
 		MFUNC3 (void)    Rotate(const TMatrix4<C0>&system, const TVec3<C1>&vec, TVec3<C2>&result)
 		{
 			rotate(system,vec,result);
@@ -895,6 +906,18 @@ Collection of template matrix-math-functions.
 		}
 
 
+
+
+		MFUNC2(void)	InvertSystem(const TMatrix3<C0>&sys, TMatrix3<C1>&result)
+		{
+			Vec::def(result.x,	sys.x.x, sys.y.x, 0);
+			Vec::def(result.y,	sys.x.y, sys.y.y, 0);
+
+			Rotate(result,sys.z.xy,result.z.xy);
+			result.z.z = 1;
+			Vec::multiply(result.z.xy,(C1)-1);
+		}
+		
 
 
 		MFUNC2(void)	invertSystem(const TMatrix4<C0>&sys, TMatrix4<C1>&result)
