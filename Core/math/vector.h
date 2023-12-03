@@ -1939,7 +1939,8 @@ namespace DeltaWorks
 										negative_y_axis,
 										zero,
 										null,
-										one;
+										one,
+										negative_one;
 				static TVec2<C>			dummy;
 
 
@@ -2007,6 +2008,8 @@ namespace DeltaWorks
 			const TVec2<C>		Vector2<C>::null = {0,0};
 		template <class C>
 			const TVec2<C>		Vector2<C>::one = {1,1};
+		template <class C>
+			const TVec2<C>		Vector2<C>::negative_one = {-1,-1};
 		template <class C>
 			TVec2<C>				Vector2<C>::dummy = {0,0};
 
