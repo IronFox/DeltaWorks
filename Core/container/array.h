@@ -8,6 +8,7 @@
 #include "../interface/hashable.h"
 #include <cstdarg>
 #include <array>
+#include <functional>
 
 #include "../general/typedefs.h"
 
@@ -258,7 +259,6 @@ namespace DeltaWorks
 			public:
 				typedef ArrayRef<T>	Self;
 				typedef const T*	const_iterator;
-
 
 				/**/				ArrayRef():data(nullptr),elements(0)	{}
 				/**/				ArrayRef(T*data, count_t elements):data(data),elements(elements)	{}
@@ -587,6 +587,21 @@ namespace DeltaWorks
 				inline size_t		GetContentSize()	const		//! Returns the summarized size of all contained elements in bytes \return Size of all elements
 									{
 										return elements*sizeof(T);
+									}
+
+				inline bool			Any(const std::function<bool(const T&)>& predicate) const
+									{
+										for (index_t i = 0; i < elements; i++)
+											if (predicate(data[i]))
+												return true;
+										return false;
+									}
+				inline bool			All(const std::function<bool(const T&)>& predicate) const
+									{
+										for (index_t i = 0; i < elements; i++)
+											if (!predicate(data[i]))
+												return false;
+										return true;
 									}
 
 				inline bool			IsTerminatedBy(const T&element)	const
