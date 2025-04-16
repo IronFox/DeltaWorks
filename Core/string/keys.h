@@ -318,6 +318,9 @@ namespace Key	//! Key code namespace
 		MouseButton2		=	RightMouseButton,
 		MouseButton3		=	0x103,
 		MouseButton4		=	0x104,
+		MouseButton5		=	0x105,
+		MouseButton6		=	0x106,
+		MouseButton7		=	0x107,
 
 		SET_JOYSTICK(0)
 		SET_JOYSTICK(1)
