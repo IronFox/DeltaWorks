@@ -12,7 +12,7 @@ namespace Engine
 			switch (channels)
 			{
 				case 1:
-					if (type == PixelType::StrictColor)
+					if (type.Equals(PixelType::StrictColor))
 					{
 						internal_format = compress ? GL_COMPRESSED_RED: GLType::r_type_constant;
 						import_format = internal_format == GL_DEPTH_COMPONENT24 ? GL_DEPTH_COMPONENT : GL_RED;
@@ -24,19 +24,19 @@ namespace Engine
 					}
 				break;
 				case 2:
-					internal_format = type == PixelType::StrictColor ? (compress ? GL_COMPRESSED_RG : GLType::rg_type_constant):(compress ? GL_COMPRESSED_LUMINANCE_ALPHA : GLType::luminance_alpha_type_constant);
+					internal_format = type.Equals(PixelType::StrictColor) ? (compress ? GL_COMPRESSED_RG : GLType::rg_type_constant):(compress ? GL_COMPRESSED_LUMINANCE_ALPHA : GLType::luminance_alpha_type_constant);
 					import_format = PixelType::StrictColor ? GL_RG : GL_LUMINANCE_ALPHA;
 				break;
 				case 3:
 					internal_format = compress ? GL_COMPRESSED_RGB : GLType::rgb_type_constant;
-					if (type == PixelType::BGRA)
+					if (type.Equals(PixelType::BGRA))
 						import_format = GL_BGR;
 					else
 						import_format = GL_RGB;
 				break;
 				case 4:
 					internal_format = compress?GL_COMPRESSED_RGBA : GLType::rgba_type_constant;
-					if (type == PixelType::BGRA)
+					if (type.Equals(PixelType::BGRA))
 						import_format = GL_BGRA;
 					else
 						import_format = GL_RGBA;
