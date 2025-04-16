@@ -52,10 +52,12 @@ struct NAME\
 		bool	Decode(const char*str, size_t strLen)			{for (index_t i = 0; i < NumberOfPossibilities; i++) {const char*test = ToString((value_t)i); size_t testLen = strlen(test); if (testLen == strLen && !strncmp(str,test,strLen)) {value = (value_t)i; return true;}} return false;}\
 		NAME&	operator=(value_t value_)		{value = value_; return *this;}\
 		NAME&	operator=(const NAME&value_)	{value = value_.value; return *this;}\
-		bool	operator==(value_t value_)		{return value == value_;}\
-		bool	operator==(const NAME& value_)	{return value == value_.value;}\
-		bool	operator!=(value_t value_)		{return value != value_;}\
-		bool	operator!=(const NAME& value_)	{return value != value_.value;}\
+		bool	operator==(value_t value_) const		{return value == value_;}\
+		bool	operator==(const NAME& value_) const	{return value == value_.value;}\
+		bool	Equals(value_t value_) const			{return value == value_;}\
+		bool	Equals(const NAME& value_) const		{return value == value_.value;}\
+		bool	operator!=(value_t value_) const		{return value != value_;}\
+		bool	operator!=(const NAME& value_)	const	{return value != value_.value;}\
 		operator value_t() const {return value;}\
 		};
 
