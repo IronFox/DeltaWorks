@@ -248,6 +248,7 @@ namespace DeltaWorks
 		#define RIFF_CHUNK_HEAD_SIZE	(sizeof(RIFF_INDEX_ID)+sizeof(RIFF_SIZE))
 		#define RIFF_LIST				0x5453494C
 		#define RIFF_RIFF				0x46464952
+		#define RIFF_DEFAULT_LIST_TYPE	0x20202020	//"    ", list type written for LIST chunks without one in files with a form type
 
 		#ifdef DOUBLE_CHECK_DATA
 		extern unsigned char check_buffer[1000000];
@@ -285,6 +286,7 @@ namespace DeltaWorks
 			RIFF_SIZE			streaming_at;
 		
 			RandomAccessFile	file;
+			bool				has_form_type_;	//!< True if the open file has a RIFF form type behind its root header, and list types at the start of every LIST
 
 		#ifdef	RIFF_SENSITIVE
 			RIFF_INDEX_ID		sub_id;
@@ -294,6 +296,7 @@ namespace DeltaWorks
 			void				mark();
 			void				recall();
 			void				forget();
+			void				WriteContextHeader(BYTE historyIndex);	//!< Writes the header of an open context back to the file, after its size changed
 
 		public:
 			bool				ignore_main_size_;
@@ -306,6 +309,7 @@ namespace DeltaWorks
 			void				Assign(BYTE*data, ULONG size); //retrieves data from external data-field
 			bool				ReOpen();
 			const char*			MainID();
+			bool				HasFormType() const	{return has_form_type_;}	//!< True if the open file has a RIFF form type (see SubID())
 		#ifdef	RIFF_SENSITIVE
 			const char*			SubID();
 		#endif
@@ -374,7 +378,9 @@ namespace DeltaWorks
 				unsigned		_index;
 				TRiffInfo		_info;
 				bool			_streaming;
+				TID				_type;		//!< RIFF form type (root chunk) or list type (LIST chunk). 0 = not set
 		static	char			str_out[5];
+				TID				WrittenType() const;	//!< List type to write for a LIST chunk
 
 		public:
 
@@ -385,15 +391,32 @@ namespace DeltaWorks
 
 	
 				bool			LoadFromFile(const char_t*filename);
-				RIFF_SIZE		FromFile(FILE*f, size_t size, bool force_list=false);
+				RIFF_SIZE		FromFile(FILE*f, size_t size, bool force_list=false, bool typed=false);	//!< @param force_list True for the root chunk @param typed Non-root only: LIST chunks start with a list type
 				bool			LoadFromData(const void*data, size_t size);
-				RIFF_SIZE		FromData(const BYTE*data, size_t size, bool force_list=false);
+				RIFF_SIZE		FromData(const BYTE*data, size_t size, bool force_list=false, bool typed=false);
 				bool			SaveToFile(const char_t*filename);
-				void			ToFile(FILE*f, bool force_list=false);
+				void			ToFile(FILE*f, bool force_list=false, bool typed=false);
 				RIFF_SIZE		SaveToData(void*out);
-				void			ToData(BYTE*out, bool force_list=false);
+				void			ToData(BYTE*out, bool force_list=false, bool typed=false);
 				void			Clear();
-				RIFF_SIZE		ResolveSize(bool force_list=true);
+				RIFF_SIZE		ResolveSize(bool force_list=true, bool typed=false);
+
+				/**
+				Sets the RIFF form type of the file (the four characters written right after the root header, e.g. "WAVE").
+				Only meaningful on the root chunk.
+				A form type makes the whole file standard RIFF: every LIST chunk is then written with a list type (see SetListType()).
+				TID() (0) writes neither, which is the legacy DeltaWorks layout.
+				Loading a file sets the form type it found (or none), so loading and saving keeps the layout. Clear() keeps it.
+				*/
+				void			SetFormType(TID formType)	{_type = formType;}
+				TID				GetFormType() const			{return _type;}
+				bool			HasFormType() const			{return _type.value != 0;}
+				/**
+				Sets the RIFF list type of a LIST chunk (the four characters written at the start of its data, e.g. "INFO").
+				Only written if the root chunk has a form type. Lists without a list type are written with RIFF_DEFAULT_LIST_TYPE.
+				*/
+				void			SetListType(TID listType)	{_type = listType;}
+				TID				GetListType() const			{return _type;}
 
 				void*			SetData(size_t dataSize);
 				void			SetData(const void*data, size_t dataSize);
