@@ -38,8 +38,7 @@ A chunk whose id is `LIST` holds child chunks. The file is one root chunk with t
 standard RIFF                         legacy
 "RIFF" u32 size                       "RIFF" u32 size
 "HSF "            <- form type        child chunk
-child chunk                           "NAME" u32 n <name bytes>
-"NAME" u32 n <name bytes>             "LIST" u32 m
+child chunk                           "LIST" u32 m
 "LIST" u32 m                              child chunk
     "WINF"        <- list type            ...
     child chunk                       ...
@@ -74,7 +73,7 @@ Standard files whose first chunk id contains lowercase letters (for example `WAV
 | Byte order of size fields is little-endian | Host byte order (`fwrite` of the header struct). Every platform DeltaWorks builds for is little-endian | Conforms in practice |
 | The root's data starts with a 4-character **form type** | Standard layout: yes. Legacy layout: no, the first child chunk starts at offset 8 | Conforms in the standard layout |
 | A `LIST`'s data starts with a 4-character **list type** | Standard layout: yes. Legacy layout: no | Conforms in the standard layout |
-| Private chunks may carry any data | By convention, a sibling chunk directly before the `LIST` names it. `Chunk::AppendNamedList` and `FindFirstNamedList`/`FindNextNamedList` use a `NAME` chunk with arbitrary bytes; CGS uses a `DATA` chunk with an 8-byte integer | Conforms. To a RIFF reader these are two ordinary sibling chunks. Nothing in the file marks a `NAME` chunk as a list name, and a `NAME` chunk not followed by a `LIST` is ordinary data |
+| Private chunks may carry any data | Optionally, by convention, a sibling chunk directly before the `LIST` names it (useful for names longer than a list type, or in the legacy layout, which has no list types). `Chunk::AppendNamedList` and `FindFirstNamedList`/`FindNextNamedList` use a `NAME` chunk with arbitrary bytes; CGS uses a `DATA` chunk with an 8-byte integer | Conforms. To a RIFF reader these are two ordinary sibling chunks. Nothing in the file marks a `NAME` chunk as a list name, and a `NAME` chunk not followed by a `LIST` is ordinary data |
 | `LIST` and `RIFF` both contain children | `Chunk` treats only `LIST` (and the root) as a container; a nested `RIFF` chunk is read as data. `File::Enter` enters both | Mostly conforms |
 | Data of odd size is followed by one pad byte not counted in `size` | Yes | Conforms |
 | The pad byte is zero | Yes. Pad bytes read from older files (which could hold arbitrary values) are replaced by zero | Conforms |
