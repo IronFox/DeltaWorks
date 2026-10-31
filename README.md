@@ -29,7 +29,7 @@ What may still be interesting:
 - **Windows + MSVC (Visual Studio 2022 or newer) only.** The code uses MSVC extensions (`__declspec(nothrow)`, `__fastcall`, ...). GCC/Clang do not compile it yet.
 - C++20 (or `/std:c++latest`).
 - No tests and no API stability guarantees. Interfaces change when Hexaverse needs them to.
-- Documentation is limited to source comments (Doxygen configs: `Core/doxygen.cfg`, `Core/windoxy.cfg`).
+- Documentation is mostly source comments (Doxygen configs: `Core/doxygen.cfg`, `Core/windoxy.cfg`). The RIFF-like container format in `Core/io/riff_handler.*` is described in [docs/riff.md](docs/riff.md).
 
 ## Layout
 
