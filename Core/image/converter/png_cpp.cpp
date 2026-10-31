@@ -6,7 +6,7 @@
 
 extern "C"
 {
-	#include "../../third_party/png/png.h"
+	#include <png.h>
 }
 
 namespace DeltaWorks

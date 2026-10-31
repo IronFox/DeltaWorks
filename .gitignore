@@ -2,3 +2,6 @@
 *.lib
 *.7z
 *.pdb
+/build/
+/out/
+/vcpkg_installed/

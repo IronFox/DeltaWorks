@@ -1,5 +1,6 @@
-#include "../../global_root.h"
+#include "../global_root.h"
 #include "bz2.h"
+#include <bzlib.h>
 
 static int last_code;
 

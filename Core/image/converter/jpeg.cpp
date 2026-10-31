@@ -5,7 +5,7 @@
 extern "C"
 {
 	#undef boolean
-	#include "../../third_party/jpeg/jpeglib.h"
+	#include <jpeglib.h>
 }
 
 

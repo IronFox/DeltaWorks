@@ -11,7 +11,7 @@ Simplified interface to extract image-date from compressed
 
 
 #include "../image/image.h"
-#include "../third_party/bz2/bz2.h"
+#include "bz2.h"
 #include "delta_crc32.h"
 #include "../container/vectorList.h"
 
