@@ -4,3 +4,4 @@
 *.pdb
 /build/
 /out/
+/vcpkg_installed/

@@ -8,18 +8,38 @@ on:
 
 jobs:
   msvc:
-    name: MSVC ${{ matrix.arch }} ${{ matrix.config }}
+    name: MSVC ${{ matrix.arch }} ${{ matrix.config }} (${{ matrix.deps }})
     runs-on: windows-latest
     strategy:
       fail-fast: false
       matrix:
         arch: [x64, Win32]
         config: [Debug, Release]
+        deps: [vcpkg, bundled]
     steps:
       - uses: actions/checkout@v4
 
-      - name: Configure
-        run: cmake -S . -B build -A ${{ matrix.arch }}
+      - name: Update vcpkg
+        if: matrix.deps == 'vcpkg'
+        shell: pwsh
+        run: |
+          git -C "$env:VCPKG_INSTALLATION_ROOT" fetch --quiet origin
+          git -C "$env:VCPKG_INSTALLATION_ROOT" checkout --quiet origin/master
+          & "$env:VCPKG_INSTALLATION_ROOT\bootstrap-vcpkg.bat" -disableMetrics
+
+      - name: Configure (vcpkg)
+        if: matrix.deps == 'vcpkg'
+        shell: pwsh
+        run: |
+          $triplet = if ('${{ matrix.arch }}' -eq 'Win32') { 'x86-windows-static' } else { 'x64-windows-static' }
+          cmake -S . -B build -A ${{ matrix.arch }} `
+            "-DCMAKE_TOOLCHAIN_FILE=$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" `
+            "-DVCPKG_TARGET_TRIPLET=$triplet" `
+            -DDELTAWORKS_THIRD_PARTY=PACKAGES
+
+      - name: Configure (bundled)
+        if: matrix.deps == 'bundled'
+        run: cmake -S . -B build -A ${{ matrix.arch }} -DDELTAWORKS_THIRD_PARTY=BUNDLED
 
       - name: Build
         run: cmake --build build --config ${{ matrix.config }} --parallel

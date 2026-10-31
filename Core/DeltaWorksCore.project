@@ -5,7 +5,15 @@
 		<exclude dir="Nx" />
 		<exclude file="remote_shell.cpp" />
 		<exclude file="remote_shell.h" />
+		<!-- zlib, libpng, libjpeg and bzip2 come from vcpkg (see vcpkg.json).
+		     The bundled copies are only used by the CMake fallback build. -->
+		<exclude dir="zlib" />
+		<exclude dir="png" />
+		<exclude dir="jpeg" />
+		<exclude dir="bz2" />
 	</source>
+	<!-- Requires Projector 1.5 or newer -->
+	<vcpkg />
 	<macro name="_CRT_SECURE_NO_WARNINGS" />
 	<macro name="_SCL_SECURE_NO_WARNINGS" />
 	<macro name="_CRT_NONSTDC_NO_WARNINGS" />

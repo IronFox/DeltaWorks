@@ -1,9 +1,23 @@
-# Bundled third-party C libraries, compiled into DeltaWorksCore.
-# Each one is its own OBJECT library so it can later be swapped for a
-# system / vcpkg / FetchContent package without touching the Core target.
-# Versions: zlib 1.2.3, libpng 1.6.37, IJG libjpeg 6b, bzip2 1.0.2, open-simplex-noise v1.1.
+# Third-party libraries used by DeltaWorksCore.
+#
+# zlib, libpng, libjpeg and bzip2 come from packages (vcpkg, or any other
+# provider of the standard find_package() modules) or from the copies bundled
+# in this folder, controlled by DELTAWORKS_THIRD_PARTY:
+#   AUTO     - use packages if all four are found, otherwise the bundled copies
+#   PACKAGES - require packages
+#   BUNDLED  - always use the bundled copies (old versions, see below)
+#
+# Bundled versions: zlib 1.2.3, libpng 1.6.37, IJG libjpeg 6b, bzip2 1.0.2.
+# open-simplex-noise (public domain) is always bundled.
+#
+# Sets DELTAWORKS_THIRD_PARTY_LIBS (link) and DELTAWORKS_THIRD_PARTY_INCLUDES
+# (private include dirs) in the parent scope.
 
-function(deltaworks_third_party name)
+set(DELTAWORKS_THIRD_PARTY AUTO CACHE STRING
+	"Where zlib/libpng/libjpeg/bzip2 come from: AUTO, PACKAGES or BUNDLED")
+set_property(CACHE DELTAWORKS_THIRD_PARTY PROPERTY STRINGS AUTO PACKAGES BUNDLED)
+
+function(deltaworks_bundled name)
 	file(GLOB sources CONFIGURE_DEPENDS
 		"${CMAKE_CURRENT_SOURCE_DIR}/${name}/*.c")
 	set(target deltaworks_tp_${name})
@@ -20,21 +34,58 @@ function(deltaworks_third_party name)
 		# Old upstream code: keep the build log readable.
 		target_compile_options(${target} PRIVATE -w)
 	endif()
-	set(DELTAWORKS_THIRD_PARTY_TARGETS
-		${DELTAWORKS_THIRD_PARTY_TARGETS} ${target} PARENT_SCOPE)
+	set(DELTAWORKS_THIRD_PARTY_LIBS ${DELTAWORKS_THIRD_PARTY_LIBS} ${target} PARENT_SCOPE)
 endfunction()
 
-set(DELTAWORKS_THIRD_PARTY_TARGETS)
-deltaworks_third_party(zlib)
-deltaworks_third_party(png)
-deltaworks_third_party(jpeg)
-deltaworks_third_party(bz2)
-deltaworks_third_party(open-simplex-noise)
+set(DELTAWORKS_THIRD_PARTY_LIBS)
+set(DELTAWORKS_THIRD_PARTY_INCLUDES)
 
-# libpng includes "../zlib/zlib.h" directly; nothing else to wire up.
+set(_dw_use_packages FALSE)
+if(NOT DELTAWORKS_THIRD_PARTY STREQUAL "BUNDLED")
+	if(DELTAWORKS_THIRD_PARTY STREQUAL "PACKAGES")
+		set(_dw_required REQUIRED)
+	else()
+		set(_dw_required QUIET)
+	endif()
+	find_package(ZLIB ${_dw_required})
+	find_package(PNG ${_dw_required})
+	find_package(JPEG ${_dw_required})
+	find_package(BZip2 ${_dw_required})
+	if(ZLIB_FOUND AND PNG_FOUND AND JPEG_FOUND AND BZIP2_FOUND)
+		set(_dw_use_packages TRUE)
+	endif()
+endif()
+
+if(_dw_use_packages)
+	message(STATUS "DeltaWorks: using zlib ${ZLIB_VERSION_STRING}, libpng ${PNG_VERSION_STRING}, "
+		"libjpeg ${JPEG_VERSION}, bzip2 ${BZIP2_VERSION_STRING} from packages")
+	list(APPEND DELTAWORKS_THIRD_PARTY_LIBS PNG::PNG JPEG::JPEG BZip2::BZip2 ZLIB::ZLIB)
+else()
+	if(DELTAWORKS_THIRD_PARTY STREQUAL "AUTO")
+		message(STATUS "DeltaWorks: zlib/libpng/libjpeg/bzip2 packages not all found, using the bundled copies")
+	else()
+		message(STATUS "DeltaWorks: using the bundled zlib/libpng/libjpeg/bzip2")
+	endif()
+	deltaworks_bundled(zlib)
+	deltaworks_bundled(png)
+	deltaworks_bundled(jpeg)
+	deltaworks_bundled(bz2)
+	# The DeltaWorks sources include <png.h>, <jpeglib.h> and <bzlib.h>.
+	list(APPEND DELTAWORKS_THIRD_PARTY_INCLUDES
+		"${CMAKE_CURRENT_SOURCE_DIR}/png"
+		"${CMAKE_CURRENT_SOURCE_DIR}/jpeg"
+		"${CMAKE_CURRENT_SOURCE_DIR}/bz2"
+		"${CMAKE_CURRENT_SOURCE_DIR}/zlib")
+	if(UNIX)
+		target_link_libraries(deltaworks_tp_png PUBLIC m)
+	endif()
+endif()
+
+deltaworks_bundled(open-simplex-noise)
 if(UNIX)
-	target_link_libraries(deltaworks_tp_png PUBLIC m)
 	target_link_libraries(deltaworks_tp_open_simplex_noise PUBLIC m)
 endif()
 
-set(DELTAWORKS_THIRD_PARTY_TARGETS ${DELTAWORKS_THIRD_PARTY_TARGETS} PARENT_SCOPE)
+set(DELTAWORKS_USING_PACKAGES ${_dw_use_packages} PARENT_SCOPE)
+set(DELTAWORKS_THIRD_PARTY_LIBS ${DELTAWORKS_THIRD_PARTY_LIBS} PARENT_SCOPE)
+set(DELTAWORKS_THIRD_PARTY_INCLUDES ${DELTAWORKS_THIRD_PARTY_INCLUDES} PARENT_SCOPE)

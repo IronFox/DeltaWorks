@@ -7,11 +7,6 @@ deltaworks_collect_sources(core_sources "${CMAKE_CURRENT_SOURCE_DIR}"
 	DIR  maker Nx third_party
 	FILE remote_shell.cpp remote_shell.h)
 
-# The C++ wrapper around bzip2 lives next to the library sources.
-list(APPEND core_sources
-	"${CMAKE_CURRENT_SOURCE_DIR}/third_party/bz2/bz2.cpp"
-	"${CMAKE_CURRENT_SOURCE_DIR}/third_party/bz2/bz2.h")
-
 add_library(DeltaWorksCore STATIC ${core_sources})
 add_library(DeltaWorks::Core ALIAS DeltaWorksCore)
 deltaworks_apply_common_settings(DeltaWorksCore)
@@ -25,9 +20,11 @@ if(MSVC)
 		_CRT_SECURE_NO_WARNINGS _SCL_SECURE_NO_WARNINGS _CRT_NONSTDC_NO_WARNINGS)
 endif()
 
-# Objects of the bundled libraries end up inside DeltaWorksCore.lib/.a,
-# exactly like the Projector build.
-target_link_libraries(DeltaWorksCore PRIVATE ${DELTAWORKS_THIRD_PARTY_TARGETS})
+# Bundled libraries are OBJECT libraries, so their objects end up inside
+# DeltaWorksCore.lib like in the Projector build. Package libraries are
+# linked PRIVATE: CMake still propagates them to the final executable.
+target_link_libraries(DeltaWorksCore PRIVATE ${DELTAWORKS_THIRD_PARTY_LIBS})
+target_include_directories(DeltaWorksCore PRIVATE ${DELTAWORKS_THIRD_PARTY_INCLUDES})
 
 find_package(Threads REQUIRED)
 target_link_libraries(DeltaWorksCore PUBLIC Threads::Threads)
