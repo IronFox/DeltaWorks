@@ -5,9 +5,10 @@
 # in this folder, controlled by DELTAWORKS_THIRD_PARTY:
 #   AUTO     - use packages if all four are found, otherwise the bundled copies
 #   PACKAGES - require packages
-#   BUNDLED  - always use the bundled copies (old versions, see below)
+#   BUNDLED  - always use the bundled copies
 #
-# Bundled versions: zlib 1.2.3, libpng 1.6.37, IJG libjpeg 6b, bzip2 1.0.2.
+# Bundled versions (unmodified upstream sources, see VERSIONS.md):
+# zlib 1.3.2, libpng 1.6.59, IJG libjpeg 10, bzip2 1.0.8.
 # open-simplex-noise (public domain) is always bundled.
 #
 # Sets DELTAWORKS_THIRD_PARTY_LIBS (link) and DELTAWORKS_THIRD_PARTY_INCLUDES
@@ -76,7 +77,10 @@ else()
 		"${CMAKE_CURRENT_SOURCE_DIR}/jpeg"
 		"${CMAKE_CURRENT_SOURCE_DIR}/bz2"
 		"${CMAKE_CURRENT_SOURCE_DIR}/zlib")
+	target_include_directories(deltaworks_tp_png PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/zlib")
+	target_compile_definitions(deltaworks_tp_png PRIVATE PNG_ARM_NEON_OPT=0)
 	if(UNIX)
+		target_compile_definitions(deltaworks_tp_zlib PRIVATE HAVE_UNISTD_H)
 		target_link_libraries(deltaworks_tp_png PUBLIC m)
 	endif()
 endif()
