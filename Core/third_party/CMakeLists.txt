@@ -1,7 +1,7 @@
 # Bundled third-party C libraries, compiled into DeltaWorksCore.
 # Each one is its own OBJECT library so it can later be swapped for a
 # system / vcpkg / FetchContent package without touching the Core target.
-# See THIRD_PARTY.md at the repository root for versions and licenses.
+# Versions: zlib 1.2.3, libpng 1.6.37, IJG libjpeg 6b, bzip2 1.0.2, open-simplex-noise v1.1.
 
 function(deltaworks_third_party name)
 	file(GLOB sources CONFIGURE_DEPENDS
