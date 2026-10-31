@@ -1,0 +1,36 @@
+{
+	"version": 3,
+	"cmakeMinimumRequired": { "major": 3, "minor": 21, "patch": 0 },
+	"configurePresets": [
+		{
+			"name": "vs-x64",
+			"displayName": "Visual Studio, x64",
+			"generator": "Visual Studio 17 2022",
+			"architecture": "x64",
+			"binaryDir": "${sourceDir}/build/vs-x64"
+		},
+		{
+			"name": "vs-win32",
+			"displayName": "Visual Studio, Win32",
+			"generator": "Visual Studio 17 2022",
+			"architecture": "Win32",
+			"binaryDir": "${sourceDir}/build/vs-win32"
+		},
+		{
+			"name": "ninja-msvc",
+			"displayName": "Ninja + MSVC (run from a VS developer prompt)",
+			"generator": "Ninja Multi-Config",
+			"binaryDir": "${sourceDir}/build/ninja-msvc",
+			"cacheVariables": {
+				"CMAKE_C_COMPILER": "cl",
+				"CMAKE_CXX_COMPILER": "cl"
+			}
+		}
+	],
+	"buildPresets": [
+		{ "name": "vs-x64-debug",   "configurePreset": "vs-x64",   "configuration": "Debug" },
+		{ "name": "vs-x64-release", "configurePreset": "vs-x64",   "configuration": "Release" },
+		{ "name": "vs-win32-debug",   "configurePreset": "vs-win32", "configuration": "Debug" },
+		{ "name": "vs-win32-release", "configurePreset": "vs-win32", "configuration": "Release" }
+	]
+}

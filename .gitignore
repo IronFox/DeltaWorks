@@ -2,3 +2,5 @@
 *.lib
 *.7z
 *.pdb
+/build/
+/out/
