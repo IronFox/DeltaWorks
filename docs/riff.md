@@ -58,11 +58,3 @@ A chunk whose id is `LIST` holds child chunks as its data, back to back. The fil
 | `INFO`, `JUNK` and other registered chunks | No special handling | Neither conforms nor conflicts |
 
 To read a DeltaWorks file with a generic RIFF walker, start at offset 8 instead of 12 and treat every `LIST`'s data as children with no list type.
-
-## Known issues in the implementation
-
-These do not affect files written and read through `Chunk::SaveToFile`/`LoadFromFile`, which is the path Hexaverse uses:
-
-- `Chunk::FromData` (used by `LoadFromData`) never decreases its remaining-size counter while reading a list's children, so loading a list from memory does not stop at the end of the list.
-- `Chunk::FindNextNamedListMatch` has a stray `;` after its `while`, so it runs the loop to the end and then dereferences the last (null) result.
-- `File::AppendBlock` and `File::InsertBlock` copy the size as a `size_t`, which on 64-bit builds writes 8 bytes into the 4-byte size field and past the end of the buffer when the data is shorter than 4 bytes. The value stored in the file is still correct.

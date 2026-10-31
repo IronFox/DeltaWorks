@@ -392,7 +392,8 @@ namespace DeltaWorks
 			char c[4];
 			id.CopyTo(c);
 			memcpy(insert,c,4);
-			memcpy(&insert[4],&size,sizeof(size));
+			const RIFF_SIZE size32 = castSize(size);
+			memcpy(&insert[4],&size32,sizeof(size32));
 			memcpy(&insert[RIFF_CHUNK_HEAD_SIZE],data,size);
 			RIFF_ADDR offset = history[husage-1].addr+history[husage-1].info.size+history[husage-1].info.size%2;
 			memcpy(str_out,c,4);
@@ -429,7 +430,8 @@ namespace DeltaWorks
 			char c[4];
 			id.CopyTo(c);
 			memcpy(insert,c,4);
-			memcpy(&insert[4],&size,sizeof(size));
+			const RIFF_SIZE size32 = castSize(size);
+			memcpy(&insert[4],&size32,sizeof(size32));
 			memcpy(&insert[RIFF_CHUNK_HEAD_SIZE],data,size);
 			if (!file.Insert(now.addr-RIFF_CHUNK_HEAD_SIZE,insert,isize))
 			{
@@ -695,8 +697,9 @@ namespace DeltaWorks
 			_index = 0;
 			_current = NULL;
 			RIFF_ADDR offset = sizeof(TRiffInfo);
+			const RIFF_ADDR end = offset + local;
 			if (TID(_info.sid) == RIFF_LIST || force_list)
-				while (local >= sizeof(TRiffInfo))
+				while (offset < end && end - offset >= sizeof(TRiffInfo))
 				{
 					if (!_current)
 					{
@@ -708,13 +711,15 @@ namespace DeltaWorks
 						_current->_next = SignalNew(new Chunk(this));
 						_current = _current->_next;
 					}
-					offset+=_current->FromData(&data[offset],local-offset);
+					offset+=_current->FromData(&data[offset],end-offset);
 				}
 			else
 			{
 				RIFF_SIZE i_size = local+local%2;
 				re_alloc(_data,i_size);
-				memcpy(_data,&data[offset],i_size);
+				memcpy(_data,&data[offset],local);	//the pad byte may be missing at the very end of the data
+				if (i_size != local)
+					_data[local] = 0;
 			}
 			_current = NULL;
 			return _info.size+_info.size%2+sizeof(TRiffInfo);

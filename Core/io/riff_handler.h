@@ -473,7 +473,7 @@ namespace DeltaWorks
 				Chunk*			FindNextNamedListMatch(const void*namePtr, size_t nameSize)
 				{
 					Chunk*outNameChunk, *outDataChunk;
-					while (FindNextNamedList(outNameChunk,outDataChunk));
+					while (FindNextNamedList(outNameChunk,outDataChunk))
 					{
 						if (outNameChunk->size() == nameSize && memcmp(outNameChunk->pointer(),namePtr,nameSize)==0)
 							return outDataChunk;
