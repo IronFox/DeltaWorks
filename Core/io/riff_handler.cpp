@@ -116,12 +116,12 @@ namespace DeltaWorks
 			return now;
 		}
 
-		File::File():mark_stacked(0),husage(0),streaming(false),ignore_main_size_(false)
+		File::File():mark_stacked(0),husage(0),streaming(false),has_form_type_(false),ignore_main_size_(false)
 		{
 			str_out[4] = 0;
 		}
 
-		File::File(const char_t*filename):mark_stacked(0),husage(0),streaming(false),ignore_main_size_(false)
+		File::File(const char_t*filename):mark_stacked(0),husage(0),streaming(false),has_form_type_(false),ignore_main_size_(false)
 		{
 			str_out[4] = 0;
 			file.Open(filename);
@@ -187,6 +187,7 @@ namespace DeltaWorks
 				now.info.size = file.GetSize()-RIFF_CHUNK_HEAD_SIZE;
 			now.addr = RIFF_CHUNK_HEAD_SIZE;
 			now.index = 0;
+			has_form_type_ = false;
 			#ifdef  RIFF_SENSITIVE
 				if (TID(now.info.sid) == RIFF_RIFF && now.info.size >= 8)
 				{
@@ -198,6 +199,7 @@ namespace DeltaWorks
 						file.Read(RIFF_CHUNK_HEAD_SIZE,sub_id);
 						now.info.size-=4;
 						now.addr+=4;
+						has_form_type_ = true;
 					}
 					else
 						sub_id = RIFF_RIFF;
@@ -207,6 +209,19 @@ namespace DeltaWorks
 			husage = 0;
 			mark_stacked = 0;
 			Enter();
+		}
+
+		void File::WriteContextHeader(BYTE i)
+		{
+			if (has_form_type_)
+			{
+				//contexts start behind their form or list type, so their header is 4 bytes further back than root() says, and their size counts the type
+				TRiffInfo info = history[i].info;
+				info.size += 4;
+				file.Overwrite(history[i].root()-4,info);
+			}
+			else
+				file.Overwrite(history[i].root(),history[i].info);
 		}
 
 		bool File::FindFirst(TID ID)
@@ -293,6 +308,14 @@ namespace DeltaWorks
 			if (streaming)
 				FATAL__("trying to enter while streaming");
 			if ((!IsID("LIST") && !IsID("RIFF") && husage)) return false;
+			if (husage && has_form_type_)
+			{
+				//skip the list type. The root context was already moved behind the form type by Reset()
+				if (now.info.size < 4)
+					return false;
+				now.addr += 4;
+				now.info.size -= 4;
+			}
 			history[husage++] = now;
 			file.Read(now.addr,now.info);
 			now.addr+=RIFF_CHUNK_HEAD_SIZE;
@@ -386,14 +409,25 @@ namespace DeltaWorks
 
 		bool File::AppendBlock(TID id, const void*data, size_t size)
 		{
+			const UINT32 defaultListType = RIFF_DEFAULT_LIST_TYPE;
+			if (has_form_type_ && id == RIFF_LIST && !size)
+			{
+				//lists in files with a form type need a list type
+				data = &defaultListType;
+				size = 4;
+			}
 		//    bool catch_newone = !history[husage-1].info.size;
 			RIFF_SIZE isize = RIFF_CHUNK_HEAD_SIZE+castSize(size+size%2);
 			BYTE*insert = alloc<BYTE>(isize);
 			char c[4];
 			id.CopyTo(c);
 			memcpy(insert,c,4);
-			memcpy(&insert[4],&size,sizeof(size));
-			memcpy(&insert[RIFF_CHUNK_HEAD_SIZE],data,size);
+			const RIFF_SIZE size32 = castSize(size);
+			memcpy(&insert[4],&size32,sizeof(size32));
+			if (data && size)
+				memcpy(&insert[RIFF_CHUNK_HEAD_SIZE],data,size);
+			if (size%2)
+				insert[RIFF_CHUNK_HEAD_SIZE+size] = 0;	//pad byte
 			RIFF_ADDR offset = history[husage-1].addr+history[husage-1].info.size+history[husage-1].info.size%2;
 			memcpy(str_out,c,4);
 		//    ShowMessage(C_String(str_out)+" "+IntToStr(offset));
@@ -406,7 +440,7 @@ namespace DeltaWorks
 			{
 		//        ShowMessage("adding: "+IntToStr(isize)+" to "+IntToStr(i));
 				history[i].info.size+=isize;
-				file.Overwrite(history[i].root(),history[i].info);
+				WriteContextHeader(i);
 			}
 		/*    if (catch_newone)
 			{*/
@@ -422,6 +456,13 @@ namespace DeltaWorks
 
 		bool File::InsertBlock(TID id, const void*data, size_t size)
 		{
+			const UINT32 defaultListType = RIFF_DEFAULT_LIST_TYPE;
+			if (has_form_type_ && id == RIFF_LIST && !size)
+			{
+				//lists in files with a form type need a list type
+				data = &defaultListType;
+				size = 4;
+			}
 			if (!history[husage-1].info.size)
 				return AppendBlock(id,data,size);
 			RIFF_SIZE isize = RIFF_CHUNK_HEAD_SIZE+castSize(size+size%2);
@@ -429,8 +470,12 @@ namespace DeltaWorks
 			char c[4];
 			id.CopyTo(c);
 			memcpy(insert,c,4);
-			memcpy(&insert[4],&size,sizeof(size));
-			memcpy(&insert[RIFF_CHUNK_HEAD_SIZE],data,size);
+			const RIFF_SIZE size32 = castSize(size);
+			memcpy(&insert[4],&size32,sizeof(size32));
+			if (data && size)
+				memcpy(&insert[RIFF_CHUNK_HEAD_SIZE],data,size);
+			if (size%2)
+				insert[RIFF_CHUNK_HEAD_SIZE+size] = 0;	//pad byte
 			if (!file.Insert(now.addr-RIFF_CHUNK_HEAD_SIZE,insert,isize))
 			{
 				dealloc(insert);
@@ -441,7 +486,7 @@ namespace DeltaWorks
 			for (BYTE i = 0; i < husage; i++)
 			{
 				history[i].info.size+=isize;
-				file.Overwrite(history[i].root(),history[i].info);
+				WriteContextHeader(i);
 			}
 			dealloc(insert);
 			return true;
@@ -457,7 +502,7 @@ namespace DeltaWorks
 			for (BYTE i = 0; i < husage; i++)
 			{
 				history[i].info.size-=total_size;
-				file.Overwrite(history[i].root(),history[i].info);
+				WriteContextHeader(i);
 			}
 			First();    
 			return true;
@@ -489,7 +534,7 @@ namespace DeltaWorks
 			for (BYTE i = 0; i < husage; i++)
 			{
 				history[i].info.size+=difference;
-				file.Overwrite(history[i].root(),history[i].info);
+				WriteContextHeader(i);
 			}
 			return true;
 		}
@@ -561,21 +606,21 @@ namespace DeltaWorks
 		Chunk::Chunk():_data(NULL),_first(NULL),_next(NULL),_current(NULL),_previous(NULL),_parent(NULL),_index(0),_streaming(false)
 		{
 			TID(RIFF_RIFF).CopyTo(_info.sid);
+			_info.size = 0;
 		}
 
 		Chunk::Chunk(Chunk*parent):_data(NULL),_first(NULL),_next(NULL),_current(NULL),_previous(NULL),_parent(parent),_index(0),_streaming(false)
 		{
 			TID(RIFF_RIFF).CopyTo(_info.sid);
-			//_info.id = RIFF_RIFF;
+			_info.size = 0;
 		}
 
-		Chunk::Chunk(Chunk*parent, TID id, const void*data, size_t size):_first(NULL),_next(NULL),_current(NULL),_previous(NULL),_parent(parent),_index(0),_streaming(false)
+		Chunk::Chunk(Chunk*parent, TID id, const void*data, size_t size):_data(NULL),_first(NULL),_next(NULL),_current(NULL),_previous(NULL),_parent(parent),_index(0),_streaming(false)
 		{
 			id.CopyTo(_info.sid);
-			_info.size = castSize(size);
-			RIFF_SIZE i_size = castSize(size + size%2);
-			alloc(_data,i_size);
-			memcpy(_data,data,size);
+			BYTE*target = (BYTE*)SetData(size);
+			if (data && size)
+				memcpy(target,data,size);
 		}
 
 		void Chunk::SetData(const void*data, size_t dataSize)
@@ -588,6 +633,8 @@ namespace DeltaWorks
 			RIFF_SIZE i_size = castSize(dataSize + dataSize%2);
 			alloc(_data,i_size);
 			_info.size = castSize(dataSize);
+			if (i_size != _info.size)
+				_data[_info.size] = 0;	//pad byte
 
 			return _data;
 
@@ -601,6 +648,26 @@ namespace DeltaWorks
 				Discard(_first);
 			if (_next)
 				Discard(_next);
+		}
+
+		/**
+		Checks whether the data of a root RIFF chunk starts with a form type.
+		DeltaWorks used to write no form type, so the first child chunk may start where the form type would be.
+		A form type is assumed if the four bytes after it (the first child's id, or the first child's size if there is no form type) look like a chunk id.
+		@param id Id of the root chunk
+		@param size Data size of the root chunk
+		@param bytes8to15 The first 8 data bytes of the root chunk
+		*/
+		static bool DetectFormType(TID id, RIFF_SIZE size, const BYTE bytes8to15[8])
+		{
+			#ifdef RIFF_SENSITIVE
+				if (id != RIFF_RIFF || size < 8)
+					return false;
+				const char*next = (const char*)bytes8to15 + 4;
+				return ischar(next[0]) && ischar(next[1]) && ischar(next[2]) && ischar(next[3]);
+			#else
+				return false;
+			#endif
 		}
 
     
@@ -619,9 +686,10 @@ namespace DeltaWorks
 			return true;
 		}
 
-		RIFF_SIZE Chunk::FromFile(FILE*f, size_t size, bool force_list)
+		RIFF_SIZE Chunk::FromFile(FILE*f, size_t size, bool force_list, bool typed)
 		{
 			Clear();
+			_type = TID();
 			if (size < sizeof(TRiffInfo))
 				return 0;
 			if (!fread(&_info,sizeof(_info),1,f))
@@ -635,22 +703,26 @@ namespace DeltaWorks
 			_previous = NULL;
 			_index = 0;
 			_current = NULL;
-			#ifdef RIFF_SENSITIVE
-				if (TID(_info.sid) == RIFF_RIFF && _info.size >= 8)
+			const bool isList = TID(_info.sid) == RIFF_LIST || force_list;
+			if (force_list)
+			{
+				typed = false;
+				if (local >= 8)
 				{
-					RIFF_INDEX_ID test;
-					char*ctest = (char*)&test;
-					fseek(f,4,SEEK_CUR);
-					if (!fread(&test,sizeof(test),1,f))
+					BYTE probe[8];
+					if (fread(probe,1,8,f) != 8)
 						return 0;
-					if (ischar(ctest[0]) && ischar(ctest[1]) && ischar(ctest[2]) && ischar(ctest[3]))
-						_info.size-=4;
-					else
-						fseek(f,-4,SEEK_CUR);
-					fseek(f,-4,SEEK_CUR);
+					fseek(f,-8,SEEK_CUR);
+					typed = DetectFormType(TID(_info.sid),local,probe);
 				}
-			#endif
-			if (TID(_info.sid) == RIFF_LIST || force_list)
+			}
+			if (isList && typed && local >= 4)
+			{
+				if (!fread(&_type.value,4,1,f))
+					return 0;
+				local -= 4;
+			}
+			if (isList)
 				while (local >= sizeof(TRiffInfo))
 				{
 					if (!_current)
@@ -663,14 +735,23 @@ namespace DeltaWorks
 						_current->_next = SignalNew(new Chunk(this));
 						_current = _current->_next;
 					}
-					local-=_current->FromFile(f,local);
+					RIFF_SIZE read = _current->FromFile(f,local,false,typed);
+					if (!read)
+						break;
+					local -= read < local ? read : local;
 				}
 			else
 			{
 				RIFF_SIZE i_size = local+local%2;
 				re_alloc(_data,i_size);
-				if (fread(_data,1,i_size,f)!=i_size)
+				if (fread(_data,1,local,f)!=local)
 					return 0;
+				if (i_size != local)
+				{
+					BYTE pad;
+					fread(&pad,1,1,f);	//the pad byte may be missing at the very end of the file
+					_data[local] = 0;	//written as zero, whatever the source contained
+				}
 			}
 			_current = NULL;
 			return _info.size+_info.size%2+sizeof(TRiffInfo);
@@ -682,9 +763,10 @@ namespace DeltaWorks
 			return FromData((const BYTE*)data,size, true) > 0;
 		}
 
-		RIFF_SIZE Chunk::FromData(const BYTE*data, size_t size, bool force_list)
+		RIFF_SIZE Chunk::FromData(const BYTE*data, size_t size, bool force_list, bool typed)
 		{
 			Clear();
+			_type = TID();
 			if (size < sizeof(TRiffInfo))
 				return 0;
 			memcpy(&_info,data,sizeof(_info));
@@ -695,8 +777,17 @@ namespace DeltaWorks
 			_index = 0;
 			_current = NULL;
 			RIFF_ADDR offset = sizeof(TRiffInfo);
-			if (TID(_info.sid) == RIFF_LIST || force_list)
-				while (local >= sizeof(TRiffInfo))
+			const RIFF_ADDR end = offset + local;
+			const bool isList = TID(_info.sid) == RIFF_LIST || force_list;
+			if (force_list)
+				typed = local >= 8 && DetectFormType(TID(_info.sid),local,data + offset);
+			if (isList && typed && local >= 4)
+			{
+				memcpy(&_type.value,data + offset,4);
+				offset += 4;
+			}
+			if (isList)
+				while (offset < end && end - offset >= sizeof(TRiffInfo))
 				{
 					if (!_current)
 					{
@@ -708,13 +799,18 @@ namespace DeltaWorks
 						_current->_next = SignalNew(new Chunk(this));
 						_current = _current->_next;
 					}
-					offset+=_current->FromData(&data[offset],local-offset);
+					RIFF_SIZE read = _current->FromData(&data[offset],end-offset,false,typed);
+					if (!read)
+						break;
+					offset+=read;
 				}
 			else
 			{
 				RIFF_SIZE i_size = local+local%2;
 				re_alloc(_data,i_size);
-				memcpy(_data,&data[offset],i_size);
+				memcpy(_data,&data[offset],local);
+				if (i_size != local)	//the pad byte may be missing at the very end of the data, and is written as zero
+					_data[local] = 0;
 			}
 			_current = NULL;
 			return _info.size+_info.size%2+sizeof(TRiffInfo);
@@ -732,16 +828,28 @@ namespace DeltaWorks
 			return true;
 		}
 
-		void Chunk::ToFile(FILE*f, bool force_list)
+		TID Chunk::WrittenType() const
 		{
+			return _type.value != 0 ? _type : TID(RIFF_DEFAULT_LIST_TYPE);
+		}
+
+		void Chunk::ToFile(FILE*f, bool force_list, bool typed)
+		{
+			if (force_list)
+				typed = HasFormType();
 			if (!fwrite(&_info,sizeof(_info),1,f))
 				return;
 			if (TID(_info.sid) == RIFF_LIST || force_list)
 			{
+				if (typed)
+				{
+					const TID type = WrittenType();
+					fwrite(&type.value,4,1,f);
+				}
 				Chunk*chunk = _first;
 				while (chunk)
 				{
-					chunk->ToFile(f);
+					chunk->ToFile(f,false,typed);
 					chunk = chunk->_next;
 				}
 			}
@@ -756,16 +864,24 @@ namespace DeltaWorks
 			return sizeof(_info)+_info.size+_info.size%2;
 		}
 
-		void Chunk::ToData(BYTE*out,bool force_list)
+		void Chunk::ToData(BYTE*out,bool force_list, bool typed)
 		{
+			if (force_list)
+				typed = HasFormType();
 			memcpy(out,&_info,sizeof(_info));
 			RIFF_ADDR offset = sizeof(TRiffInfo);
 			if (TID(_info.sid) == RIFF_LIST || force_list)
 			{
+				if (typed)
+				{
+					const TID type = WrittenType();
+					memcpy(&out[offset],&type.value,4);
+					offset += 4;
+				}
 				Chunk*chunk = _first;
 				while (chunk)
 				{
-					chunk->ToData(&out[offset]);
+					chunk->ToData(&out[offset],false,typed);
 					offset+=chunk->_info.size+chunk->_info.size%2+sizeof(TRiffInfo);
 					chunk = chunk->_next;
 				}
@@ -774,15 +890,17 @@ namespace DeltaWorks
 				memcpy(&out[offset],_data,_info.size + _info.size%2);
 		}
 
-		RIFF_SIZE Chunk::ResolveSize(bool force_list)
+		RIFF_SIZE Chunk::ResolveSize(bool force_list, bool typed)
 		{
+			if (force_list)
+				typed = HasFormType();
 			if (TID(_info.sid) == RIFF_LIST || force_list)
 			{
-				_info.size = 0;
+				_info.size = typed ? 4 : 0;
 				Chunk*chunk = _first;
 				while (chunk)
 				{
-					_info.size += chunk->ResolveSize(false);
+					_info.size += chunk->ResolveSize(false,typed);
 					chunk = chunk->_next;
 				}
 				return sizeof(_info) + _info.size;
