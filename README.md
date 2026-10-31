@@ -74,4 +74,4 @@ The Engine also needs the OpenAL SDK and OpenGL at link time in the application.
 
 ## License
 
-MIT, except for the third-party code listed above.
+MIT, see [LICENSE](LICENSE). The third-party code listed above keeps its own license.
