@@ -60,6 +60,14 @@ endif()
 if(_dw_use_packages)
 	message(STATUS "DeltaWorks: using zlib ${ZLIB_VERSION_STRING}, libpng ${PNG_VERSION_STRING}, "
 		"libjpeg ${JPEG_VERSION}, bzip2 ${BZIP2_VERSION_STRING} from packages")
+	# Imported targets are only visible in this directory unless promoted;
+	# DeltaWorksCore is defined in the parent directory.
+	foreach(_dw_target PNG::PNG JPEG::JPEG BZip2::BZip2 ZLIB::ZLIB)
+		get_target_property(_dw_global ${_dw_target} IMPORTED_GLOBAL)
+		if(NOT _dw_global)
+			set_target_properties(${_dw_target} PROPERTIES IMPORTED_GLOBAL TRUE)
+		endif()
+	endforeach()
 	list(APPEND DELTAWORKS_THIRD_PARTY_LIBS PNG::PNG JPEG::JPEG BZip2::BZip2 ZLIB::ZLIB)
 else()
 	if(DELTAWORKS_THIRD_PARTY STREQUAL "AUTO")
